@@ -757,3 +757,10 @@ test("the bot picks the best tuning split itself instead of the profile's saved 
   const split = ctx.tuning.split;
   assert.ok(split && Math.abs(split.strength + split.critDamage + split.critChance - 1) < 1e-9);
 });
+
+test('ability damage on dungeon items gets the star part only (no Catacombs boost)', () => {
+  const res = new Map([...resource, ['WITHER_GOGGLES', { id: 'WITHER_GOGGLES', name: 'Wither Goggles', category: 'HELMET', tier: 'EPIC', dungeon_item: true, stats: { ABILITY_DAMAGE_PERCENT: 45 } }]]);
+  const ctx = { ...makeContext({ cls: 'mage', cataLevel: 50, resource: res }), secretDigit: 5 };
+  const c = itemContribution({ ...newItem('WITHER_GOGGLES', res), masterStars: 5 }, ctx);
+  close(c.global.abilityDamage, 45 * 1.8);
+});

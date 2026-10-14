@@ -9,6 +9,7 @@ const STAT_KEYS = {
   strength: 'strength',
   crit_damage: 'critDamage',
   crit_chance: 'critChance',
+  ability_damage: 'abilityDamage',
   intelligence: 'intelligence',
   speed: 'speed',
   walk_speed: 'speed',

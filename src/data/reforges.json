@@ -2803,10 +2803,12 @@
   ],
   "stats": {
    "LEGENDARY": {
-    "strength": 75
+    "strength": 75,
+    "abilityDamage": 8
    },
    "MYTHIC": {
-    "strength": 90
+    "strength": 90,
+    "abilityDamage": 10
    }
   }
  },

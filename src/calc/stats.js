@@ -35,6 +35,7 @@ const STAT_ALIASES = {
   DAMAGE: 'damage', STRENGTH: 'strength', CRITICAL_DAMAGE: 'critDamage', CRIT_DAMAGE: 'critDamage',
   CRITICAL_CHANCE: 'critChance', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence',
   WALK_SPEED: 'speed', SPEED: 'speed', ATTACK_SPEED: 'attackSpeed', BONUS_ATTACK_SPEED: 'attackSpeed',
+  ABILITY_DAMAGE_PERCENT: 'abilityDamage', ABILITY_DAMAGE: 'abilityDamage',
 };
 
 // Flat stats get dungeon scaling. Percent, fraction and multiplier stats do not.
@@ -197,9 +198,9 @@ export function gemStat(gem, quality, rarity) {
 // ---------- One item's stats ----------
 
 // Every dungeon item is assumed to be a regular 5-starred item.
-// Crit chance and attack speed get the star part only (1.5 + master stars + medallion), no Catacombs boost.
+// Crit chance, attack speed and ability damage get the star part only (1.5 + master stars + medallion), no Catacombs boost.
 // Speed gets the full dungeon multiplier like strength.
-const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed']);
+const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'abilityDamage']);
 
 function scaleBucket(stats, item, ctx, dungeon) {
   if (!dungeon) return stats;
