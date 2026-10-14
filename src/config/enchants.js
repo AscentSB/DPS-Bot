@@ -27,8 +27,6 @@ export const ENCHANTS = {
   toxophilite: { categories: ['BOW'], target: 'global', stats: { critChance: [10] } },
   big_brain: { categories: ['HELMET'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
   smarty_pants: { categories: ['LEGGINGS'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
-  // Strong Mana: sheet value is +8 strength at level V on a dungeon helmet. Scales linearly here.
-  strong_mana: { categories: ARMOR, target: 'global', stats: { strength: [1.6, 3.2, 4.8, 6.4, 8, 9.6, 11.2, 12.8, 14.4, 16] } },
   // Legion is handled as a percent of combat stats per piece; see LEGION_* in constants.js.
   ultimate_legion: { categories: ARMOR, target: 'global', legion: true, maxLevel: 5 },
   // Chimera copies part of your pet's stats onto a Ragnarock; see CHIMERA_PER_LEVEL in constants.js.

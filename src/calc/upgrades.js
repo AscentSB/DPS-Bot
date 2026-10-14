@@ -8,6 +8,8 @@ import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../confi
 import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
+import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
+import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower,
@@ -48,6 +50,7 @@ function cloneLoadout(l) {
     owned: new Set(l.owned),
     extras: new Set(l.extras),
     shards: { ...l.shards },
+    perks: { ...l.perks },
   };
 }
 
@@ -58,9 +61,9 @@ function score(loadout, ctx, weights) {
 
 // Profile -> starting loadout. Picks the best owned item for each slot (two passes so slots settle).
 export function buildLoadout(profile, ctx, weights) {
-  const { items = [], pets = [], shards = {} } = profile;
+  const { items = [], pets = [], shards = {}, perks = {} } = profile;
   const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
-  const loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards } };
+  const loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks } };
   const bySlot = { weapon: [], rag: [] };
   for (const slot of [...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) bySlot[slot] = [];
 
@@ -143,16 +146,14 @@ function upgradableItems(loadout) {
   return [...set];
 }
 
-// cost parts: [{ id, qty }] or [{ coins, estimate }]. Returns { cost, source, estimate } or null if unpriced.
+// cost parts: [{ id, qty }] or [{ coins }] (gem slot unlock fees). Returns { cost, source } or null if unpriced.
 function priceParts(parts, prices) {
   let cost = 0;
   const sources = new Set();
-  let estimate = false;
   for (const part of parts) {
     if (part.coins) {
       cost += part.coins;
-      if (part.estimate) estimate = true;
-      sources.add(part.estimate ? 'est.' : 'coins');
+      sources.add('coins');
       continue;
     }
     const p = prices.get(part.id);
@@ -160,7 +161,7 @@ function priceParts(parts, prices) {
     cost += p.price * (part.qty ?? 1);
     sources.add(p.source);
   }
-  return { cost, source: [...sources].join('+'), estimate };
+  return { cost, source: [...sources].join('+') };
 }
 
 function hasDpsStats(stats) {
@@ -224,6 +225,14 @@ export function availableUpgrades(loadout, ctx, prices) {
           (l) => replaceItem(l, item, { ...item, hpb: HOT_POTATO.max + FUMING_POTATO.max }));
       }
       if (!item.artOfWar) push(`The Art of War on ${name}`, [{ id: ART_OF_WAR.id }], (l) => replaceItem(l, item, { ...item, artOfWar: true }));
+    }
+
+    // Fragging: base dungeon item + 8 boss fragments -> STARRED_ version (keeps its upgrades).
+    const frag = FRAGGED[item.id];
+    if (frag && resource.has(frag.id)) {
+      const info = resource.get(frag.id);
+      push(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, frag.parts,
+        (l) => replaceItem(l, item, { ...item, id: frag.id, name: info.name ?? item.name, category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
     }
 
     // Recombobulator.
@@ -293,7 +302,21 @@ export function availableUpgrades(loadout, ctx, prices) {
       (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
   }
 
-  // Pets, ability items and perks.
+  // Essence shop perks: any level above the current one (essence bought on the bazaar, Catacombs 20+).
+  if (ctx.cataLevel >= ESSENCE_MIN_CATA) {
+    for (const [key, perk] of Object.entries(ESSENCE_PERKS)) {
+      if (perk.pet && !loadout.extras.has(perk.pet)) continue;
+      const current = loadout.perks?.[key] ?? 0;
+      for (let level = current + 1; level <= perk.costs.length; level++) {
+        const qty = perk.costs.slice(current, level).reduce((a, b) => a + b, 0);
+        push(`${perk.name} ${roman(level)} (${qty.toLocaleString('en-US')} ${titleCase(perk.essence.toLowerCase())} Essence)`,
+          [{ id: `ESSENCE_${perk.essence}`, qty }],
+          (l) => { const next = cloneLoadout(l); next.perks[key] = level; return next; }, { group: `perk:${key}` });
+      }
+    }
+  }
+
+  // Pets and ability items.
   for (const entry of EXTRA_UPGRADES) {
     if (loadout.extras.has(entry.key)) continue;
     if (entry.classes && !entry.classes.includes(cls)) continue;
@@ -370,7 +393,7 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
       if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after };
     }
     if (!best) break;
-    steps.push({ label: best.label, cost: best.cost, source: best.source, estimate: best.estimate, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
+    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
     if (best.group) used.add(best.group);
     loadout = best.next;
     current = best.after;

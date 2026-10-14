@@ -9,10 +9,10 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 1. Looks up your UUID at `https://api.mojang.com/users/profiles/minecraft/<name>`.
 2. Pulls your selected SkyBlock profile from Hypixel. It reads every item by `ITEM_ID` (inventory, armor, equipment, wardrobe, ender chest, backpacks, vault, accessory bag), your Catacombs level, secrets, pets, selected power and tuning.
 3. Picks your best owned item for each slot.
-4. Tries every upgrade: master stars, enchant books, potato books, The Art of War, recombobulators, reforge stones, gemstones (with slot unlock costs), enrichments, attribute shards, pets, ability items, and buying any weapon, armor, equipment, accessory or Ragnarock you don't own.
+4. Tries every upgrade: master stars, enchant books, potato books, The Art of War, recombobulators, reforge stones, gemstones (with slot unlock costs), fragging (8 boss fragments), enrichments, attribute shards, essence shop perks, pets, ability items, and buying any weapon, armor, equipment, accessory or Ragnarock you don't own.
 5. Takes the best % per million, applies it, and repeats. A master star never lands on an item you don't have, and the 5th never comes before the 4th. Each item gets at most one reforge, one level per enchant and one gem per slot in a plan.
 
-Prices come from bazaar instant buy and auction house lowest BIN. NPC prices are never used. A few perks have no market item; those show "est." with the M7 archer sheet's cost.
+Prices come from bazaar instant buy and auction house lowest BIN. NPC prices are never used. Essence shop perks cost essence × the bazaar price of that essence, and only show at Catacombs 20+ (the bazaar requirement for essence).
 
 ## Weights
 
@@ -47,7 +47,8 @@ npm start
 ## Where to edit
 
 - `src/config/itemStats.js`: item ids and the stats they grant, misc buffs, reforge overrides.
-- `src/config/upgrades.js`: pets, ability items and perks.
+- `src/config/upgrades.js`: pets and ability items.
+- `src/config/essence.js`: essence shop perks.
 - `src/config/shards.js`: attribute shards.
 - `src/config/enchants.js`: enchant stats per level and which boss they affect.
 - `src/config/accessories.js`: Accessory Power, powers, tuning, enrichments.
@@ -55,4 +56,4 @@ npm start
 - `src/config/constants.js`: weights, boss defense, blessings, Catacombs table, soft cap.
 - `src/calc/formulas.js`: the damage and stat formulas.
 
-`npm run update-data` refreshes reforge stats and accessory families from the NotEnoughUpdates repo. `npm test` runs the tests.
+`npm run update-data` refreshes reforge stats, accessory families and fragged item recipes from the NotEnoughUpdates repo. `npm test` runs the tests.

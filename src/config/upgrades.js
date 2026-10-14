@@ -1,15 +1,15 @@
 // ============================================================================
-//  EXTRA UPGRADES DATABASE (pets, ability items, perks)
+//  EXTRA UPGRADES DATABASE (pets, ability items)
 // ============================================================================
-// Gear, reforges, enchants, gems, master stars, potato books, recombobulators,
-// accessories and shards are handled generically. This list covers everything else.
+// Gear, reforges, enchants, gems, master stars, potato books, recombobulators, fragging,
+// accessories, shards and essence shop perks (src/config/essence.js) are handled generically.
+// This list covers pets and ability items.
 // Values come from the M7 archer sheet unless noted.
 //
 //   key       unique id
 //   name      label shown in Discord
 //   stats     applied against every target; `wither` / `dragon` for one target
-//   cost      list of { id, qty } priced from bazaar / auction house,
-//             or { coins, estimate: true } when there is no market item (shown as "est.")
+//   cost      list of { id, qty } priced from bazaar / auction house
 //   owned     how to detect it on a profile:
 //               items: [ITEM_IDs]   any of these anywhere in the profile
 //               pets:  [PET_TYPEs]  any of these pets
@@ -68,11 +68,4 @@ export const EXTRA_UPGRADES = [
     key: 'SWORD_OF_BAD_HEALTH', name: 'Sword of Bad Health (ability)',
     stats: { strength: 100 }, cost: [{ id: 'SWORD_OF_BAD_HEALTH' }], owned: { items: ['SWORD_OF_BAD_HEALTH'] },
   },
-
-  // ---- Perks (not in the public API; shown with "?") ----
-  { key: 'PERK_STRENGTH_ESSENCE', name: 'Strength Essence perk', stats: { strength: 50 }, cost: [{ coins: 17_400_000, estimate: true }] },
-  { key: 'PERK_CRITICAL_ESSENCE', name: 'Critical Essence perk', stats: { critDamage: 50 }, cost: [{ coins: 50_400_000, estimate: true }] },
-  { key: 'PERK_FORBIDDEN_STRENGTH', name: 'Forbidden Strength perk', stats: { strength: 5 }, cost: [{ coins: 9_000_000, estimate: true }] },
-  { key: 'PERK_FORBIDDEN_SPEED', name: 'Forbidden Speed perk', stats: { critChance: 0.4 }, cost: [{ coins: 1_000_000, estimate: true }] },
-  { key: 'PERK_BLESSING_OF_TIME', name: 'Blessing of Time (Rift Sun Gecko shop)', stats: { strength: 6 }, cost: [{ coins: 1_000_000, estimate: true }] },
 ];

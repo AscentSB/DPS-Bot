@@ -168,3 +168,43 @@ test('gem slots that need unlocking include the unlock cost', () => {
   assert.ok(up);
   assert.equal(up.cost, 3e6 + 250000 + 2 * 3e6);
 });
+
+test('fragging a Bone Necklace costs 8 Thorn fragments and raises its crit chance', () => {
+  const res = new Map([...resource,
+    ['BONE_NECKLACE', { id: 'BONE_NECKLACE', name: 'Bone Necklace', category: 'NECKLACE', tier: 'EPIC', dungeon_item: true, stats: { CRITICAL_CHANCE: 3 } }],
+    ['STARRED_BONE_NECKLACE', { id: 'STARRED_BONE_NECKLACE', name: 'Bone Necklace', category: 'NECKLACE', tier: 'EPIC', dungeon_item: true, stats: { CRITICAL_CHANCE: 5 } }],
+  ]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const loadout = buildLoadout(profile([{ ...newItem('BONE_NECKLACE', res), masterStars: 1 }]), ctx, w);
+  const p = { get: (id) => (id === 'THORN_FRAGMENT' ? { price: 100000, source: 'BZ' } : null) };
+  const up = availableUpgrades(loadout, ctx, p).find((u) => u.label.startsWith('Frag Bone Necklace'));
+  assert.equal(up.cost, 800000);
+  const after = up.apply(loadout);
+  assert.equal(after.equipment.NECKLACE.id, 'STARRED_BONE_NECKLACE');
+  assert.equal(after.equipment.NECKLACE.masterStars, 1);
+  assert.ok(evaluate(after, ctx, w).stats.dragon.critChance > evaluate(loadout, ctx, w).stats.dragon.critChance);
+});
+
+test('essence perks cost essence x bazaar price and need Catacombs 20', () => {
+  const p = { get: (id) => (id === 'ESSENCE_UNDEAD' ? { price: 2000, source: 'BZ' } : null) };
+  const w = weightsFor('arch');
+  const low = makeContext({ cls: 'arch', cataLevel: 19, resource });
+  const high = makeContext({ cls: 'arch', cataLevel: 20, resource });
+  const prof = profile(items([{ id: 'TERMINATOR' }]), { perks: { catacombs_strength: 2 } });
+  assert.ok(!availableUpgrades(buildLoadout(prof, low, w), low, p).some((u) => u.label.startsWith('Strength Essence')));
+  const loadout = buildLoadout(prof, high, w);
+  const up = availableUpgrades(loadout, high, p).find((u) => u.label.startsWith('Strength Essence IV'));
+  assert.equal(up.cost, (6000 + 8000) * 2000);
+  const before = evaluate(loadout, high, w).stats.dragon.strength;
+  assert.ok(evaluate(up.apply(loadout), high, w).stats.dragon.strength > before);
+});
+
+test('Forbidden Blessing makes the Power blessing stronger', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const base = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
+  const blessed = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { perks: { forbidden_blessing: 10 } }), ctx, w);
+  const ratio = evaluate(blessed, ctx, w).stats.dragon.strength / evaluate(base, ctx, w).stats.dragon.strength;
+  assert.ok(ratio > 1);
+});

@@ -12,6 +12,7 @@ import {
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
+import { ESSENCE_PERKS } from '../config/essence.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -42,6 +43,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
+    blessing: 0,
   };
 }
 
@@ -362,6 +364,16 @@ function rawStats(loadout, ctx, activeExtras) {
     add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) });
   }
 
+  // Essence shop perks.
+  for (const [key, perk] of Object.entries(ESSENCE_PERKS)) {
+    const level = loadout.perks?.[key] ?? 0;
+    if (!level) continue;
+    const { petCritDamage, ...stats } = perk.perLevel;
+    add(Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, v * level])));
+    const pet = petCritDamage && activeExtras.find((e) => e.key === perk.pet);
+    if (pet) add({ critDamage: (pet.stats?.critDamage ?? 0) * petCritDamage * level });
+  }
+
   const shards = shardStats(loadout, c);
   add(shards.global);
   add(shards.wither, 'wither');
@@ -376,9 +388,9 @@ function rawStats(loadout, ctx, activeExtras) {
 export function finalStats(bucket, cls) {
   return {
     damage: calcDamage(bucket.damage),
-    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength),
-    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage),
-    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence),
+    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength, 1 + bucket.blessing),
+    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, 1 + bucket.blessing),
+    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, 1 + bucket.blessing),
     critChance: calcCritChance(bucket.critChance, bucket.additiveCritChance, bucket.multCritChance),
     // Berserker's 1200 is added inside berserkerDamage.
     additiveDamage: bucket.additiveDamage + (cls === 'bers' ? 0 : CLASSES[cls]?.baseAdditiveDamage ?? 0),

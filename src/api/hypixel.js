@@ -67,6 +67,7 @@ export function readMember(profile, uuid, resource) {
     power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
     tuning: readTuning(bag.tuning?.slot_0),
     shards: readShards(member.attributes),
+    perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },
   };
 }
 

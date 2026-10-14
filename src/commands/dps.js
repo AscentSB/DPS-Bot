@@ -26,7 +26,6 @@ export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
   const lines = plan.steps.map((s, i) =>
     `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
   const anyUnverified = plan.steps.some((s) => s.unverified);
-  const anyEstimate = plan.steps.some((s) => s.estimate);
   const fmt = (d) => `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}`;
   const targetLabel = target === 'wither' ? 'Withers only' : target === 'dragon' ? 'Dragons only' : `Wither ${weights.wither} / Dragon ${weights.dragon}`;
   let description = lines.join('\n') || 'No priced upgrades found that raise your damage.';
@@ -45,7 +44,6 @@ export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
       text: [
         'Prices: bazaar instant buy (BZ) and auction lowest BIN (AH). Each step assumes the ones above it.',
         anyUnverified ? '(?) = not in the public API; skip it if you already have it.' : null,
-        anyEstimate ? 'est. = no market item; cost from the M7 archer sheet.' : null,
       ].filter(Boolean).join('\n'),
     })
     .setColor(0x8e44ad);

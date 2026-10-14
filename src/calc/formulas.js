@@ -13,6 +13,7 @@ export function calcDamage(weaponDamage) {
   return BASE_DAMAGE + weaponDamage;
 }
 
+// blessingScale: Forbidden Blessing makes blessings up to 10% more effective (1.1).
 function blessed(flat, blessing, additive, additive2, multiplicative) {
   return (flat + BLESSING_FLAT_PER_LEVEL * blessing)
     * (1 + additive + additive2)
@@ -21,18 +22,18 @@ function blessed(flat, blessing, additive, additive2, multiplicative) {
 }
 
 // (Strength + 76)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .38)
-export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1) {
-  return blessed(strength, POWER_BLESSING, additive, additive2, multiplicative);
+export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
+  return blessed(strength, POWER_BLESSING * blessingScale, additive, additive2, multiplicative);
 }
 
 // (CritDamage + 76)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .38)
-export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1) {
-  return blessed(critDamage, POWER_BLESSING, additive, additive2, multiplicative);
+export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
+  return blessed(critDamage, POWER_BLESSING * blessingScale, additive, additive2, multiplicative);
 }
 
 // (Intelligence + 48)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .24)
-export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1) {
-  return blessed(intelligence, WISDOM_BLESSING, additive, additive2, multiplicative);
+export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
+  return blessed(intelligence, WISDOM_BLESSING * blessingScale, additive, additive2, multiplicative);
 }
 
 // (CritChance + 30)(1 + additive)(multiplicative)

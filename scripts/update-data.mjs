@@ -64,7 +64,29 @@ for (const [stoneId, r] of Object.entries(stones)) {
 
 const accessories = { upgrades: misc.talisman_upgrades, ignored: misc.ignored_talisman };
 
+// Fragged (STARRED_) items: base item + dungeon boss fragments, from NEU recipes.
+const hypixel = await (await fetch('https://api.hypixel.net/v2/resources/skyblock/items')).json();
+const starred = hypixel.items.map((i) => i.id).filter((id) => id.startsWith('STARRED_'));
+const fragged = {};
+await Promise.all(starred.map(async (id) => {
+  const res = await fetch(`https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/items/${id}.json`);
+  if (!res.ok) return;
+  const recipe = (await res.json()).recipe;
+  if (!recipe) return;
+  const counts = {};
+  for (const cell of Object.values(recipe)) {
+    if (!cell) continue;
+    const [item, qty] = cell.split(':');
+    counts[item] = (counts[item] ?? 0) + Number(qty || 1);
+  }
+  const base = id.replace(/^STARRED_/, '');
+  if (!counts[base]) return;
+  delete counts[base];
+  fragged[base] = { id, parts: Object.entries(counts).map(([item, qty]) => ({ id: item, qty })) };
+}));
+
 await mkdir(OUT, { recursive: true });
 await writeFile(new URL('reforges.json', OUT), JSON.stringify(reforges, null, 1) + '\n');
 await writeFile(new URL('accessories.json', OUT), JSON.stringify(accessories, null, 1) + '\n');
-console.log(`Wrote ${Object.keys(reforges).length} reforges and ${Object.keys(accessories.upgrades).length} accessory families.`);
+await writeFile(new URL('fragged.json', OUT), JSON.stringify(fragged, null, 1) + '\n');
+console.log(`Wrote ${Object.keys(reforges).length} reforges, ${Object.keys(accessories.upgrades).length} accessory families, ${Object.keys(fragged).length} fragged items.`);
