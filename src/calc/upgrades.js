@@ -485,8 +485,8 @@ function gemUpgrades(item, ctx) {
 // Greedy plan: take the best weighted % DPS per million coins, apply it, repeat.
 // Upgrades that share a group (one reforge per item, one level per enchant, one gem per slot,
 // one purchase per gear slot, one pet) are picked at most once per plan, so the list never
-// Groups for item changes that are made once per item: keep the best option, not the cheapest.
-const ONE_SHOT_GROUP = /:(reforge|enchant:|gem:|enrich)/;
+// Groups for item changes (reforges, enchant levels, gems, enrichments).
+const ITEM_CHANGE_GROUP = /:(reforge|enchant:|gem:|enrich)/;
 
 // tells you to buy something and then replace it.
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
@@ -507,22 +507,13 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
       if (gain <= 1e-9) continue;
       candidates.push({ ...up, gain, perMillion: gain / (up.cost / 1_000_000), next, after });
     }
-    // Item changes made once (a reforge, an enchant level, a gem, an enrichment) offer only the option with the
-    // most damage, so a cheap pick can't lock out a better one (Blended before Bloodshot, Duplex I before V).
-    const topByGroup = new Map();
-    for (const c of candidates) {
-      if (!c.group || !ONE_SHOT_GROUP.test(c.group)) continue;
-      const prev = topByGroup.get(c.group);
-      if (!prev || c.gain > prev.gain) topByGroup.set(c.group, c);
-    }
     let best = null;
-    for (const c of candidates) {
-      if (c.group && ONE_SHOT_GROUP.test(c.group) && topByGroup.get(c.group) !== c) continue;
-      if (!best || c.perMillion > best.perMillion) best = c;
-    }
+    for (const c of candidates) if (!best || c.perMillion > best.perMillion) best = c;
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
-    if (best.group) used.add(best.group);
+    // Item changes (reforges, enchant levels, gems, enrichments) never lock: Duplex I can be followed by
+    // Duplex II and later V, each ranked on its own gain per million. Buys stay one per slot.
+    if (best.group && !ITEM_CHANGE_GROUP.test(best.group)) used.add(best.group);
     loadout = selectPet(best.next, ctx, weights);
     current = evaluate(loadout, ctx, weights);
   }

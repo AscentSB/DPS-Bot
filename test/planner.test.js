@@ -609,3 +609,15 @@ test('fragging an item marks the fragged id owned, so the planner never buys a s
   assert.ok(after.owned.has(after.equipment.BELT.id));
   assert.ok(!availableUpgrades(after, ctx, p).some((u) => u.label.startsWith('Buy Adaptive Belt')));
 });
+
+test('enchant levels never lock: Duplex I can be followed by higher levels, each ranked by gain per million', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: 3e6, ENCHANTMENT_ULTIMATE_REITERATE_3: 6e6, ENCHANTMENT_ULTIMATE_REITERATE_4: 10e6, ENCHANTMENT_ULTIMATE_REITERATE_5: 15e6 };
+  const p = { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) };
+  const labels = planUpgrades(l, ctx, p, w, 10).steps.map((s) => s.label);
+  const duplex = labels.filter((x) => x.startsWith('Duplex'));
+  assert.ok(duplex.length > 1, labels.join(', '));
+  assert.ok(duplex.at(-1).startsWith('Duplex V '), duplex.join(', '));
+});
