@@ -17,12 +17,14 @@ test('catacombs level and boost', () => {
   assert.equal(cataLevelFromXp(50), 1);
   assert.equal(cataLevelFromXp(569_809_640), 50);
   assert.equal(cataLevelFromXp(2e9), 50);
-  close(cataBoost(50) + 1.5, 6.25);
+  close(cataBoost(10), 0.45);
+  close(cataBoost(21), 1.18);
+  close(cataBoost(50) + 1.5, 6.15);
 });
 
 test('dungeon stat scaling', () => {
-  close(dungeonStat(100, 0, 50, 0), 625);
-  close(dungeonStat(100, 2, 50, 3), 100 * (6.25 + 10 + 0.03));
+  close(dungeonStat(100, 0, 50, 0), 615);
+  close(dungeonStat(100, 2, 50, 3), 100 * (6.15 + 10 + 0.03));
   close(dungeonCritChance(10, 5, 9), 10 * (1.5 + 0.25 + 0.05));
 });
 

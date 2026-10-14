@@ -4,7 +4,7 @@ import {
   CRIT_CHANCE_CAP, MAGE_INT_DIVISOR, MAGE_ABILITY_SCALING, MAGE_ABILITY_BASE,
   HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP,
   DUNGEON_BASE_ADD, MASTER_STAR_STEP, CRIT_BASE, CRIT_MASTER_STAR_STEP,
-  SECRET_STEP, SECRET_DIGIT_CAP, CATA_LEVEL_BONUS, CATA_XP_PER_LEVEL,
+  SECRET_STEP, SECRET_DIGIT_CAP, CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
 } from '../config/constants.js';
 
 // ---------- Stat calculations ----------
@@ -42,10 +42,8 @@ export function cataLevelFromXp(xp) {
 }
 
 export function cataBoost(level) {
-  const capped = Math.max(0, Math.min(level, CATA_LEVEL_BONUS.length));
-  let total = 0;
-  for (let i = 0; i < capped; i++) total += CATA_LEVEL_BONUS[i];
-  return total;
+  const capped = Math.max(0, Math.min(level, CATA_STAT_BONUS.length));
+  return capped === 0 ? 0 : CATA_STAT_BONUS[capped - 1] / 100;
 }
 
 // basestat * (cataBoost + 1.5 + 5 * masterstars + .01 * secretdigit)

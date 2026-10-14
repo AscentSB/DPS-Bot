@@ -47,7 +47,7 @@ export const SOFT_CAP_KEEP = 0.1;
 // Dungeon item stats:
 //   stat       * (cataBoost + DUNGEON_BASE_ADD + MASTER_STAR_STEP * masterStars + SECRET_STEP * secretDigit)
 //   critChance * (CRIT_BASE + CRIT_MASTER_STAR_STEP * masterStars + SECRET_STEP * min(secretDigit, SECRET_DIGIT_CAP))
-// cataBoost comes from the player's Catacombs level (see CATA_LEVEL_BONUS below).
+// cataBoost comes from the player's Catacombs level (see CATA_STAT_BONUS below).
 export const DUNGEON_BASE_ADD = 1.5;
 export const MASTER_STAR_STEP = 5; // as specified. Change to 0.05 if master stars should give +5% each.
 export const CRIT_BASE = 1.5;
@@ -57,12 +57,16 @@ export const SECRET_DIGIT_CAP = 5;
 export const DEFAULT_SECRET_DIGIT = 0;
 export const MAX_MASTER_STARS = 5;
 
-// Catacombs stat bonus gained per level, as a fraction. Index 0 = level 1.
-// Brackets of five levels. Totals 4.75 at level 50, so cata 50 gives 4.75 + 1.5 = 6.25.
-export const CATA_LEVEL_BONUS = [
-  ...Array(5).fill(0.04), ...Array(5).fill(0.05), ...Array(5).fill(0.06), ...Array(5).fill(0.07),
-  ...Array(5).fill(0.08), ...Array(5).fill(0.09), ...Array(5).fill(0.10), ...Array(5).fill(0.12),
-  ...Array(5).fill(0.14), ...Array(5).fill(0.20),
+// Catacombs dungeon item stat bonus in percent, cumulative. Index 0 = level 1.
+// Copied from the "Stats Increment" column of the Catacombs/Levels table on
+// https://hypixelskyblock.minecraft.wiki/w/Catacombs/Levels
+// Paste new values here if Hypixel changes them. cataBoost = value / 100.
+export const CATA_STAT_BONUS = [
+  4, 8, 12, 16, 20, 25, 30, 35, 40, 45,
+  51, 57, 63, 69, 75, 82, 89, 96, 103, 110,
+  118, 126, 134, 142, 150, 159, 168, 177, 186, 195,
+  205, 215, 225, 235, 245, 257, 269, 281, 293, 305,
+  319, 333, 347, 361, 375, 391, 408, 426, 445, 465,
 ];
 
 // XP needed for each Catacombs level (not cumulative). Index 0 = level 1.
