@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -254,10 +254,9 @@ function distribute(stats, points, ctx) {
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
 }
 
-// Speed above (or below) the starting loadout moves tuning points off (or onto) speed.
+// Speed past the cap moves tuning points off speed onto DPS stats. Below the cap speed adds nothing.
 function speedTuning(speed, ctx) {
-  if (ctx.baseSpeed === undefined) return {};
-  let points = (speed - ctx.baseSpeed) / TUNING_PER_POINT.speed;
+  let points = Math.max(0, speed - SPEED_CAP) / TUNING_PER_POINT.speed;
   const inSpeed = ctx.tuning?.allocation ? ctx.tuning.allocation.speed ?? 0 : Infinity;
   if (points > inSpeed) points = inSpeed;
   const stats = {};
@@ -396,7 +395,7 @@ function rawStats(loadout, ctx, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
-  const speed = buckets.wither.speed;
+  const speed = BASE_SPEED + EXTRA_SPEED + buckets.wither.speed;
   add(speedTuning(speed, c));
   return { buckets, ap: acc.ap, speed };
 }

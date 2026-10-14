@@ -28,7 +28,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 
 - Blessings: Power 19 (strength, crit damage), Wisdom 12 (intelligence) and Time 5 (strength, intelligence; from the Quiz, set it to 0 or 5). Each adds `4 × level × E` flat and multiplies by `1 + 0.02 × level × E`, where `E = 1.2 floor buff × (1 + Forbidden Blessing) × (1 + Mimic shard)`. With Forbidden Blessing X and Mimic X, E is the original 1.1 × 1.1 × 1.2.
 - Strength: `(flat + blessing flat)(1 + additive + 2nd additive)(multiplicative)(blessing %)`. Crit damage and intelligence use the same shape.
-- Speed: extra speed frees tuning points off speed onto your DPS stats (1 point per 1.5 speed), capped at the points your profile has in speed. Losing speed costs points.
+- Speed: total speed is 100 + every tracked source (+ `EXTRA_SPEED` for potions or a Rogue Sword). Nothing counts until 500. Speed past 500 frees tuning points off speed onto crit damage / crit chance (1 point per 1.5 speed), capped at the points your profile has in speed.
 - Crit chance: `(flat + 30)(1 + additive)(multiplicative)`. Terminator's multiplier is 0.25.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
 - Dungeon gear: `stat × (1 + cata boost + 0.1 × stars + 0.05 × master stars + 0.01 × secret digits)`. Crit chance skips the cata boost. Secret digits need a General's Medallion.

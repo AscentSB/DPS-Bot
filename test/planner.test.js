@@ -209,16 +209,25 @@ test('Forbidden Blessing makes the Power blessing stronger', () => {
   assert.ok(ratio > 1);
 });
 
-test('extra speed frees tuning points onto DPS stats, capped by points in speed', () => {
+test('speed only helps past the 500 cap, capped by points in speed', () => {
+  const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 395 } }]]);
   const w = weightsFor('arch');
-  const make = (tuning) => makeContext({ cls: 'arch', cataLevel: 50, resource, tuning });
-  for (const [tuning, expectGain] of [[null, true], [{ allocation: { speed: 10, critDamage: 20 }, split: { speed: 0.33, critDamage: 0.67 } }, true], [{ allocation: { critDamage: 30 }, split: { critDamage: 1 } }, false]]) {
-    const ctx = make(tuning);
-    const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
-    const faster = { ...loadout, shards: { OBSIDIAN_DEFENDER: 10 } };
-    const a = evaluate(loadout, ctx, w);
+  const cases = [
+    [null, 0, false], // 495 -> 500: still at or below the cap
+    [null, 5, true],
+    [{ allocation: { speed: 20, critDamage: 20 }, split: { speed: 0.5, critDamage: 0.5 } }, 0, true], // 495 gear speed + 30 from tuning: 16.7 of 20 points free, +5 speed frees more
+    [{ allocation: { critDamage: 30 }, split: { critDamage: 1 } }, 5, false],
+  ];
+  for (const [tuning, extraBoots, expectGain] of cases) {
+    const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning });
+    const boots = { ...newItem('FAST_BOOTS', res) };
+    const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), boots]), ctx, w);
+    // Start at 100 + 395 = 495 (+ extraBoots via shard levels), then add 5 more speed.
+    const start = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots } };
+    const faster = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots + 5 } };
+    const a = evaluate(start, ctx, w);
     const b = evaluate(faster, ctx, w);
-    assert.equal(b.speed - a.speed, 10);
-    assert.equal(b.dragon > a.dragon, expectGain);
+    assert.equal(b.speed - a.speed, 5);
+    assert.equal(b.dragon > a.dragon, expectGain, `tuning=${JSON.stringify(tuning)} start=${a.speed}`);
   }
 });

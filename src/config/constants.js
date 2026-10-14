@@ -38,6 +38,13 @@ export const BLESSING_FLOOR_BUFF = 0.2;
 export const PAUL_BENEDICTION = false;
 export const BENEDICTION_BUFF = 0.25;
 
+// Speed: you need SPEED_CAP speed (with your damage pet) before extra speed helps. Only speed above
+// the cap can be taken off tuning and moved to crit damage / crit chance. Speed is base 100 plus
+// every source the bot tracks; add potions or a Rogue Sword in EXTRA_SPEED.
+export const BASE_SPEED = 100;
+export const SPEED_CAP = 500;
+export const EXTRA_SPEED = 0;
+
 // crit chance = (flat + BASE_CRIT_CHANCE)(1 + additive)(multiplicative). Terminator has a 0.25 multiplier.
 export const BASE_CRIT_CHANCE = 30;
 

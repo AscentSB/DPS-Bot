@@ -96,8 +96,6 @@ export function buildLoadout(profile, ctx, weights) {
 
   // Tuning points already spent come from the profile; new ones from extra Accessory Power follow the split.
   if (ctx.tuning) ctx.tuning.basePoints = Math.floor(totalAccessoryPower(loadout, ctx.resource) / 10);
-  // Speed changes from here on are converted to tuning points.
-  ctx.baseSpeed = evaluate(loadout, ctx, weights).speed;
   return loadout;
 }
 
