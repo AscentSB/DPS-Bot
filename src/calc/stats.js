@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
@@ -415,10 +415,15 @@ function rawStats(loadout, ctx, activeExtras) {
     add(contrib.dragon, 'dragon');
   }
 
-  // Legion: percent of all combat stats per piece of armor.
+  // Legion: percent of combat stats per piece of armor (crit chance counts more players against dragons).
   let legion = 0;
-  for (const item of Object.values(loadout.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL * LEGION_PLAYERS;
-  if (legion) add({ additiveStrength: legion, additiveCritDamage: legion, additiveCritChance: legion, additiveIntelligence: legion, additiveAttackSpeed: legion });
+  for (const item of Object.values(loadout.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL;
+  if (legion) {
+    const l = legion * LEGION_PLAYERS;
+    add({ additiveStrength: l, additiveCritDamage: l, additiveIntelligence: l, additiveAttackSpeed: l });
+    add({ additiveCritChance: l }, 'wither');
+    add({ additiveCritChance: legion * LEGION_DRAGON_CRIT_CHANCE_PLAYERS }, 'dragon');
+  }
 
   const extrasBucket = { global: {}, wither: {}, dragon: {} };
   const activeKeys = new Set(activeExtras.map((e) => e.key));

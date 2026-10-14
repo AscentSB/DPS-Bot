@@ -483,3 +483,15 @@ test('a bracelet takes the gloves slot: never worn together with gloves', () => 
   const buy = availableUpgrades(owned, ctx, p).find((u) => u.label.startsWith('Buy Molten Bracelet'));
   if (buy) assert.ok(!('BRACELET' in buy.apply(owned).equipment));
 });
+
+test('Legion crit chance counts 4 players against dragons, 1 against withers; other stats 1 everywhere', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const plain = buildLoadout(profile([newItem('TERMINATOR', resource), newItem('POWER_WITHER_LEGGINGS', resource)]), ctx, w);
+  const legion = { ...plain, armor: { LEGGINGS: { ...plain.armor.LEGGINGS, enchants: { ultimate_legion: 5 } } } };
+  const a = evaluate({ ...plain, activePets: {} }, ctx, w).stats;
+  const b = evaluate({ ...legion, activePets: {} }, ctx, w).stats;
+  const ratio = (t, k) => b[t][k] / a[t][k];
+  assert.ok(Math.abs(ratio('dragon', 'critChance') - 1) > 3.5 * Math.abs(ratio('wither', 'critChance') - 1));
+  close(ratio('dragon', 'strength'), ratio('wither', 'strength'));
+});
