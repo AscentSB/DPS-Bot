@@ -210,7 +210,7 @@ test('Forbidden Blessing makes the Power blessing stronger', () => {
 });
 
 test('speed only helps past the 500 cap, capped by points in speed', () => {
-  const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 395 } }]]);
+  const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 380 } }]]);
   const w = weightsFor('arch');
   const cases = [
     [null, 0, false], // 495 -> 500: still at or below the cap
@@ -222,7 +222,7 @@ test('speed only helps past the 500 cap, capped by points in speed', () => {
     const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning });
     const boots = { ...newItem('FAST_BOOTS', res) };
     const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), boots]), ctx, w);
-    // Start at 100 + 395 = 495 (+ extraBoots via shard levels), then add 5 more speed.
+    // Start at 100 + 15 potion + 380 = 495 (+ extraBoots via shard levels), then add 5 more speed.
     const start = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots } };
     const faster = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots + 5 } };
     const a = evaluate(start, ctx, w);
@@ -230,4 +230,12 @@ test('speed only helps past the 500 cap, capped by points in speed', () => {
     assert.equal(b.speed - a.speed, 5);
     assert.equal(b.dragon > a.dragon, expectGain, `tuning=${JSON.stringify(tuning)} start=${a.speed}`);
   }
+});
+
+test('Wolf Slayer speed: +1 at levels 1, 3 and 8', async () => {
+  const { wolfSlayerSpeed } = await import('../src/api/hypixel.js');
+  assert.equal(wolfSlayerSpeed(0), 0);
+  assert.equal(wolfSlayerSpeed(10), 1);
+  assert.equal(wolfSlayerSpeed(250), 2);
+  assert.equal(wolfSlayerSpeed(400000), 3);
 });

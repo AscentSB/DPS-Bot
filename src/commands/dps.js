@@ -64,7 +64,7 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, resource });
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, resource });
     const weights = weightsFor(cls, target);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);

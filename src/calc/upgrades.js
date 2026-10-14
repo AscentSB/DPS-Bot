@@ -25,8 +25,8 @@ export function weightsFor(cls, target) {
 }
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, resource }) {
-  return { cls, cataLevel, secrets, power, tuning, resource };
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, resource }) {
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.

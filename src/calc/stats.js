@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION_SPEED,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -395,7 +395,7 @@ function rawStats(loadout, ctx, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
-  const speed = BASE_SPEED + EXTRA_SPEED + buckets.wither.speed;
+  const speed = BASE_SPEED + DUNGEON_POTION_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
   add(speedTuning(speed, c));
   return { buckets, ap: acc.ap, speed };
 }

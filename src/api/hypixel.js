@@ -3,6 +3,7 @@ import { ITEMS_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp } from '../calc/formulas.js';
 import { TUNING_KEYS } from '../config/accessories.js';
+import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
 
 const API = 'https://api.hypixel.net/v2';
@@ -68,7 +69,14 @@ export function readMember(profile, uuid, resource) {
     tuning: readTuning(bag.tuning?.slot_0),
     shards: readShards(member.attributes),
     perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },
+    profileSpeed: wolfSlayerSpeed(member.slayer?.slayer_bosses?.wolf?.xp ?? 0),
   };
+}
+
+// Speed from Wolf Slayer levels.
+export function wolfSlayerSpeed(xp) {
+  const level = WOLF_SLAYER_XP.filter((need) => xp >= need).length;
+  return WOLF_SLAYER_SPEED_LEVELS.filter((l) => level >= l).length;
 }
 
 // { allocation: { strength: 40, critDamage: 30 }, split: { strength: 0.57, critDamage: 0.43 } } or null

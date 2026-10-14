@@ -39,11 +39,17 @@ export const PAUL_BENEDICTION = false;
 export const BENEDICTION_BUFF = 0.25;
 
 // Speed: you need SPEED_CAP speed (with your damage pet) before extra speed helps. Only speed above
-// the cap can be taken off tuning and moved to crit damage / crit chance. Speed is base 100 plus
-// every source the bot tracks; add potions or a Rogue Sword in EXTRA_SPEED.
+// the cap can be taken off tuning and moved to crit damage / crit chance.
+// Speed = base 100 + Dungeon VII potion (Speed III) + Wolf Slayer + every tracked gear/accessory/perk source.
+// The Rogue Sword is not counted. Put any other always-on speed in EXTRA_SPEED.
 export const BASE_SPEED = 100;
 export const SPEED_CAP = 500;
+export const DUNGEON_POTION_SPEED = 15;
 export const EXTRA_SPEED = 0;
+
+// Wolf Slayer: +1 speed at levels 1, 3 and 8. XP needed for levels 1-9.
+export const WOLF_SLAYER_XP = [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000];
+export const WOLF_SLAYER_SPEED_LEVELS = [1, 3, 8];
 
 // crit chance = (flat + BASE_CRIT_CHANCE)(1 + additive)(multiplicative). Terminator has a 0.25 multiplier.
 export const BASE_CRIT_CHANCE = 30;
