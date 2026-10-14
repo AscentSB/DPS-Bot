@@ -6,11 +6,14 @@
 export const PET_ITEMS = {
   ANTIQUE_REMEDIES: { name: 'Antique Remedies', mult: { strength: 1.8 } },
   HEPHAESTUS_REMEDIES: { name: 'Hephaestus Remedies', mult: { strength: 2 } },
-  HEPHAESTUS_RELIC: { name: 'Hephaestus Relic', mult: { strength: 1.5, critDamage: 1.5, critChance: 1.5, intelligence: 1.5, speed: 1.5 } },
+  HEPHAESTUS_RELIC: { name: 'Hephaestus Relic', mult: { strength: 1.5, critDamage: 1.5, critChance: 1.5, intelligence: 1.5, speed: 1.5, attackSpeed: 1.5 } },
   GOLD_CLAWS: { name: 'Gold Claws', mult: { critDamage: 1.5, critChance: 1.5 } },
   PET_ITEM_SHARPENED_CLAWS_UNCOMMON: { name: 'Sharpened Claws', flat: { critDamage: 15 } },
   PET_ITEM_BIG_TEETH_COMMON: { name: 'Big Teeth', flat: { critChance: 5 } },
   PET_ITEM_TEXTBOOK: { name: 'Textbook', mult: { intelligence: 2 } },
+  // Plushies: the easiest way to reach 100 attack speed.
+  CROCHET_TIGER_PLUSHIE: { name: 'Crochet Tiger Plushie', flat: { attackSpeed: 35 } },
+  HEPHAESTUS_PLUSHIE: { name: 'Hephaestus Plushie', flat: { attackSpeed: 50 } },
 };
 
 // Perks that raise damage, by pet type. `n` is the pet's perk numbers at its level (NEU otherNums),

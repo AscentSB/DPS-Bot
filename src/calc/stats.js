@@ -1,7 +1,8 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
+  MELEE_HIT_TICKS, DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -28,7 +29,7 @@ export const TARGETS = ['wither', 'dragon'];
 const STAT_ALIASES = {
   DAMAGE: 'damage', STRENGTH: 'strength', CRITICAL_DAMAGE: 'critDamage', CRIT_DAMAGE: 'critDamage',
   CRITICAL_CHANCE: 'critChance', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence',
-  WALK_SPEED: 'speed', SPEED: 'speed',
+  WALK_SPEED: 'speed', SPEED: 'speed', ATTACK_SPEED: 'attackSpeed', BONUS_ATTACK_SPEED: 'attackSpeed',
 };
 
 // Flat stats get dungeon scaling. Percent, fraction and multiplier stats do not.
@@ -46,7 +47,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, arrows: 0,
   };
 }
 
@@ -68,6 +69,25 @@ function addLoose(target, stats, scale = 1) {
 }
 
 // ---------- Item helpers ----------
+
+// Shots per second for shortbows, hits per second for melee, 1 otherwise (regular bows, mage).
+export function volleysPerSecond(weapon, attackSpeed, ctx) {
+  const as = Math.min(Math.max(attackSpeed, 0), ATTACK_SPEED_CAP);
+  const shotTicks = ITEM_STATS[weapon?.id]?.shotTicks;
+  if (shotTicks) return TICKS_PER_SECOND / Math.ceil(shotTicks / (1 + as / 100) - 1e-9);
+  if (ctx.cls === 'bers' && (weapon?.category === 'SWORD' || weapon?.category === 'LONGSWORD')) {
+    return TICKS_PER_SECOND / Math.max(1, Math.round(MELEE_HIT_TICKS / (1 + as / 100)));
+  }
+  return 1;
+}
+
+// Arrows per shot: the bow's arrows + Duplex + Archer Doubleshot (bows only).
+export function arrowsPerVolley(weapon, extraArrows, ctx) {
+  if (weapon?.category !== 'BOW') return 1;
+  const base = ITEM_STATS[weapon.id]?.arrows ?? 1;
+  const doubleshot = ctx.cls === 'arch' ? Math.min(1, DOUBLESHOT_BASE + DOUBLESHOT_PER_LEVEL * (ctx.archerLevel ?? 0)) : 0;
+  return base + extraArrows + doubleshot;
+}
 
 function isBow(item) {
   return item?.category === 'BOW';
@@ -257,13 +277,15 @@ function distribute(stats, points, ctx) {
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
 }
 
-// Tuning points fill speed up to the cap first; only what is left goes to DPS stats.
-// speed: speed from everything except tuning.
-export function tuningAllocation(points, speed, ctx) {
-  const speedPoints = Math.min(points, Math.max(0, Math.ceil((SPEED_CAP - speed) / TUNING_PER_POINT.speed)));
-  const stats = { speed: speedPoints * TUNING_PER_POINT.speed };
-  distribute(stats, points - speedPoints, ctx);
-  return { stats, speedPoints, dpsPoints: points - speedPoints };
+// Tuning order: attack speed up to the cap, then speed up to the cap, then DPS stats.
+// speed / attackSpeed: what the player has from everything except tuning.
+export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP) {
+  const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / TUNING_PER_POINT.attackSpeed)));
+  const left = points - asPoints;
+  const speedPoints = Math.min(left, Math.max(0, Math.ceil((SPEED_CAP - speed) / TUNING_PER_POINT.speed)));
+  const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
+  distribute(stats, left - speedPoints, ctx);
+  return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };
 }
 
 // Accessory bag: own stats, Accessory Power, power stats, enrichments, and how many tuning points it gives.
@@ -427,8 +449,11 @@ function rawStats(loadout, ctx, activeExtras) {
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
   if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
-  const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c);
+  // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
+  const bootsSpeed = (item) => (item ? itemRawStats(item, c).global.speed ?? 0 : 0);
+  const clearSwap = Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS));
+  const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, buckets.wither.attackSpeed);
   add(tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }
@@ -453,7 +478,13 @@ export function hasHyperion(loadout) {
 
 function evaluateWith(loadout, ctx, activeExtras) {
   const { buckets, ap, speed, tuning } = rawStats(loadout, ctx, activeExtras);
-  const result = { stats: {}, ap, speed, tuning: { speed: tuning.speedPoints, dps: tuning.dpsPoints } };
+  const attackSpeed = buckets.wither.attackSpeed;
+  const shots = volleysPerSecond(loadout.weapon, attackSpeed, ctx);
+  const arrows = arrowsPerVolley(loadout.weapon, buckets.wither.arrows, ctx);
+  const result = {
+    stats: {}, ap, speed, attackSpeed, volleysPerSecond: shots, arrowsPerVolley: arrows,
+    tuning: { attackSpeed: tuning.attackSpeedPoints, speed: tuning.speedPoints, dps: tuning.dpsPoints },
+  };
   for (const target of TARGETS) {
     const s = finalStats(buckets[target], ctx.cls);
     const defense = TARGET_DEFENSE[target];
@@ -461,7 +492,8 @@ function evaluateWith(loadout, ctx, activeExtras) {
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense);
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, CLASSES.bers.baseAdditiveDamage);
     else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout));
-    result[target] = dmg * (ITEM_STATS[loadout.weapon?.id]?.dpsMultiplier ?? 1);
+    // DPS = damage per arrow x arrows per volley x volleys per second.
+    result[target] = dmg * arrows * shots;
     result.stats[target] = s;
   }
   return result;
@@ -501,7 +533,7 @@ export function dpsPets(pets, ctx) {
   const order = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
   for (const pet of pets ?? []) {
     const s = petStats(pet, ctx.petProfile);
-    const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength'].some((k) => s.stats[k])
+    const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength', 'attackSpeed'].some((k) => s.stats[k])
       || Object.keys(s.dragon).length || Object.keys(s.wither).length;
     if (!useful) continue;
     const key = `${pet.type}:${pet.heldItem ?? ''}`;

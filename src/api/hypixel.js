@@ -69,6 +69,7 @@ export function readMember(profile, uuid, resource) {
   return {
     items,
     cataLevel: cataLevelFromXp(cataXp),
+    archerLevel: cataLevelFromXp(member.dungeons?.player_classes?.archer?.experience ?? 0),
     cataXp,
     secrets: Number(member.dungeons?.secrets ?? 0),
     pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),

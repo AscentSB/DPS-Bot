@@ -51,6 +51,16 @@ export const EXTRA_SPEED = 0;
 // bowDamage only counts while holding a bow.
 export const DUNGEON_POTION = { strength: 40, critChance: 20, critDamage: 30, bowDamage: 50, speed: 15 };
 
+// Attack speed: tuning fills attack speed up to ATTACK_SPEED_CAP first (before speed and crit).
+// Shortbows fire every ceil(shotTicks / (1 + AS/100)) ticks; melee hits every round(10 / (1 + AS/100)) ticks.
+export const ATTACK_SPEED_CAP = 100;
+export const TICKS_PER_SECOND = 20;
+export const MELEE_HIT_TICKS = 10;
+
+// Archer class: Doubleshot fires one extra arrow with chance 50% + 1% per Archer level (max 1 arrow).
+export const DOUBLESHOT_BASE = 0.5;
+export const DOUBLESHOT_PER_LEVEL = 0.01;
+
 // Wolf Slayer: +1 speed at levels 1, 3 and 8. XP needed for levels 1-9.
 export const WOLF_SLAYER_XP = [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000];
 export const WOLF_SLAYER_SPEED_LEVELS = [1, 3, 8];

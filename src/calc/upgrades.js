@@ -12,13 +12,13 @@ import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemRawStats, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 
-const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed'];
+const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
 export function weightsFor(cls, target) {
@@ -29,8 +29,8 @@ export function weightsFor(cls, target) {
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, resource }) {
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, resource };
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, resource }) {
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -50,6 +50,7 @@ function cloneLoadout(l) {
     armor: { ...l.armor },
     equipment: { ...l.equipment },
     rag: l.rag,
+    clearBoots: l.clearBoots ?? null,
     accessories: new Map(l.accessories),
     owned: new Set(l.owned),
     extras: new Set(l.extras),
@@ -71,7 +72,7 @@ export function buildLoadout(profile, ctx, weights) {
   const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
   // Pets are assumed level 100 (Golden Dragon 200).
   const ownedPets = pets.map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null }));
-  let loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks }, pets: ownedPets, activePet: null };
+  let loadout = { weapon: null, armor: {}, equipment: {}, rag: null, clearBoots: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks }, pets: ownedPets, activePet: null };
   const bySlot = { weapon: [], rag: [] };
   for (const slot of [...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) bySlot[slot] = [];
 
@@ -87,6 +88,8 @@ export function buildLoadout(profile, ctx, weights) {
   }
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
+  // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
+  loadout.clearBoots = bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null);
   loadout = selectPet(loadout, ctx, weights);
 
   for (let pass = 0; pass < 2; pass++) {
@@ -104,6 +107,10 @@ export function buildLoadout(profile, ctx, weights) {
   }
 
   return selectPet(loadout, ctx, weights);
+}
+
+function bootsSpeed(item, ctx) {
+  return item ? itemRawStats(item, ctx).global.speed ?? 0 : 0;
 }
 
 function accessoryRank(item) {
@@ -126,6 +133,7 @@ function slotName(loadout, item) {
   if (loadout.weapon === item) return 'weapon';
   if (loadout.rag === item) return 'rag';
   for (const [slot, it] of Object.entries(loadout.armor)) if (it === item) return slot;
+  if (loadout.clearBoots === item) return 'clearBoots';
   for (const [slot, it] of Object.entries(loadout.equipment)) if (it === item) return slot;
   return item.id;
 }
@@ -135,6 +143,7 @@ function replaceItem(loadout, oldItem, next) {
   const l = cloneLoadout(loadout);
   if (l.weapon === oldItem) l.weapon = next;
   if (l.rag === oldItem) l.rag = next;
+  if (l.clearBoots === oldItem) l.clearBoots = next;
   for (const slot of Object.keys(l.armor)) if (l.armor[slot] === oldItem) l.armor[slot] = next;
   for (const slot of Object.keys(l.equipment)) if (l.equipment[slot] === oldItem) l.equipment[slot] = next;
   if (l.accessories.get(oldItem.id) === oldItem) l.accessories.set(next.id, next);
@@ -142,7 +151,7 @@ function replaceItem(loadout, oldItem, next) {
 }
 
 function upgradableItems(loadout) {
-  const set = new Set([loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...loadout.accessories.values()]);
+  const set = new Set([loadout.weapon, loadout.rag, loadout.clearBoots, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...loadout.accessories.values()]);
   set.delete(null);
   set.delete(undefined);
   return [...set];
@@ -300,6 +309,16 @@ export function availableUpgrades(loadout, ctx, prices) {
     }
   }
 
+  // Clear boots: any boots faster than your current clear boots, worn only during the clear.
+  const clearSpeed = bootsSpeed(loadout.clearBoots, ctx);
+  for (const [id, info] of resource) {
+    if (info.category !== 'BOOTS' || loadout.owned.has(id)) continue;
+    const boots = newItem(id, resource);
+    if (bootsSpeed(boots, ctx) <= clearSpeed) continue;
+    push(`Buy ${cleanName(info.name ?? id)} (clear boots for speed)`, [{ id }],
+      (l) => { const next = cloneLoadout(l); next.owned.add(id); next.clearBoots = boots; return next; }, { group: 'buy:clearBoots' });
+  }
+
   // Attribute shards: straight to max level, like the sheet.
   for (const [id, shard] of Object.entries(SHARDS)) {
     if (shard.classes && !shard.classes.includes(cls)) continue;
@@ -330,7 +349,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     for (const [itemId, item] of Object.entries(PET_ITEMS)) {
       if (active.heldItem === itemId) continue;
       const after = petStats({ ...active, heldItem: itemId }, ctx.petProfile).stats;
-      if (!['strength', 'critDamage', 'critChance', 'intelligence'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
+      if (!['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
       push(`${item.name} on ${titleCase(active.type.toLowerCase())} Pet`, [{ id: itemId }], (l) => {
         const next = cloneLoadout(l);
         const pet = { ...active, heldItem: itemId };

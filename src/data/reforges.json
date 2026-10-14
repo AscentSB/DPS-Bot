@@ -83,6 +83,7 @@
    "COMMON": {
     "critChance": 1,
     "critDamage": 1,
+    "attackSpeed": 1,
     "intelligence": 1,
     "speed": 1
    },
@@ -90,6 +91,7 @@
     "strength": 1,
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 1,
     "speed": 1
    },
@@ -97,6 +99,7 @@
     "strength": 1,
     "critChance": 2,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 1,
     "speed": 1
    },
@@ -104,6 +107,7 @@
     "strength": 1,
     "critChance": 2,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 2,
     "speed": 1
    },
@@ -111,6 +115,7 @@
     "strength": 2,
     "critChance": 3,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 2,
     "speed": 1
    },
@@ -118,6 +123,7 @@
     "strength": 2,
     "critChance": 3,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 3,
     "speed": 1
    },
@@ -125,6 +131,7 @@
     "strength": 2,
     "critChance": 3,
     "critDamage": 3,
+    "attackSpeed": 1,
     "intelligence": 3,
     "speed": 1
    }
@@ -282,31 +289,38 @@
   "stats": {
    "COMMON": {
     "strength": 15,
-    "critDamage": 10
+    "critDamage": 10,
+    "attackSpeed": 1
    },
    "UNCOMMON": {
     "strength": 20,
-    "critDamage": 15
+    "critDamage": 15,
+    "attackSpeed": 2
    },
    "RARE": {
     "strength": 25,
-    "critDamage": 20
+    "critDamage": 20,
+    "attackSpeed": 4
    },
    "EPIC": {
     "strength": 32,
-    "critDamage": 27
+    "critDamage": 27,
+    "attackSpeed": 7
    },
    "LEGENDARY": {
     "strength": 40,
-    "critDamage": 35
+    "critDamage": 35,
+    "attackSpeed": 10
    },
    "MYTHIC": {
     "strength": 50,
-    "critDamage": 45
+    "critDamage": 45,
+    "attackSpeed": 15
    },
    "DIVINE": {
     "strength": 60,
-    "critDamage": 55
+    "critDamage": 55,
+    "attackSpeed": 20
    }
   }
  },
@@ -352,42 +366,49 @@
     "strength": 2,
     "critChance": 2,
     "critDamage": 2,
+    "attackSpeed": 2,
     "intelligence": 2
    },
    "UNCOMMON": {
     "strength": 3,
     "critChance": 3,
     "critDamage": 3,
+    "attackSpeed": 3,
     "intelligence": 3
    },
    "RARE": {
     "strength": 4,
     "critChance": 4,
     "critDamage": 4,
+    "attackSpeed": 4,
     "intelligence": 4
    },
    "EPIC": {
     "strength": 7,
     "critChance": 7,
     "critDamage": 7,
+    "attackSpeed": 7,
     "intelligence": 7
    },
    "LEGENDARY": {
     "strength": 10,
     "critChance": 10,
     "critDamage": 10,
+    "attackSpeed": 10,
     "intelligence": 10
    },
    "MYTHIC": {
     "strength": 12,
     "critChance": 12,
     "critDamage": 12,
+    "attackSpeed": 12,
     "intelligence": 12
    },
    "DIVINE": {
     "strength": 14,
     "critChance": 14,
     "critDamage": 14,
+    "attackSpeed": 14,
     "intelligence": 14
    }
   }
@@ -399,7 +420,29 @@
    "SWORD",
    "ROD"
   ],
-  "stats": {}
+  "stats": {
+   "COMMON": {
+    "attackSpeed": 10
+   },
+   "UNCOMMON": {
+    "attackSpeed": 20
+   },
+   "RARE": {
+    "attackSpeed": 30
+   },
+   "EPIC": {
+    "attackSpeed": 40
+   },
+   "LEGENDARY": {
+    "attackSpeed": 50
+   },
+   "MYTHIC": {
+    "attackSpeed": 60
+   },
+   "DIVINE": {
+    "attackSpeed": 70
+   }
+  }
  },
  "fierce": {
   "name": "Fierce",
@@ -506,25 +549,32 @@
   ],
   "stats": {
    "COMMON": {
-    "strength": 3
+    "strength": 3,
+    "attackSpeed": 8
    },
    "UNCOMMON": {
-    "strength": 5
+    "strength": 5,
+    "attackSpeed": 10
    },
    "RARE": {
-    "strength": 7
+    "strength": 7,
+    "attackSpeed": 15
    },
    "EPIC": {
-    "strength": 10
+    "strength": 10,
+    "attackSpeed": 20
    },
    "LEGENDARY": {
-    "strength": 15
+    "strength": 15,
+    "attackSpeed": 25
    },
    "MYTHIC": {
-    "strength": 20
+    "strength": 20,
+    "attackSpeed": 30
    },
    "DIVINE": {
-    "strength": 25
+    "strength": 25,
+    "attackSpeed": 35
    }
   }
  },
@@ -753,30 +803,37 @@
   "stats": {
    "COMMON": {
     "strength": 15,
+    "attackSpeed": 1,
     "intelligence": 40
    },
    "UNCOMMON": {
     "strength": 20,
+    "attackSpeed": 2,
     "intelligence": 50
    },
    "RARE": {
     "strength": 25,
+    "attackSpeed": 2,
     "intelligence": 65
    },
    "EPIC": {
     "strength": 32,
+    "attackSpeed": 3,
     "intelligence": 80
    },
    "LEGENDARY": {
     "strength": 40,
+    "attackSpeed": 5,
     "intelligence": 100
    },
    "MYTHIC": {
     "strength": 50,
+    "attackSpeed": 7,
     "intelligence": 125
    },
    "DIVINE": {
     "strength": 60,
+    "attackSpeed": 9,
     "intelligence": 150
    }
   }
@@ -843,42 +900,49 @@
     "strength": 3,
     "critChance": 5,
     "critDamage": 5,
+    "attackSpeed": 2,
     "intelligence": 5
    },
    "UNCOMMON": {
     "strength": 7,
     "critChance": 7,
     "critDamage": 10,
+    "attackSpeed": 3,
     "intelligence": 8
    },
    "RARE": {
     "strength": 12,
     "critChance": 9,
     "critDamage": 15,
+    "attackSpeed": 5,
     "intelligence": 12
    },
    "EPIC": {
     "strength": 18,
     "critChance": 12,
     "critDamage": 22,
+    "attackSpeed": 7,
     "intelligence": 18
    },
    "LEGENDARY": {
     "strength": 25,
     "critChance": 15,
     "critDamage": 28,
+    "attackSpeed": 10,
     "intelligence": 25
    },
    "MYTHIC": {
     "strength": 32,
     "critChance": 18,
     "critDamage": 36,
+    "attackSpeed": 15,
     "intelligence": 35
    },
    "DIVINE": {
     "strength": 39,
     "critChance": 21,
     "critDamage": 44,
+    "attackSpeed": 20,
     "intelligence": 45
    }
   }
@@ -893,36 +957,43 @@
    "COMMON": {
     "critChance": 1,
     "critDamage": 1,
+    "attackSpeed": 1,
     "speed": 1
    },
    "UNCOMMON": {
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 2,
     "speed": 2
    },
    "RARE": {
     "critChance": 2,
     "critDamage": 3,
+    "attackSpeed": 3,
     "speed": 3
    },
    "EPIC": {
     "critChance": 2,
     "critDamage": 4,
+    "attackSpeed": 4,
     "speed": 4
    },
    "LEGENDARY": {
     "critChance": 3,
     "critDamage": 5,
+    "attackSpeed": 5,
     "speed": 5
    },
    "MYTHIC": {
     "critChance": 3,
     "critDamage": 6,
+    "attackSpeed": 6,
     "speed": 6
    },
    "DIVINE": {
     "critChance": 3,
     "critDamage": 7,
+    "attackSpeed": 7,
     "speed": 7
    }
   }
@@ -1235,6 +1306,7 @@
     "strength": 2,
     "critChance": 2,
     "critDamage": 2,
+    "attackSpeed": 1,
     "intelligence": 2,
     "speed": 1
    },
@@ -1242,6 +1314,7 @@
     "strength": 3,
     "critChance": 4,
     "critDamage": 3,
+    "attackSpeed": 1,
     "intelligence": 3,
     "speed": 1
    },
@@ -1249,6 +1322,7 @@
     "strength": 4,
     "critChance": 6,
     "critDamage": 4,
+    "attackSpeed": 2,
     "intelligence": 4,
     "speed": 1
    },
@@ -1256,6 +1330,7 @@
     "strength": 6,
     "critChance": 8,
     "critDamage": 6,
+    "attackSpeed": 3,
     "intelligence": 6,
     "speed": 1
    },
@@ -1263,6 +1338,7 @@
     "strength": 8,
     "critChance": 10,
     "critDamage": 8,
+    "attackSpeed": 4,
     "intelligence": 8,
     "speed": 1
    },
@@ -1270,6 +1346,7 @@
     "strength": 10,
     "critChance": 12,
     "critDamage": 10,
+    "attackSpeed": 5,
     "intelligence": 10,
     "speed": 1
    },
@@ -1277,6 +1354,7 @@
     "strength": 12,
     "critChance": 14,
     "critDamage": 12,
+    "attackSpeed": 6,
     "intelligence": 12,
     "speed": 1
    }
@@ -1486,36 +1564,43 @@
    "COMMON": {
     "critChance": 1,
     "critDamage": 1,
+    "attackSpeed": 1,
     "speed": 1
    },
    "UNCOMMON": {
     "critChance": 1,
     "critDamage": 1,
+    "attackSpeed": 1,
     "speed": 1
    },
    "RARE": {
     "critChance": 1,
     "critDamage": 1,
+    "attackSpeed": 1,
     "speed": 1
    },
    "EPIC": {
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 1,
     "speed": 1
    },
    "LEGENDARY": {
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 1,
     "speed": 2
    },
    "MYTHIC": {
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 2,
     "speed": 2
    },
    "DIVINE": {
     "critChance": 1,
     "critDamage": 2,
+    "attackSpeed": 2,
     "speed": 2
    }
   }
@@ -1531,37 +1616,44 @@
    "COMMON": {
     "strength": 2,
     "critChance": 1,
-    "critDamage": 25
+    "critDamage": 25,
+    "attackSpeed": 1
    },
    "UNCOMMON": {
     "strength": 3,
     "critChance": 1,
-    "critDamage": 35
+    "critDamage": 35,
+    "attackSpeed": 2
    },
    "RARE": {
     "strength": 4,
     "critChance": 1,
-    "critDamage": 45
+    "critDamage": 45,
+    "attackSpeed": 4
    },
    "EPIC": {
     "strength": 7,
     "critChance": 1,
-    "critDamage": 60
+    "critDamage": 60,
+    "attackSpeed": 7
    },
    "LEGENDARY": {
     "strength": 10,
     "critChance": 1,
-    "critDamage": 80
+    "critDamage": 80,
+    "attackSpeed": 10
    },
    "MYTHIC": {
     "strength": 12,
     "critChance": 1,
-    "critDamage": 100
+    "critDamage": 100,
+    "attackSpeed": 15
    },
    "DIVINE": {
     "strength": 14,
     "critChance": 1,
-    "critDamage": 120
+    "critDamage": 120,
+    "attackSpeed": 20
    }
   }
  },
@@ -2037,25 +2129,32 @@
   ],
   "stats": {
    "COMMON": {
-    "strength": 2
+    "strength": 2,
+    "attackSpeed": 2
    },
    "UNCOMMON": {
-    "strength": 4
+    "strength": 4,
+    "attackSpeed": 3
    },
    "RARE": {
-    "strength": 6
+    "strength": 6,
+    "attackSpeed": 5
    },
    "EPIC": {
-    "strength": 10
+    "strength": 10,
+    "attackSpeed": 10
    },
    "LEGENDARY": {
-    "strength": 12
+    "strength": 12,
+    "attackSpeed": 15
    },
    "MYTHIC": {
-    "strength": 15
+    "strength": 15,
+    "attackSpeed": 20
    },
    "DIVINE": {
-    "strength": 20
+    "strength": 20,
+    "attackSpeed": 25
    }
   }
  },
@@ -2107,6 +2206,7 @@
     "strength": 3,
     "critChance": 2,
     "critDamage": 3,
+    "attackSpeed": 1,
     "intelligence": 3,
     "speed": 1
    },
@@ -2114,6 +2214,7 @@
     "strength": 4,
     "critChance": 4,
     "critDamage": 4,
+    "attackSpeed": 1,
     "intelligence": 4,
     "speed": 1
    },
@@ -2121,6 +2222,7 @@
     "strength": 6,
     "critChance": 6,
     "critDamage": 6,
+    "attackSpeed": 2,
     "intelligence": 6,
     "speed": 1
    },
@@ -2128,6 +2230,7 @@
     "strength": 8,
     "critChance": 8,
     "critDamage": 8,
+    "attackSpeed": 3,
     "intelligence": 8,
     "speed": 1
    },
@@ -2135,6 +2238,7 @@
     "strength": 10,
     "critChance": 10,
     "critDamage": 10,
+    "attackSpeed": 4,
     "intelligence": 10,
     "speed": 1
    },
@@ -2142,6 +2246,7 @@
     "strength": 12,
     "critChance": 12,
     "critDamage": 12,
+    "attackSpeed": 5,
     "intelligence": 12,
     "speed": 1
    },
@@ -2149,6 +2254,7 @@
     "strength": 15,
     "critChance": 15,
     "critDamage": 15,
+    "attackSpeed": 6,
     "intelligence": 15,
     "speed": 1
    }
@@ -2165,6 +2271,7 @@
     "strength": 3,
     "critChance": 2,
     "critDamage": 3,
+    "attackSpeed": 1,
     "intelligence": 3,
     "speed": 1
    },
@@ -2172,6 +2279,7 @@
     "strength": 4,
     "critChance": 4,
     "critDamage": 4,
+    "attackSpeed": 1,
     "intelligence": 4,
     "speed": 1
    },
@@ -2179,6 +2287,7 @@
     "strength": 6,
     "critChance": 6,
     "critDamage": 6,
+    "attackSpeed": 2,
     "intelligence": 6,
     "speed": 1
    },
@@ -2186,6 +2295,7 @@
     "strength": 8,
     "critChance": 8,
     "critDamage": 8,
+    "attackSpeed": 3,
     "intelligence": 8,
     "speed": 1
    },
@@ -2193,6 +2303,7 @@
     "strength": 10,
     "critChance": 10,
     "critDamage": 10,
+    "attackSpeed": 4,
     "intelligence": 10,
     "speed": 1
    },
@@ -2200,6 +2311,7 @@
     "strength": 12,
     "critChance": 12,
     "critDamage": 12,
+    "attackSpeed": 5,
     "intelligence": 12,
     "speed": 1
    },
@@ -2207,6 +2319,7 @@
     "strength": 15,
     "critChance": 15,
     "critDamage": 15,
+    "attackSpeed": 6,
     "intelligence": 15,
     "speed": 1
    }
@@ -2229,30 +2342,37 @@
   "stats": {
    "COMMON": {
     "strength": 2,
+    "attackSpeed": 2,
     "speed": 1
    },
    "UNCOMMON": {
     "strength": 4,
+    "attackSpeed": 3,
     "speed": 1
    },
    "RARE": {
     "strength": 6,
+    "attackSpeed": 4,
     "speed": 2
    },
    "EPIC": {
     "strength": 7,
+    "attackSpeed": 5,
     "speed": 2
    },
    "LEGENDARY": {
     "strength": 10,
+    "attackSpeed": 6,
     "speed": 3
    },
    "MYTHIC": {
     "strength": 12,
+    "attackSpeed": 7,
     "speed": 3
    },
    "DIVINE": {
     "strength": 14,
+    "attackSpeed": 8,
     "speed": 4
    }
   }
@@ -2385,31 +2505,38 @@
   "stats": {
    "COMMON": {
     "strength": 30,
-    "critChance": 3
+    "critChance": 3,
+    "attackSpeed": 2
    },
    "UNCOMMON": {
     "strength": 35,
-    "critChance": 4
+    "critChance": 4,
+    "attackSpeed": 3
    },
    "RARE": {
     "strength": 40,
-    "critChance": 5
+    "critChance": 5,
+    "attackSpeed": 4
    },
    "EPIC": {
     "strength": 50,
-    "critChance": 7
+    "critChance": 7,
+    "attackSpeed": 6
    },
    "LEGENDARY": {
     "strength": 60,
-    "critChance": 8
+    "critChance": 8,
+    "attackSpeed": 9
    },
    "MYTHIC": {
     "strength": 65,
-    "critChance": 10
+    "critChance": 10,
+    "attackSpeed": 10
    },
    "DIVINE": {
     "strength": 75,
-    "critChance": 12
+    "critChance": 12,
+    "attackSpeed": 12
    }
   }
  },
@@ -2973,25 +3100,32 @@
   ],
   "stats": {
    "COMMON": {
-    "strength": 1
+    "strength": 1,
+    "attackSpeed": 1
    },
    "UNCOMMON": {
-    "strength": 2
+    "strength": 2,
+    "attackSpeed": 2
    },
    "RARE": {
-    "strength": 2
+    "strength": 2,
+    "attackSpeed": 3
    },
    "EPIC": {
-    "strength": 3
+    "strength": 3,
+    "attackSpeed": 4
    },
    "LEGENDARY": {
-    "strength": 5
+    "strength": 5,
+    "attackSpeed": 5
    },
    "MYTHIC": {
-    "strength": 7
+    "strength": 7,
+    "attackSpeed": 6
    },
    "DIVINE": {
-    "strength": 10
+    "strength": 10,
+    "attackSpeed": 7
    }
   }
  },

@@ -231,7 +231,7 @@ test('a speed upgrade below 500 frees tuning points for crit; past 500 it does n
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning: { split: { critChance: 1 } } });
   const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('FAST_BOOTS', res)]), ctx, w);
   // Give the bag plenty of tuning points.
-  loadout.accessories = new Map(Array.from({ length: 60 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
+  loadout.accessories = new Map(Array.from({ length: 200 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
   const base = evaluate(loadout, ctx, w);
   assert.ok(base.speed >= 500 && base.tuning.speed > 0);
   const faster = evaluate({ ...loadout, shards: { OBSIDIAN_DEFENDER: 10 } }, ctx, w);
@@ -314,4 +314,48 @@ test('diamond and gold heads are never recombobulated and a recomb changes nothi
   const loadout = buildLoadout(profile([head]), ctx, weightsFor('arch'));
   assert.ok(!availableUpgrades(loadout, ctx, prices).some((u) => u.label === 'Recombobulate Diamond Necron Head'));
   assert.deepEqual(itemContribution({ ...head, recomb: true }, ctx), itemContribution(head, ctx));
+});
+
+test('Terminator volleys: 4/s at 100 attack speed, 3.33/s at 99; arrows = 3 + Duplex + Doubleshot', async () => {
+  const { volleysPerSecond, arrowsPerVolley } = await import('../src/calc/stats.js');
+  const term = { id: 'TERMINATOR', category: 'BOW' };
+  const ctx = { cls: 'arch', archerLevel: 50 };
+  assert.equal(volleysPerSecond(term, 100, ctx), 4);
+  assert.ok(Math.abs(volleysPerSecond(term, 99, ctx) - 20 / 6) < 1e-9);
+  assert.equal(volleysPerSecond(term, 150, ctx), 4);
+  assert.ok(Math.abs(arrowsPerVolley(term, 0.2, ctx) - 4.2) < 1e-9);
+  assert.ok(Math.abs(arrowsPerVolley(term, 0, { cls: 'arch', archerLevel: 20 }) - 3.7) < 1e-9);
+  assert.equal(arrowsPerVolley(term, 0, { cls: 'bers' }), 3);
+});
+
+test('tuning fills attack speed to 100, then speed to 500, then crit', async () => {
+  const { tuningAllocation } = await import('../src/calc/stats.js');
+  const ctx = { cls: 'arch', tuning: { split: { critChance: 1 } } };
+  const a = tuningAllocation(300, 440, ctx, 70); // 100 points AS, 40 points speed, 160 crit
+  assert.equal(a.attackSpeedPoints, 100);
+  assert.equal(a.speedPoints, 40);
+  assert.equal(a.dpsPoints, 160);
+});
+
+test('a Crochet Tiger Plushie on the pet frees tuning points and is offered as a pet item', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource, tuning: { split: { critChance: 1 } } });
+  const w = weightsFor('arch');
+  const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: null }] }), ctx, w);
+  const p = { get: (id) => (id === 'CROCHET_TIGER_PLUSHIE' ? { price: 1e6, source: 'AH' } : null) };
+  const up = availableUpgrades(loadout, ctx, p).find((u) => u.label.startsWith('Crochet Tiger Plushie'));
+  assert.ok(up);
+  const before = evaluate(loadout, ctx, w);
+  const after = evaluate(up.apply(loadout), ctx, w);
+  assert.ok(after.attackSpeed >= before.attackSpeed);
+});
+
+test('clear boots: faster boots count for speed while boss boots give damage', () => {
+  const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 45 } }],
+    ['POWER_WITHER_BOOTS', { id: 'POWER_WITHER_BOOTS', name: "Necron's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 40, CRITICAL_DAMAGE: 30 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const necronOnly = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('POWER_WITHER_BOOTS', res)]), ctx, w);
+  const both = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('POWER_WITHER_BOOTS', res), newItem('SPEED_WITHER_BOOTS', res)]), ctx, w);
+  assert.equal(both.clearBoots.id, 'SPEED_WITHER_BOOTS');
+  assert.equal(evaluate(both, ctx, w).speed - evaluate(necronOnly, ctx, w).speed >= 0, true);
 });

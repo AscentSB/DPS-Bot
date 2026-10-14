@@ -14,7 +14,8 @@
 //     wither: { ... },       // applies only against withers
 //     dragon: { ... },       // applies only against dragons
 //     classes: ['arch'],     // only count these stats for these classes (optional)
-//     dpsMultiplier: 3,      // weapons only: hits per shot or swing (the damage formula is per hit)
+//     arrows: 3,             // shortbows: arrows per shot (DPS = damage per arrow x arrows x shots per second)
+//     shotTicks: 10,         // shortbows: base ticks between shots (attack speed lowers it)
 //     statMultiplier: 2,     // multiplies every stat on the item, reforge and gems included (Necron heads on Floor 7)
 //   }
 //
@@ -32,8 +33,11 @@
 // ============================================================================
 
 export const ITEM_STATS = {
-  // Terminator: fires 3 arrows per shot; crit chance is quartered (the 1/4 in the old cc/400 term).
-  TERMINATOR: { stats: { multCritChance: 0.25 }, dpsMultiplier: 3 },
+  // Terminator: 3 arrows per shot every 10 ticks (4 shots/s at 100 attack speed); crit chance is quartered.
+  TERMINATOR: { stats: { multCritChance: 0.25 }, arrows: 3, shotTicks: 10 },
+  JUJU_SHORTBOW: { arrows: 1, shotTicks: 10 },
+  ITEM_SPIRIT_BOW: { arrows: 1, shotTicks: 15 },
+  STARRED_ITEM_SPIRIT_BOW: { arrows: 1, shotTicks: 14 },
 
   // Necron heads: 2x stats on The Catacombs Floor VII.
   DIAMOND_NECRON_HEAD: { statMultiplier: 2 },

@@ -25,6 +25,8 @@ export const ENCHANTS = {
   snipe: { categories: ['BOW'], target: 'global', stats: { additiveDamage: [1, 2, 3, 5] } },
   overload: { categories: ['BOW'], target: 'global', stats: { critDamage: [1, 2, 3, 4, 5], critChance: [1, 2, 3, 4, 5] } },
   toxophilite: { categories: ['BOW'], target: 'global', stats: { critChance: [10] } },
+  // Duplex: +0.04 arrows per shot per level (+0.2 at V). Ultimate enchant.
+  ultimate_duplex: { categories: ['BOW'], target: 'global', stats: { arrows: [0.04, 0.08, 0.12, 0.16, 0.2] } },
   // Sugar Rush: +2 speed per level on boots (helps reach the 500 speed cap).
   sugar_rush: { categories: ['BOOTS'], target: 'global', stats: { speed: [2, 4, 6] } },
   big_brain: { categories: ['HELMET'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
