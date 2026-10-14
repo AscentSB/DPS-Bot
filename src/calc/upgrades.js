@@ -17,6 +17,7 @@ import {
 import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
+import { dropBaseRarity } from '../lib/drops.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
@@ -40,7 +41,7 @@ export function newItem(id, resource) {
   const info = resource.get(id);
   const dungeonizable = Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost);
   return {
-    id, name: cleanName(info?.name ?? id), category: info?.category, baseRarity: info?.tier ?? 'COMMON', recomb: false,
+    id, name: cleanName(info?.name ?? id), category: info?.category, baseRarity: info ? dropBaseRarity(id, resource) : 'COMMON', recomb: false,
     stars: dungeonizable ? MAX_STARS : 0, masterStars: 0, dungeon: dungeonizable ? true : undefined,
     enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null,
   };

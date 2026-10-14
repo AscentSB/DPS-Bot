@@ -568,3 +568,16 @@ test('Ragnarock is cast with the highest-strength owned pet, whatever pet is act
   // Owning the Golden Dragon raises strength even while the Ender Dragon is active.
   assert.ok(strengthWith([gd, ed]) > strengthWith([ed]));
 });
+
+test('floor-scaled dungeon armor: highest floor tier, 50% stat boost and +1 rarity (Skeleton Master Chestplate = 37.8 crit chance)', () => {
+  const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true,
+    tiered_stats: { CRITICAL_CHANCE: [2, 2, 2, 2, 3, 3, 3, 3, 4, 4], CRITICAL_DAMAGE: [22, 23, 25, 27, 30, 32, 35, 38, 41, 45] } }]]);
+  const chest = { ...newItem('SKELETON_MASTER_CHESTPLATE', res), recomb: true, reforge: 'ancient', masterStars: 5 };
+  assert.equal(chest.baseRarity, 'LEGENDARY');
+  // Floor 10 (Catacombs 36+): 4 x 1.5 = 6, Ancient at Mythic +15, x (1.5 + 0.25 + 0.05) stars.
+  const ctx = { ...makeContext({ cls: 'arch', cataLevel: 50, resource: res }), secretDigit: 5 };
+  close(itemContribution(chest, ctx).global.critChance, 21 * 1.8);
+  // Catacombs 24 tops out at floor 7: 3 x 1.5 = 4.5.
+  const low = { ...makeContext({ cls: 'arch', cataLevel: 24, resource: res }), secretDigit: 5 };
+  close(itemContribution({ ...chest, reforge: null }, low).global.critChance, 4.5 * 1.8);
+});

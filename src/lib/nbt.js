@@ -1,5 +1,6 @@
 import zlib from 'node:zlib';
 import nbt from 'prismarine-nbt';
+import { dropBaseRarity } from './drops.js';
 
 // Decode a base64, gzipped NBT blob (Hypixel inventory data or auction item_bytes)
 // into a list of simplified item objects.
@@ -52,7 +53,7 @@ export function toItemState(nbtItem, resource) {
     id,
     name: cleanName(info?.name ?? id),
     category: info?.category,
-    baseRarity: info?.tier ?? 'COMMON',
+    baseRarity: info ? dropBaseRarity(id, resource) : 'COMMON',
     recomb: Number(extra.rarity_upgrades ?? 0) > 0,
     stars: Math.min(stars, 5),
     masterStars: Math.max(0, Math.min(5, stars - 5)),

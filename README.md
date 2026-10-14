@@ -39,6 +39,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Crit chance: `(flat + 30 + 0.5 × Combat level)(1 + additive)(multiplicative)`. Terminator divides it by 4 (0.25). Combat is read from the profile, maxed (60) when the skills API is off.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
 - Dungeon gear (every dungeon item assumed 5-starred, dungeonizable items like Terminator assumed converted): `stat × (cata boost + 1.5 + 0.05 × master stars + 0.01 × secret digits)`. Crit chance and attack speed skip the cata boost. Speed gets the full multiplier, so Maxor's boots (30 speed) give 30 × 6.35 = 190.5 at Catacombs 50 before master stars and the medallion. Secret digits need a General's Medallion.
+- Floor-scaled dungeon armor (Skeleton Master and other pieces with per-floor stats) is assumed dropped from the highest floor your Catacombs level allows (floor 10 at 36, 9 at 34, 8 at 32, 7 at 24, 6 at 19, 5 at 14, 4 at 9, 3 at 5, 2 at 3, 1 at 1) with the full 50% stat boost, which also raises it one rarity.
 - Accessory Power: `29.97 × ln(0.0019 × AP + 1)^1.2` times your power's stats, plus tuning points and enrichments. Dungeon accessories count double.
 - All damage above 1,000,000 keeps 10%.
 

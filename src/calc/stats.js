@@ -16,6 +16,7 @@ import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
+import { floorTierIndex, dropStatMultiplier } from '../lib/drops.js';
 import { PHASE_PETS } from '../config/pets.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
@@ -156,8 +157,9 @@ export function isDungeon(item, resource) {
   return Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost);
 }
 
-// Base stats for an item id: API stats (case-insensitive, highest tier of tiered_stats) plus itemStats.js.
-export function baseItemStats(id, resource, cls) {
+// Base stats for an item id: API stats (case-insensitive) plus itemStats.js. tiered_stats use the highest floor
+// the player can enter (the top tier when cataLevel is unknown); floor-scaled dungeon armor gets its 50% boost.
+export function baseItemStats(id, resource, cls, cataLevel = Infinity) {
   const info = resource.get(id);
   const override = ITEM_STATS[id] ?? {};
   const classOk = !override.classes || !cls || override.classes.includes(cls);
@@ -169,8 +171,10 @@ export function baseItemStats(id, resource, cls) {
     }
     for (const [apiKey, values] of Object.entries(info.tiered_stats ?? {})) {
       const key = STAT_ALIASES[apiKey.toUpperCase()];
-      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[values.length - 1];
+      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[floorTierIndex(cataLevel, values.length)];
     }
+    const boost = dropStatMultiplier(id, resource);
+    if (boost !== 1) for (const key of Object.keys(stats)) stats[key] *= boost;
   }
   if (classOk) for (const [key, value] of Object.entries(override.stats ?? {})) addLoose(stats, { [key]: value });
   return { global: stats, wither: classOk ? override.wither ?? {} : {}, dragon: classOk ? override.dragon ?? {} : {} };
@@ -208,7 +212,7 @@ function scaleBucket(stats, item, ctx, dungeon) {
 
 // Unscaled stats of one item, split by target.
 export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
-  const base = baseItemStats(item.id, ctx.resource, ctx.cls);
+  const base = baseItemStats(item.id, ctx.resource, ctx.cls, ctx.cataLevel);
   const out = { global: { ...base.global }, wither: { ...base.wither }, dragon: { ...base.dragon } };
   const rarity = statRarity(itemRarity(item));
   const weapon = isWeaponCategory(item.category);

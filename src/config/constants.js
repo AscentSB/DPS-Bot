@@ -170,6 +170,12 @@ export const ACCESSORY_CATEGORY = 'ACCESSORY';
 export const MAX_REFORGE_ITEMS = /^(DIAMOND|GOLD)_[A-Z_]+_HEAD$/;
 
 export const RARITIES = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC', 'DIVINE'];
+
+// Catacombs level needed for each dungeon floor tier (index 0 = floor 1). Floors 8-10 are the item tiers
+// of Master Mode 5-7 drops. Source: the wiki floor pages.
+export const DUNGEON_FLOOR_CATA = [1, 3, 5, 9, 14, 19, 24, 32, 34, 36];
+// Floor-scaled dungeon armor is assumed to have the max 50% stat boost.
+export const DUNGEON_DROP_BOOST = 0.5;
 export const SPECIAL_RARITIES = ['SPECIAL', 'VERY_SPECIAL'];
 
 // Ragnarock: its ability grants RAGNAROCK_MULTIPLIER x the axe's strength.
