@@ -157,9 +157,9 @@ export const RAGNAROCK_ID = 'RAGNAROCK_AXE';
 export const RAGNAROCK_MULTIPLIER = 1.5;
 export const CHIMERA_PER_LEVEL = 0.2;
 
-// Legion: +0.07% combat stats per level per nearby player. A dungeon party has 4 other players.
+// Legion: +0.07% combat stats per level per nearby player. Assume 1 nearby player in every boss phase
 export const LEGION_PER_LEVEL = 0.0007;
-export const LEGION_PLAYERS = 4;
+export const LEGION_PLAYERS = 1;
 
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;
