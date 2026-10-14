@@ -291,3 +291,12 @@ test("Diamond Necron Head + Ancient matches the sheet: (40 + 35) str, cata cd an
   close(c.global.critDamage, 100 * 6.35);
   close(c.global.critChance, 30 * 1.5);
 });
+
+test('diamond and gold heads are never recombobulated and a recomb changes nothing', () => {
+  const res = new Map([...resource, ['DIAMOND_NECRON_HEAD', { id: 'DIAMOND_NECRON_HEAD', name: 'Diamond Necron Head', category: 'HELMET', tier: 'SPECIAL', dungeon_item: true, stats: { STRENGTH: 40 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const head = { ...newItem('DIAMOND_NECRON_HEAD', res), reforge: 'ancient' };
+  const loadout = buildLoadout(profile([head]), ctx, weightsFor('arch'));
+  assert.ok(!availableUpgrades(loadout, ctx, prices).some((u) => u.label === 'Recombobulate Diamond Necron Head'));
+  assert.deepEqual(itemContribution({ ...head, recomb: true }, ctx), itemContribution(head, ctx));
+});

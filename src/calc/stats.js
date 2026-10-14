@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -79,21 +79,21 @@ export function isWeaponCategory(category) {
 
 export function itemRarity(item) {
   const base = item.baseRarity ?? 'COMMON';
-  if (!item.recomb) return base;
+  if (!item.recomb || MAX_REFORGE_ITEMS.test(item.id ?? '')) return base;
   const special = SPECIAL_RARITIES.indexOf(base);
   if (special === 0) return SPECIAL_RARITIES[1];
   const i = RARITIES.indexOf(base);
   return i >= 0 && i < RARITIES.length - 1 ? RARITIES[i + 1] : base;
 }
 
-// SPECIAL items use MYTHIC reforge and gem stats, VERY_SPECIAL use DIVINE
+// SPECIAL items use MYTHIC (max) reforge and gem stats, VERY_SPECIAL use DIVINE
 // (the M7 archer sheet's Diamond Necron Head + Ancient numbers match MYTHIC Ancient).
 export function statRarity(rarity) {
   return { SPECIAL: 'MYTHIC', VERY_SPECIAL: 'DIVINE' }[rarity] ?? rarity;
 }
 
 export function canRecomb(item) {
-  if (NO_RECOMB.includes(item.id)) return false;
+  if (NO_RECOMB.includes(item.id) || MAX_REFORGE_ITEMS.test(item.id ?? '')) return false;
   return !item.recomb && itemRarity({ ...item, recomb: true }) !== (item.baseRarity ?? 'COMMON');
 }
 

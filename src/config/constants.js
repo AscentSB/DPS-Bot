@@ -135,6 +135,9 @@ export const ARMOR_SLOTS = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'];
 export const EQUIPMENT_SLOTS = ['NECKLACE', 'CLOAK', 'BELT', 'GLOVES', 'BRACELET'];
 export const ACCESSORY_CATEGORY = 'ACCESSORY';
 
+// Diamond and gold boss heads are SPECIAL items that already get max reforge stats; recombobulating does nothing.
+export const MAX_REFORGE_ITEMS = /^(DIAMOND|GOLD)_[A-Z_]+_HEAD$/;
+
 export const RARITIES = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC', 'DIVINE'];
 export const SPECIAL_RARITIES = ['SPECIAL', 'VERY_SPECIAL'];
 
