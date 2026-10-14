@@ -70,6 +70,7 @@ export function readMember(profile, uuid, resource) {
     items,
     cataLevel: cataLevelFromXp(cataXp),
     archerLevel: cataLevelFromXp(member.dungeons?.player_classes?.archer?.experience ?? 0),
+    berserkLevel: cataLevelFromXp(member.dungeons?.player_classes?.berserk?.experience ?? 0),
     cataXp,
     secrets: Number(member.dungeons?.secrets ?? 0),
     // Skill and slayer levels for item requirements (null when the profile hides them).

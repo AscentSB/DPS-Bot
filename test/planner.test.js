@@ -704,3 +704,12 @@ test('Tier Boost: an Epic Ender Dragon with a Tier Boost plays as Legendary; Kat
   const buy = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
   assert.ok(availableUpgrades(buy, ctx, p).some((u) => u.label === 'Buy Ender Dragon Pet (Epic, level 100) + Tier Boost'));
 });
+
+test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berserker 40 + 1.5 per level additive, Warrior from Combat', async () => {
+  const { classAdditiveDamage, archerMultiplier } = await import('../src/calc/stats.js');
+  close(archerMultiplier({ cls: 'arch', archerLevel: 50 }), 1.8);
+  close(archerMultiplier({ cls: 'bers', archerLevel: 50 }), 1);
+  close(classAdditiveDamage({ cls: 'arch', combatLevel: 60 }), 210);
+  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115);
+  close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 0);
+});

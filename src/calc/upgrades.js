@@ -35,9 +35,9 @@ export function weightsFor(cls, target) {
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, player, upgradeMode, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, combatLevel, player, upgradeMode, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.

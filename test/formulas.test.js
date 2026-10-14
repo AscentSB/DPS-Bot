@@ -69,9 +69,10 @@ test('soft cap keeps 10% above 1M', () => {
   close(applySoftCap(3_000_000), 1_200_000);
 });
 
-test('berserker adds 1200 additive damage on top of the archer formula', () => {
+test('berserker adds its extra additive damage on top of the archer formula; archer takes a class multiplier', () => {
   const s = { damage: 10, critDamage: 0, strength: 0, additiveDamage: 0, critChance: 100 };
-  close(berserkerDamage(s, 0), archerDamage(s, 0) * 13);
+  close(berserkerDamage(s, 0, 115), archerDamage(s, 0) * 2.15);
+  close(archerDamage(s, 0, 1.8), archerDamage(s, 0) * 1.8);
 });
 
 test('hyperion multiplies mage wither damage', () => {

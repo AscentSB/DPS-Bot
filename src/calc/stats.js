@@ -1,7 +1,8 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
+  BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
@@ -560,7 +561,22 @@ function rawStats(loadout, ctx, activeExtras) {
 }
 
 // Final stats after the strength / crit damage / intelligence / crit chance formulas.
-export function finalStats(bucket, cls) {
+// Class and Combat additive damage: Warrior (Combat level) for Archer and Berserker, plus the Berserk class
+// bonus. Classes are assumed solo.
+export function classAdditiveDamage(ctx) {
+  if (ctx.cls === 'mage') return 0;
+  const combat = ctx.combatLevel ?? 0;
+  const warrior = WARRIOR_PER_LEVEL * Math.min(combat, 50) + WARRIOR_PER_LEVEL_AFTER_50 * Math.max(0, combat - 50);
+  const berserk = ctx.cls === 'bers' ? BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0) : 0;
+  return warrior + berserk;
+}
+
+// Archer class arrow damage: a multiplicative buff from Archer level (solo).
+export function archerMultiplier(ctx) {
+  return ctx.cls === 'arch' ? 1 + (SOLO_CLASS_MULTIPLIER * ARCHER_ARROW_DAMAGE_PER_LEVEL * (ctx.archerLevel ?? 0)) / 100 : 1;
+}
+
+export function finalStats(bucket, ctx) {
   const effect = blessingEffect(bucket.blessing, bucket.blessingShard);
   return {
     damage: calcDamage(bucket.damage),
@@ -568,8 +584,7 @@ export function finalStats(bucket, cls) {
     critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, effect),
     intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, effect),
     critChance: calcCritChance(bucket.critChance, bucket.additiveCritChance, bucket.multCritChance),
-    // Berserker's 1200 is added inside berserkerDamage.
-    additiveDamage: bucket.additiveDamage + (cls === 'bers' ? 0 : CLASSES[cls]?.baseAdditiveDamage ?? 0),
+    additiveDamage: bucket.additiveDamage + classAdditiveDamage(ctx),
   };
 }
 
@@ -589,11 +604,11 @@ function evaluateWith(loadout, ctx, activeExtras) {
   };
   for (const target of TARGETS) {
     const shots = volleys[target];
-    const s = finalStats(buckets[target], ctx.cls);
+    const s = finalStats(buckets[target], ctx);
     const defense = TARGET_DEFENSE[target];
     let dmg;
-    if (ctx.cls === 'arch') dmg = archerDamage(s, defense);
-    else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, CLASSES.bers.baseAdditiveDamage);
+    if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx));
+    else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0);
     else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout));
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;

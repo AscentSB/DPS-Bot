@@ -1,11 +1,24 @@
 // Tunable constants for the DPS model. Every number the formulas use lives here.
 
-// baseAdditiveDamage: Archer 310 matches the M7 archer sheet (combat 60 and class bonuses).
 export const CLASSES = {
-  arch: { label: 'Archer', weights: { wither: 50, dragon: 50 }, baseAdditiveDamage: 310 },
-  bers: { label: 'Berserker', weights: { wither: 20, dragon: 80 }, baseAdditiveDamage: 1200 },
-  mage: { label: 'Mage', weights: { wither: 80, dragon: 20 }, baseAdditiveDamage: 0 },
+  arch: { label: 'Archer', weights: { wither: 50, dragon: 50 } },
+  bers: { label: 'Berserker', weights: { wither: 20, dragon: 80 } },
+  mage: { label: 'Mage', weights: { wither: 80, dragon: 20 } },
 };
+
+// Class bonuses from class level. Each class is assumed to be the only one of its kind in the party, which
+// doubles its class bonuses (SOLO_CLASS_MULTIPLIER). Source: https://hypixelskyblock.minecraft.wiki/w/Classes
+export const SOLO_CLASS_MULTIPLIER = 2;
+// Archer: +0.8% arrow damage per Archer level, a multiplicative buff (x1.8 at level 50 when solo).
+export const ARCHER_ARROW_DAMAGE_PER_LEVEL = 0.8;
+// Berserker: +0.75% damage per Berserk level on top of a 40% base, counted as additive damage
+// (40 + 2 x 37.5 = 115 at level 50 when solo).
+export const BERSERK_DAMAGE_BASE = 40;
+export const BERSERK_DAMAGE_PER_LEVEL = 0.75;
+// Combat skill Warrior bonus: +4% additive damage per level to 50, +1% per level from 51 to 60 (210 at 60).
+// Archer and Berserker only (Mage damage comes from abilities).
+export const WARRIOR_PER_LEVEL = 4;
+export const WARRIOR_PER_LEVEL_AFTER_50 = 1;
 
 // A global upgrade counts for wither weight + dragon weight = 100.
 export const GLOBAL_WEIGHT = 100;

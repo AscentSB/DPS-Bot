@@ -148,13 +148,14 @@ export function expectedHit(s, defense) {
   return OVERLOAD_MULTIPLIER * crit;
 }
 
-// Archer. stats: { damage, critDamage, strength, additiveDamage, critChance }
-export function archerDamage(s, defense) {
-  return applySoftCap(expectedHit(s, defense));
+// Archer. stats: { damage, critDamage, strength, additiveDamage, critChance }. classMultiplier: the Archer class
+// arrow damage buff (multiplicative), applied before the soft cap.
+export function archerDamage(s, defense, classMultiplier = 1) {
+  return applySoftCap(expectedHit(s, defense) * classMultiplier);
 }
 
-// Berserker. Same formula as archer. The 1200 base additive damage is added here.
-export function berserkerDamage(s, defense, baseAdditiveDamage = 1200) {
+// Berserker. Same formula as archer, with extra additive damage (class bonuses are added by the caller).
+export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
   return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense));
 }
 
