@@ -658,3 +658,30 @@ test('an accessory buy can come bundled with its recombobulator and enrichment a
   const item = bundle.apply(l).accessories.get('ARTIFACT_OF_CONTROL');
   assert.ok(item.recomb && item.enrichment === 'critical_chance');
 });
+
+test("with Maxor's boots, the boss boots are Maxor's or Necron's only", () => {
+  const res = new Map([...resource,
+    ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 10 } }],
+    ['SKELETON_MASTER_BOOTS', { id: 'SKELETON_MASTER_BOOTS', name: 'Skeleton Master Boots', category: 'BOOTS', tier: 'EPIC', dungeon_item: true, stats: { CRITICAL_DAMAGE: 45 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SPEED_WITHER_BOOTS', res), newItem('SKELETON_MASTER_BOOTS', res)]), ctx, w);
+  assert.equal(l.armor.BOOTS.id, 'SPEED_WITHER_BOOTS');
+  const owned = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SPEED_WITHER_BOOTS', res)]), ctx, w);
+  const p = { get: () => ({ price: 1e5, source: 'AH' }) };
+  assert.ok(!availableUpgrades(owned, ctx, p).some((u) => u.label.startsWith('Buy Skeleton Master Boots')));
+});
+
+test("upgrade mode 'max' jumps straight to the max level at its own cost", () => {
+  const w = weightsFor('arch');
+  const labels = (mode) => {
+    const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource, upgradeMode: mode });
+    const l = buildLoadout(profile([newItem('TERMINATOR', resource), newItem('POWER_WITHER_LEGGINGS', resource)]), ctx, w);
+    return availableUpgrades(l, ctx, { get: (id) => ({ price: 1e6, source: 'BZ', id }) }).map((u) => u.label);
+  };
+  const all = labels('all').filter((x) => x.startsWith('Duplex'));
+  const max = labels('max').filter((x) => x.startsWith('Duplex'));
+  assert.equal(all.length, 5);
+  assert.deepEqual(max, ['Duplex V on Terminator']);
+  assert.ok(labels('max').some((x) => x.startsWith('1st–5th Master Stars on')));
+});

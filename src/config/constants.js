@@ -203,6 +203,10 @@ export const LEGION_DRAGON_CRIT_CHANCE_PLAYERS = 4;
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;
 
+// Boots: a player with Maxor's boots only swaps them off for Necron's boots in the boss.
+export const MAXOR_BOOTS_ID = 'SPEED_WITHER_BOOTS';
+export const NECRON_BOOTS_ID = 'POWER_WITHER_BOOTS';
+
 // Blacksmith reforges (no stone, e.g. Blended on equipment) cost 500 coins per roll and roll at random
 // from every basic reforge for the item type, so getting one costs 500 x that many rolls on average.
 // Source: https://hypixelskyblock.minecraft.wiki/w/Reforging#Basic_Reforging

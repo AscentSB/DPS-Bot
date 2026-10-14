@@ -4,7 +4,9 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 
 ## Command
 
-`/dps ign:<name> class:<Archer|Berserker|Mage> [target:<Withers|Dragons>]`
+`/dps ign:<name> class:<Archer|Berserker|Mage> [target:<Withers|Dragons>] [upgrades:<All levels|Max level only>]`
+
+`upgrades` picks how leveled upgrades are listed. All levels (default) lists Duplex I, II, III... as separate steps. Max level only jumps straight to Duplex V at the price of the Duplex V book, all remaining master stars in one step, Perfect gems, and max essence perk levels.
 
 1. Looks up your UUID at `https://api.mojang.com/users/profiles/minecraft/<name>`.
 2. Pulls your selected SkyBlock profile from Hypixel. It reads every item by `ITEM_ID` (inventory, armor, equipment, wardrobe, ender chest, backpacks, vault, accessory bag), your Catacombs level, secrets, pets, selected power and tuning.
@@ -37,7 +39,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Weird and Weirder Tuba: Howl gets used during dragons only, so the buff (Weirder: +40 strength, +5 attack speed, +10 crit damage) counts against dragons only. Attack speed and volleys are worked out per target.
 - Armor only ever gets Ancient (`ARMOR_REFORGE`). Other armor reforges are never offered or assumed.
 - Tuning: one setup for the whole run. Points fill attack speed to 100 for whichever boss needs more (usually dragons, with Ender Dragon) first (0.3 per point), then speed to 500 (1.5 per point); only the rest go to crit chance / crit damage. A Crochet Tiger or Hephaestus Plushie on your pet is the usual way to free the attack speed points.
-- Speed counts base 100, the Dungeon VII potion, Wolf Slayer, the Rift Blessing of Time perk, gear, reforges, Sugar Rush, accessories, enrichments, Obsidian Defender and Forbidden Speed. Speed only matters in the clear, so your fastest boots (e.g. Maxor's) count for speed while your boss boots (e.g. Necron's) count for damage. The Rogue Sword is not counted; `EXTRA_SPEED` covers anything else.
+- Speed counts base 100, the Dungeon VII potion, Wolf Slayer, the Rift Blessing of Time perk, gear, reforges, Sugar Rush, accessories, enrichments, Obsidian Defender and Forbidden Speed. Speed only matters in the clear, so your fastest boots (e.g. Maxor's) count for speed while your boss boots count for damage. With Maxor's boots, the boss boots stay Maxor's unless you swap to Necron's. The Rogue Sword is not counted; `EXTRA_SPEED` covers anything else.
 - Crit chance: `(flat + 30 + 0.5 × Combat level)(1 + additive)(multiplicative)`. Terminator divides it by 4 (0.25). Combat is read from the profile, maxed (60) when the skills API is off.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
 - Dungeon gear (every dungeon item assumed 5-starred, dungeonizable items like Terminator assumed converted): `stat × (cata boost + 1.5 + 0.05 × master stars + 0.01 × secret digits)`. Crit chance and attack speed skip the cata boost. Speed gets the full multiplier, so Maxor's boots (30 speed) give 30 × 6.35 = 190.5 at Catacombs 50 before master stars and the medallion. Secret digits need a General's Medallion.

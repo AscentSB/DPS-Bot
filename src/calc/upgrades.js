@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -34,9 +34,10 @@ export function weightsFor(cls, target) {
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, skills, slayers, resource }) {
+// upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, player, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, player, upgradeMode, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -102,6 +103,7 @@ export function buildLoadout(profile, ctx, weights) {
   if (addPrism || profile.riftPrism) loadout.owned.add(RIFT_PRISM_ID);
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
+  bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
   loadout.clearBoots = bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null);
   loadout = selectPet(loadout, ctx, weights);
@@ -121,6 +123,11 @@ export function buildLoadout(profile, ctx, weights) {
   }
 
   return selectPet(loadout, ctx, weights);
+}
+
+// With Maxor's boots owned, the boss boots are Maxor's or Necron's only (no swapping to other boots).
+function bossBootsAllowed(owned, id) {
+  return !owned.has(MAXOR_BOOTS_ID) || id === MAXOR_BOOTS_ID || id === NECRON_BOOTS_ID;
 }
 
 function bootsSpeed(item, ctx) {
@@ -221,8 +228,14 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Master stars: next star only, dungeon gear with 5 regular stars.
     if (!isAccessory && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
-      push(`${ordinal(item.masterStars + 1)} Master Star on ${name}`, [{ id: MASTER_STAR_IDS[item.masterStars] }],
-        (l) => replaceItem(l, item, { ...item, masterStars: item.masterStars + 1 }));
+      if (ctx.upgradeMode === 'max') {
+        const parts = MASTER_STAR_IDS.slice(item.masterStars, MAX_MASTER_STARS).map((id) => ({ id }));
+        push(`${parts.length > 1 ? `${ordinal(item.masterStars + 1)}–${ordinal(MAX_MASTER_STARS)} Master Stars` : `${ordinal(MAX_MASTER_STARS)} Master Star`} on ${name}`, parts,
+          (l) => replaceItem(l, item, { ...item, masterStars: MAX_MASTER_STARS }));
+      } else {
+        push(`${ordinal(item.masterStars + 1)} Master Star on ${name}`, [{ id: MASTER_STAR_IDS[item.masterStars] }],
+          (l) => replaceItem(l, item, { ...item, masterStars: item.masterStars + 1 }));
+      }
     }
 
     // Enchants: any level above the current one.
@@ -232,7 +245,8 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (ench.items && !ench.items.includes(item.id)) continue;
         if (ench.classes && !ench.classes.includes(cls)) continue;
         const current = item.enchants?.[key] ?? 0;
-        for (let level = current + 1; level <= enchantMaxLevel(ench); level++) {
+        const maxLevel = enchantMaxLevel(ench);
+        for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
           push(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
@@ -310,6 +324,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
+    if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id)) continue;
     // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
     // priced and scored as one step, so an expensive accessory is weighed with its recomb and enrichment.
     const buy = (reforgeKeyName, reforge, extra = {}) => {
@@ -407,7 +422,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     for (const [key, perk] of Object.entries(ESSENCE_PERKS)) {
       if (perk.profileOnly || (perk.pet && !loadout.pets.some((p) => p.type === perk.pet))) continue;
       const current = loadout.perks?.[key] ?? 0;
-      for (let level = current + 1; level <= perk.costs.length; level++) {
+      for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, perk.costs.length) : current + 1; level <= perk.costs.length; level++) {
         const qty = perk.costs.slice(current, level).reduce((a, b) => a + b, 0);
         push(`${perk.name} ${roman(level)} (${qty.toLocaleString('en-US')} ${titleCase(perk.essence.toLowerCase())} Essence)`,
           [{ id: `ESSENCE_${perk.essence}`, qty }],
@@ -481,7 +496,7 @@ function gemUpgrades(item, ctx) {
     const unlocked = !slot.costs || item.gems?.unlocked?.includes(key);
     const accepts = (SLOT_GEMS[type] ?? [type]).filter((g) => GEMSTONES[g]);
     for (const gem of accepts) {
-      for (const quality of UPGRADE_QUALITIES) {
+      for (const quality of ctx.upgradeMode === 'max' ? UPGRADE_QUALITIES.slice(-1) : UPGRADE_QUALITIES) {
         if (current && current.gem === gem && GEM_QUALITIES.indexOf(current.quality) >= GEM_QUALITIES.indexOf(quality)) continue;
         const gain = gemStat(gem, quality, rarity);
         if (!gain) continue;

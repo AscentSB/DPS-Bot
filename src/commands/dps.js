@@ -13,7 +13,9 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) => o.setName('class').setDescription('Your dungeon class').setRequired(true)
     .addChoices({ name: 'Archer', value: 'arch' }, { name: 'Berserker', value: 'bers' }, { name: 'Mage', value: 'mage' }))
   .addStringOption((o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
-    .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' }));
+    .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' }))
+  .addStringOption((o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
+    .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }));
 
 export function formatCoins(n) {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
@@ -53,6 +55,7 @@ export async function execute(interaction) {
   const ign = interaction.options.getString('ign', true).trim();
   const cls = interaction.options.getString('class', true);
   const target = interaction.options.getString('target');
+  const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
   await interaction.deferReply();
 
   try {
@@ -64,7 +67,7 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, resource });
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, resource });
     const weights = weightsFor(cls, target);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
