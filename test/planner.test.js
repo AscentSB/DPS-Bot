@@ -157,7 +157,7 @@ test('Ragnarock grants 1.5x its strength, and Chimera copies the active pet', ()
   const b = raw(strDiff(rag));
   assert.ok(b > a);
   const chim = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'RAGNAROCK_AXE', stars: 0, enchants: { ultimate_chimera: 5 } }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'ANTIQUE_REMEDIES' }] }), ctx, w);
-  assert.equal(chim.activePet.type, 'GOLDEN_DRAGON');
+  assert.equal(chim.activePets.wither.type, 'GOLDEN_DRAGON');
   assert.ok(raw(strDiff(chim)) > b);
 });
 
@@ -272,7 +272,7 @@ test('only one pet is active; a Jellyfish buffs the Dungeon potion even when ano
   const w = weightsFor('arch');
   const gdOnly = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), ctx, w);
   const both = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { type: 'JELLYFISH', tier: 'LEGENDARY' }] }), ctx, w);
-  assert.equal(both.activePet.type, 'GOLDEN_DRAGON');
+  assert.equal(both.activePets.wither.type, 'GOLDEN_DRAGON');
   const a = evaluate(gdOnly, ctx, w).stats.dragon;
   const b = evaluate(both, ctx, w).stats.dragon;
   assert.ok(b.strength > a.strength && b.critChance > a.critChance);
@@ -387,8 +387,9 @@ test("Ender Dragon's Superior perk raises attack speed, tuning points included",
   const c = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
   const base = buildLoadout(profile([newItem('TERMINATOR', res)]), c, w);
-  const ed = evaluate({ ...base, activePet: { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null } }, c, w);
-  const none = evaluate({ ...base, activePet: null }, c, w);
+  const edPet = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const ed = evaluate({ ...base, activePets: { wither: edPet, dragon: edPet } }, c, w);
+  const none = evaluate({ ...base, activePets: {} }, c, w);
   // Terminator 60 + Silky's 5 attack speed bonus = 65, x1.1 with Ender Dragon.
   close(none.attackSpeed, 65);
   close(ed.attackSpeed, 71.5);
@@ -414,4 +415,40 @@ test('Blended (blacksmith) reforge is offered on equipment at 9 rolls x 500 coin
   assert.ok(up);
   assert.equal(up.cost, 4500);
   assert.equal(up.apply(base).equipment.GLOVES.reforge, 'blended');
+});
+
+test('Golden Dragon is the wither pet for every class; Ender Dragon is the dragon pet for Archer and Berserker', () => {
+  const pets = [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { type: 'ENDER_DRAGON', tier: 'LEGENDARY' }];
+  for (const cls of ['arch', 'bers']) {
+    const ctx = makeContext({ cls, cataLevel: 50, resource });
+    const l = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets }), ctx, weightsFor(cls));
+    assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
+    assert.equal(l.activePets.dragon.type, 'ENDER_DRAGON');
+  }
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets }), ctx, weightsFor('mage'));
+  assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
+});
+
+test('tuning buys attack speed for whichever boss needs more', async () => {
+  const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const base = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, w);
+  const gd = { type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const ed = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const r = evaluate({ ...base, activePets: { wither: gd, dragon: ed } }, ctx, w);
+  // Golden Dragon's attack speed covers withers; the dragon phase with Ender Dragon sets the points.
+  assert.ok(r.attackSpeeds.wither > r.attackSpeeds.dragon);
+});
+
+test('armor only gets Ancient: no other reforge is offered or bundled on armor', () => {
+  const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SPEED_WITHER_BOOTS', res), newItem('POWER_WITHER_LEGGINGS', res)]), ctx, w);
+  const p = { get: (id) => ({ price: 1e6, source: 'BZ' }) };
+  const armorReforges = availableUpgrades(l, ctx, p).filter((u) => /reforge on (Maxor's Boots|Necron's Leggings)/.test(u.label));
+  assert.ok(armorReforges.length > 0);
+  assert.ok(armorReforges.every((u) => u.label.startsWith('Ancient reforge')));
 });

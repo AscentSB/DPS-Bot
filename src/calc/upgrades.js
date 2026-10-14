@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -57,7 +57,7 @@ function cloneLoadout(l) {
     shards: { ...l.shards },
     perks: { ...l.perks },
     pets: [...(l.pets ?? [])],
-    activePet: l.activePet ?? null,
+    activePets: { ...(l.activePets ?? {}) },
   };
 }
 
@@ -72,7 +72,7 @@ export function buildLoadout(profile, ctx, weights) {
   const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
   // Pets are assumed level 100 (Golden Dragon 200).
   const ownedPets = pets.map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null }));
-  let loadout = { weapon: null, armor: {}, equipment: {}, rag: null, clearBoots: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks }, pets: ownedPets, activePet: null };
+  let loadout = { weapon: null, armor: {}, equipment: {}, rag: null, clearBoots: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks }, pets: ownedPets, activePets: { wither: null, dragon: null } };
   const bySlot = { weapon: [], rag: [] };
   for (const slot of [...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) bySlot[slot] = [];
 
@@ -253,7 +253,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isAccessory) {
       const rarity = statRarity(itemRarity(item));
       for (const [key, reforge] of Object.entries(allReforges())) {
-        if (!reforgeAppliesTo(reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
+        if (!reforgeAllowed(key, reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
         if (getReforge(item.reforge) === reforge) continue;
         push(`${reforge.name} reforge on ${name}${reforge.stone ? '' : ' (blacksmith)'}`, reforgeCost(reforge, item),
           (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
@@ -340,12 +340,11 @@ export function availableUpgrades(loadout, ctx, prices) {
     const pet = { type, tier, heldItem: null };
     if (!dpsPets([pet], ctx).length) continue;
     push(`Buy ${titleCase(type.toLowerCase())} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }],
-      (l) => { const next = cloneLoadout(l); next.pets.push(pet); next.activePet = pet; return next; }, { group: 'pet' });
+      (l) => { const next = cloneLoadout(l); next.pets.push(pet); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls)); }, { group: 'pet' });
   }
 
-  // Pet items for the active pet.
-  const active = loadout.activePet;
-  if (active) {
+  // Pet items for each active pet (the wither and dragon pets).
+  for (const active of new Set(Object.values(loadout.activePets ?? {}).filter(Boolean))) {
     const before = petStats(active, ctx.petProfile).stats;
     for (const [itemId, item] of Object.entries(PET_ITEMS)) {
       if (active.heldItem === itemId) continue;
@@ -355,7 +354,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         const next = cloneLoadout(l);
         const pet = { ...active, heldItem: itemId };
         next.pets = next.pets.map((p) => (p === active ? pet : p));
-        next.activePet = pet;
+        for (const [t, p] of Object.entries(next.activePets)) if (p === active) next.activePets[t] = pet;
         return next;
       }, { group: `petitem:${active.type}` });
     }
@@ -387,6 +386,12 @@ export function availableUpgrades(loadout, ctx, prices) {
   return ups;
 }
 
+// Armor only takes Ancient (ARMOR_REFORGE); everything else takes any reforge that fits.
+function reforgeAllowed(key, reforge, item) {
+  if (ARMOR_SLOTS.includes(item.category) && key !== ARMOR_REFORGE) return false;
+  return reforgeAppliesTo(reforge, item);
+}
+
 // Cost parts for one reforge: its stone, or the coins for the expected number of blacksmith rolls.
 function reforgeCost(reforge, item) {
   if (reforge.stone) return [{ id: reforge.stone }];
@@ -406,7 +411,7 @@ function bestReforge(loadout, ctx, item) {
   let best = null;
   let bestScore = -Infinity;
   for (const [rKey, reforge] of Object.entries(allReforges())) {
-    if (!reforgeAppliesTo(reforge, dummy)) continue;
+    if (!reforgeAllowed(rKey, reforge, dummy)) continue;
     if (!hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
     const trial = cloneLoadout(loadout);
     setSlot(trial, slot, { ...dummy, reforge: rKey });

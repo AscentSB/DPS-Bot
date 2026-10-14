@@ -41,6 +41,14 @@ export const PET_PERKS = {
   JELLYFISH: (n) => ({ potionBoost: (n[2] ?? 0) / 100 }),
 };
 
+// Pet used against each boss, by class. Golden Dragon vs withers for everyone. Ender Dragon vs dragons
+// for Archer and Berserker (dragons are Ender mobs, so End Strike applies). When the player does not own
+// the listed pet, or no pet is listed, the owned pet that gives the most damage against that boss is used.
+export const PHASE_PETS = {
+  wither: { arch: 'GOLDEN_DRAGON', bers: 'GOLDEN_DRAGON', mage: 'GOLDEN_DRAGON' },
+  dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON' },
+};
+
 // Rarity to buy when a pet comes in several (highest first).
 export const BUY_RARITIES = ['MYTHIC', 'LEGENDARY'];
 

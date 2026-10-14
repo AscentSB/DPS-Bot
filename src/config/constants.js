@@ -169,6 +169,10 @@ export const MAX_UPGRADES_LISTED = 15;
 // Source: https://hypixelskyblock.minecraft.wiki/w/Reforging#Basic_Reforging
 export const BLACKSMITH_REFORGE_COST = 500;
 
+// Armor only ever gets Ancient: nothing else is offered or assumed on armor. (Light on Maxor's boots would
+// win on paper by freeing tuning points, but most players wear the same boots all run.)
+export const ARMOR_REFORGE = 'ancient';
+
 // Price refresh intervals.
 export const AUCTION_REFRESH_MS = 5 * 60 * 1000;
 export const BAZAAR_REFRESH_MS = 2 * 60 * 1000;

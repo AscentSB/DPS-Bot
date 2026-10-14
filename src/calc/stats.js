@@ -16,6 +16,7 @@ import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
+import { PHASE_PETS } from '../config/pets.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -426,19 +427,23 @@ function rawStats(loadout, ctx, activeExtras) {
   add(extrasBucket.wither, 'wither');
   add(extrasBucket.dragon, 'dragon');
 
-  // Active pet (one at a time) and the Dungeon potion, buffed by your best Jellyfish.
-  const pet = loadout.activePet ? petStats(loadout.activePet, c.petProfile) : null;
-  if (pet) {
-    add(pet.stats);
-    add(pet.wither, 'wither');
-    add(pet.dragon, 'dragon');
+  // Active pet for each boss (swapped between phases) and the Dungeon potion, buffed by your best Jellyfish.
+  const pets = {};
+  for (const t of TARGETS) {
+    const active = loadout.activePets?.[t];
+    pets[t] = active ? petStats(active, c.petProfile) : null;
+    if (!pets[t]) continue;
+    add(pets[t].stats, t);
+    add(pets[t][t], t);
   }
   add(DUNGEON_POTION, null, 1 + potionBoost(loadout, c));
   add(setBonuses(loadout, c.cls));
 
   if (loadout.rag) {
-    const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: pet?.petStrength ?? 0 });
-    add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) });
+    for (const t of TARGETS) {
+      const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: pets[t]?.petStrength ?? 0 });
+      add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) }, t);
+    }
   }
 
   // Essence shop perks.
@@ -447,8 +452,10 @@ function rawStats(loadout, ctx, activeExtras) {
     if (!level) continue;
     const { petCritDamage, ...stats } = perk.perLevel;
     add(Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, v * level])));
-    if (petCritDamage && loadout.activePet?.type === perk.pet) {
-      add({ critDamage: (petStats(loadout.activePet, c.petProfile).stats.critDamage ?? 0) * petCritDamage * level });
+    if (petCritDamage) {
+      for (const t of TARGETS) {
+        if (loadout.activePets?.[t]?.type === perk.pet) add({ critDamage: (pets[t].stats.critDamage ?? 0) * petCritDamage * level }, t);
+      }
     }
   }
 
@@ -464,7 +471,10 @@ function rawStats(loadout, ctx, activeExtras) {
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   const clearSwap = Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS));
   const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, attackSpeedOf(buckets.wither), 1 + buckets.wither.additiveAttackSpeed);
+  // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
+  const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
+  const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, attackSpeedOf(buckets[binding]), 1 + buckets[binding].additiveAttackSpeed);
   add(tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }
@@ -556,16 +566,23 @@ export function dpsPets(pets, ctx) {
   return [...byType.values()];
 }
 
-// Pick the owned pet that gives the most weighted damage and make it the active pet.
+// Pick the active pet for each boss: the class's phase pet (PHASE_PETS) when owned, otherwise the owned
+// pet that does the most damage against that boss.
 export function selectPet(loadout, ctx, weights) {
-  let best = null;
-  let bestScore = -Infinity;
-  for (const pet of [null, ...dpsPets(loadout.pets, ctx)]) {
-    const r = evaluate({ ...loadout, activePet: pet }, ctx, weights);
-    const score = r.wither * weights.wither + r.dragon * weights.dragon;
-    if (score > bestScore) { bestScore = score; best = pet; }
+  const candidates = [null, ...dpsPets(loadout.pets, ctx)];
+  const activePets = { ...(loadout.activePets ?? {}) };
+  for (const target of TARGETS) {
+    const preferred = PHASE_PETS[target]?.[ctx.cls];
+    const pool = candidates.filter((p) => p && p.type === preferred);
+    let best = null;
+    let bestScore = -Infinity;
+    for (const pet of pool.length ? pool : candidates) {
+      const r = evaluate({ ...loadout, activePets: { ...activePets, [target]: pet } }, ctx, weights);
+      if (r[target] > bestScore) { bestScore = r[target]; best = pet; }
+    }
+    activePets[target] = best;
   }
-  return { ...loadout, activePet: best };
+  return { ...loadout, activePets };
 }
 
 // Damage against each target for the loadout. Returns { wither, dragon, stats, ap, extras }.
