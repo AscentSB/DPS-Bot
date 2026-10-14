@@ -1,9 +1,9 @@
 import { getJson } from './http.js';
 import { ITEMS_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
-import { cataLevelFromXp } from '../calc/formulas.js';
+import { cataLevelFromXp, skillLevelFromXp } from '../calc/formulas.js';
 import { TUNING_KEYS } from '../config/accessories.js';
-import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
+import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS, COMBAT_MAX_LEVEL } from '../config/constants.js';
 import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
 
 const API = 'https://api.hypixel.net/v2';
@@ -72,6 +72,9 @@ export function readMember(profile, uuid, resource) {
     archerLevel: cataLevelFromXp(member.dungeons?.player_classes?.archer?.experience ?? 0),
     cataXp,
     secrets: Number(member.dungeons?.secrets ?? 0),
+    // Combat skill (base crit chance). Skills API off: assume maxed.
+    combatLevel: member.player_data?.experience?.SKILL_COMBAT == null ? COMBAT_MAX_LEVEL
+      : skillLevelFromXp(member.player_data.experience.SKILL_COMBAT, COMBAT_MAX_LEVEL),
     pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),
     power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
     tuning: readTuning(bag.tuning?.slot_0),

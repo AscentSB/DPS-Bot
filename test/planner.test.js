@@ -546,3 +546,14 @@ test('Rift Prism: the profile Accessory Power wins; only an exact 11 gap adds th
   const p = { get: () => ({ price: 1e6, source: 'AH' }) };
   assert.ok(!availableUpgrades(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), ctx, p).some((u) => u.label === 'Buy Rift Prism'));
 });
+
+test('Combat skill adds 0.5 base crit chance per level; 2.67B combat XP is level 60', async () => {
+  const { skillLevelFromXp } = await import('../src/calc/formulas.js');
+  assert.equal(skillLevelFromXp(2666982490, 60), 60);
+  assert.equal(skillLevelFromXp(55172425, 60), 50);
+  assert.equal(skillLevelFromXp(55172424, 60), 49);
+  const w = weightsFor('arch');
+  const at = (combatLevel) => { const ctx = makeContext({ cls: 'arch', cataLevel: 50, combatLevel, resource }); return evaluate(buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w), ctx, w).stats.wither.critChance; };
+  // Terminator divides crit chance by 4: +30 flat -> +7.5.
+  close(at(60) - at(0), 30 * 0.25);
+});

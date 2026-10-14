@@ -31,8 +31,8 @@ export function weightsFor(cls, target) {
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, resource }) {
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, resource };
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, resource }) {
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.

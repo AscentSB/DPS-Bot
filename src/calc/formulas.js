@@ -1,7 +1,7 @@
 import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
   PAUL_BENEDICTION, BENEDICTION_BUFF,
-  BASE_CRIT_CHANCE, OVERLOAD_MULTIPLIER, MAGE_INT_DIVISOR, MAGE_ABILITY_SCALING, MAGE_ABILITY_BASE,
+  BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_INT_DIVISOR, MAGE_ABILITY_SCALING, MAGE_ABILITY_BASE,
   HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
   CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
@@ -57,6 +57,18 @@ export function calcCritChance(critChance, additive = 0, multiplicative = 1) {
 }
 
 // ---------- Catacombs and dungeon item scaling ----------
+
+// Skill level from total skill XP, capped at maxLevel.
+export function skillLevelFromXp(xp, maxLevel) {
+  let level = 0;
+  let remaining = xp ?? 0;
+  for (const need of SKILL_XP_PER_LEVEL.slice(0, maxLevel)) {
+    if (remaining < need) break;
+    remaining -= need;
+    level++;
+  }
+  return level;
+}
 
 export function cataLevelFromXp(xp) {
   let level = 0;
