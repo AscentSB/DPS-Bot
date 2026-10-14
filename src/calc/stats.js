@@ -341,11 +341,16 @@ export function totalAccessoryPower(loadout, resource) {
   return countedAccessories(loadout).reduce((sum, item) => sum + accessoryPower(item, resource), 0);
 }
 
+// Tuning stats that raise damage for each class.
+const CLASS_TUNING_STATS = { arch: ['strength', 'critDamage', 'critChance'], bers: ['strength', 'critDamage', 'critChance'], mage: ['intelligence'] };
+
 // Leftover tuning points go to the DPS stats by the profile's split, or the class default.
 // Never speed or attack speed: both are already at their cap when points are left over.
 function distribute(stats, points, ctx) {
   if (!(points > 0)) return;
-  const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => stat !== 'speed' && stat !== 'attackSpeed' && TUNING_PER_POINT[stat]);
+  // Only the profile's tuning stats that matter for this class (an Archer split doesn't carry over to Mage).
+  const useful = CLASS_TUNING_STATS[ctx.cls] ?? [];
+  const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => useful.includes(stat) && TUNING_PER_POINT[stat]);
   const total = entries.reduce((sum, [, share]) => sum + share, 0);
   const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(DEFAULT_TUNING_SPLIT[ctx.cls]);
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
@@ -555,7 +560,10 @@ function rawStats(loadout, ctx, activeExtras) {
   // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
   const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
   const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, attackSpeedOf(buckets[binding]), 1 + buckets[binding].additiveAttackSpeed);
+  // Attack speed only matters for shortbows (shots per second); otherwise no points go to it.
+  const needsAttackSpeed = Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c,
+    needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
   add(tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }

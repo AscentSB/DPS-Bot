@@ -723,3 +723,11 @@ test('Tier V Beacon: +5 crit chance for Archer and Berserker, +5% ability damage
   const s = { damage: 0, critDamage: 0, strength: 0, additiveDamage: 0, intelligence: 1000 };
   close(mageDamage({ ...s, abilityDamage: 5 }, 0), mageDamage(s, 0) * 1.05);
 });
+
+test('mage tuning: no attack speed points without a shortbow, leftover points go to intelligence', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, tuning: { split: { critChance: 1 } } });
+  const w = weightsFor('mage');
+  const accs = ['WITHER_RELIC', 'MASTER_SKULL_TIER_7', 'GENERAL_MEDALLION', 'SPEED_TALISMAN', 'SPEED_RING'].map((id) => newItem(id, resource));
+  const e = evaluate(buildLoadout(profile([newItem('HYPERION', resource), ...accs]), ctx, w), ctx, w);
+  assert.equal(e.tuning.attackSpeed, 0);
+});
