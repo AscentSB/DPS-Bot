@@ -115,8 +115,11 @@ export function statRarity(rarity) {
   return { SPECIAL: 'MYTHIC', VERY_SPECIAL: 'DIVINE' }[rarity] ?? rarity;
 }
 
-export function canRecomb(item) {
+// The items resource marks items that cannot be recombobulated with can_recombobulate: false
+// (Voter Badges, Runebook, Safety Badge, Beastslayer's Codex, Pandora's Box, Rift Prism, ...).
+export function canRecomb(item, resource) {
   if (NO_RECOMB.includes(item.id) || MAX_REFORGE_ITEMS.test(item.id ?? '')) return false;
+  if (resource?.get(item.id)?.can_recombobulate === false) return false;
   return !item.recomb && itemRarity({ ...item, recomb: true }) !== (item.baseRarity ?? 'COMMON');
 }
 

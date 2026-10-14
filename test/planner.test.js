@@ -520,3 +520,14 @@ test('hatcessories: only the best hat counts, the others are duplicates', async 
   const counted = countedAccessories(loadout).map((i) => i.id);
   assert.deepEqual(counted.sort(), ['PARTY_HAT_CRAB_ANIMATED', 'WITHER_RELIC']);
 });
+
+test('items the resource marks can_recombobulate: false are never offered a recombobulator', () => {
+  const res = new Map([...resource,
+    ['VOTER_BADGE_SUPREME', { id: 'VOTER_BADGE_SUPREME', name: "Supreme Voter's Badge", category: 'ACCESSORY', tier: 'EPIC', can_recombobulate: false, stats: { STRENGTH: 5 } }],
+    ['WITHER_RELIC', { ...resource.get('WITHER_RELIC'), stats: { STRENGTH: 5 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('VOTER_BADGE_SUPREME', res), newItem('WITHER_RELIC', res)]), ctx, weightsFor('arch'));
+  const labels = availableUpgrades(l, ctx, prices).map((u) => u.label);
+  assert.ok(!labels.includes("Recombobulate Supreme Voter's Badge"));
+  assert.ok(labels.includes('Recombobulate Wither Relic'));
+});

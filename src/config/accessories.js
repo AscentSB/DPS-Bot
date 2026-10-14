@@ -88,7 +88,8 @@ export const DEFAULT_TUNING_SPLIT = {
 // only your best one gives Accessory Power and stats, the rest are duplicates.
 export const HATCESSORY = /^(PARTY_HAT_|BALLOON_HAT_|CAKE_HAT_)/;
 
-// Accessories that cannot be recombobulated (SkyCrypt SPECIAL_ACCESSORIES).
+// Accessories that cannot be recombobulated, on top of every item the Hypixel items resource marks
+// with can_recombobulate: false (SkyCrypt SPECIAL_ACCESSORIES).
 export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX', 'RIFT_PRISM'];
 
 // Enrichments on Legendary and higher accessories. Item ids: TALISMAN_ENRICHMENT_<KEY>.

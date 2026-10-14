@@ -249,7 +249,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     }
 
     // Recombobulator.
-    if (canRecomb(item)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
+    if (canRecomb(item, resource)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
 
     // Reforges: stones, and blacksmith reforges (random rolls, priced as the average number of rolls).
     if (!isAccessory) {
