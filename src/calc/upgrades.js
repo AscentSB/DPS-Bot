@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -80,7 +80,7 @@ export function buildLoadout(profile, ctx, weights) {
     loadout.owned.add(item.id);
     if (item.id === RAGNAROCK_ID) bySlot.rag.push(item);
     if (weaponCats.includes(item.category)) bySlot.weapon.push(item);
-    else if (bySlot[item.category]) bySlot[item.category].push(item);
+    else if (bySlot[equipmentSlot(item.category) ?? item.category]) bySlot[equipmentSlot(item.category) ?? item.category].push(item);
     else if (item.category === ACCESSORY_CATEGORY) {
       const prev = loadout.accessories.get(item.id);
       if (!prev || accessoryRank(item) > accessoryRank(prev)) loadout.accessories.set(item.id, item);
@@ -285,7 +285,8 @@ export function availableUpgrades(loadout, ctx, prices) {
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
     const isArmor = ARMOR_SLOTS.includes(cat);
-    const isEquip = EQUIPMENT_SLOTS.includes(cat);
+    const equipSlot = equipmentSlot(cat);
+    const isEquip = Boolean(equipSlot);
     const isAcc = cat === ACCESSORY_CATEGORY;
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds)) continue;
@@ -298,10 +299,10 @@ export function availableUpgrades(loadout, ctx, prices) {
       if (isRag) next.rag = item;
       if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
       else if (isArmor) next.armor[cat] = item;
-      else if (isEquip) next.equipment[cat] = item;
+      else if (isEquip) next.equipment[equipSlot] = item;
       else if (isAcc) next.accessories.set(id, item);
       return next;
-    }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : cat}` });
+    }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
     buy();
     // Gear can come with the best reforge stone for its slot; the planner picks whichever is better per million.
     if (!isAcc) {
@@ -406,7 +407,7 @@ function bestReforge(loadout, ctx, item) {
   const key = `${item.category}:${rarity}:${dungeon}`;
   ctx.reforgeCache ??= new Map();
   if (ctx.reforgeCache.has(key)) return ctx.reforgeCache.get(key);
-  const slot = ARMOR_SLOTS.includes(item.category) ? item.category : EQUIPMENT_SLOTS.includes(item.category) ? item.category : 'weapon';
+  const slot = ARMOR_SLOTS.includes(item.category) ? item.category : equipmentSlot(item.category) ?? 'weapon';
   const dummy = { ...item, id: '__REFORGE_TEST__', name: 'test' };
   let best = null;
   let bestScore = -Infinity;

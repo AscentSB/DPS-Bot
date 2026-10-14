@@ -143,7 +143,15 @@ export const CLASS_WEAPON_CATEGORIES = {
 };
 
 export const ARMOR_SLOTS = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'];
-export const EQUIPMENT_SLOTS = ['NECKLACE', 'CLOAK', 'BELT', 'GLOVES', 'BRACELET'];
+export const EQUIPMENT_SLOTS = ['NECKLACE', 'CLOAK', 'BELT', 'GLOVES'];
+// Equipment categories that share a slot: bracelets go in the gloves slot (one item per slot).
+export const EQUIPMENT_SLOT_OF = { BRACELET: 'GLOVES' };
+
+// Equipment slot for an item category, or null when the category is not equipment.
+export function equipmentSlot(category) {
+  const slot = EQUIPMENT_SLOT_OF[category] ?? category;
+  return EQUIPMENT_SLOTS.includes(slot) ? slot : null;
+}
 export const ACCESSORY_CATEGORY = 'ACCESSORY';
 
 // Diamond and gold boss heads are SPECIAL items that already get max reforge stats; recombobulating does nothing.

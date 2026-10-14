@@ -471,3 +471,15 @@ test('Inferno Demonlord shard: +1 attack speed per level, read from attributes.s
   const b = evaluate({ ...l, activePets: {}, shards: { BURNINGSOUL: 10 } }, ctx, w);
   close(b.attackSpeed - a.attackSpeed, 10);
 });
+
+test('a bracelet takes the gloves slot: never worn together with gloves', () => {
+  const res = new Map([...resource, ['MOLTEN_BRACELET', { id: 'MOLTEN_BRACELET', name: 'Molten Bracelet', category: 'BRACELET', tier: 'LEGENDARY', stats: { STRENGTH: 15, CRITICAL_DAMAGE: 10 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SOULWEAVER_GLOVES', res), newItem('MOLTEN_BRACELET', res)]), ctx, w);
+  assert.deepEqual(Object.keys(l.equipment), ['GLOVES']);
+  const p = { get: (id) => ({ price: 1e6, source: 'AH' }) };
+  const owned = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SOULWEAVER_GLOVES', res)]), ctx, w);
+  const buy = availableUpgrades(owned, ctx, p).find((u) => u.label.startsWith('Buy Molten Bracelet'));
+  if (buy) assert.ok(!('BRACELET' in buy.apply(owned).equipment));
+});
