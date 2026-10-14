@@ -8,7 +8,7 @@ import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -86,7 +86,14 @@ export function itemRarity(item) {
   return i >= 0 && i < RARITIES.length - 1 ? RARITIES[i + 1] : base;
 }
 
+// SPECIAL items use MYTHIC reforge and gem stats, VERY_SPECIAL use DIVINE
+// (the M7 archer sheet's Diamond Necron Head + Ancient numbers match MYTHIC Ancient).
+export function statRarity(rarity) {
+  return { SPECIAL: 'MYTHIC', VERY_SPECIAL: 'DIVINE' }[rarity] ?? rarity;
+}
+
 export function canRecomb(item) {
+  if (NO_RECOMB.includes(item.id)) return false;
   return !item.recomb && itemRarity({ ...item, recomb: true }) !== (item.baseRarity ?? 'COMMON');
 }
 
@@ -128,14 +135,13 @@ export function baseItemStats(id, resource, cls) {
   const classOk = !override.classes || !cls || override.classes.includes(cls);
   const stats = {};
   if (!override.replaceStats && info) {
-    const m = override.statMultiplier ?? 1;
     for (const [apiKey, value] of Object.entries(info.stats ?? {})) {
       const key = STAT_ALIASES[apiKey.toUpperCase()];
-      if (key && typeof value === 'number') stats[key] = (stats[key] ?? 0) + value * m;
+      if (key && typeof value === 'number') stats[key] = (stats[key] ?? 0) + value;
     }
     for (const [apiKey, values] of Object.entries(info.tiered_stats ?? {})) {
       const key = STAT_ALIASES[apiKey.toUpperCase()];
-      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[values.length - 1] * m;
+      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[values.length - 1];
     }
   }
   if (classOk) for (const [key, value] of Object.entries(override.stats ?? {})) addLoose(stats, { [key]: value });
@@ -171,7 +177,7 @@ function scaleBucket(stats, item, ctx, dungeon) {
 export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
   const base = baseItemStats(item.id, ctx.resource, ctx.cls);
   const out = { global: { ...base.global }, wither: { ...base.wither }, dragon: { ...base.dragon } };
-  const rarity = itemRarity(item);
+  const rarity = statRarity(itemRarity(item));
   const weapon = isWeaponCategory(item.category);
 
   const reforge = item.reforge && getReforge(item.reforge);
@@ -202,6 +208,9 @@ export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
       addLoose(out[ench.target], { [stat]: values[Math.min(level, values.length) - 1] });
     }
   }
+  // Items like Necron heads multiply everything on them (base, reforge, gems, enchants).
+  const m = ITEM_STATS[item.id]?.statMultiplier;
+  if (m) for (const bucket of Object.values(out)) for (const k of Object.keys(bucket)) if (FLAT_STATS.has(k) || k === 'speed') bucket[k] *= m;
   return out;
 }
 

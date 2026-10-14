@@ -282,3 +282,12 @@ test('gear buys also come bundled with the best reforge stone', () => {
   assert.ok(labels.includes("Buy Necron's Leggings"));
   assert.ok(labels.includes("Buy Necron's Leggings + Ancient reforge"));
 });
+
+test("Diamond Necron Head + Ancient matches the sheet: (40 + 35) str, cata cd and 15 cc, all doubled", () => {
+  const res = new Map([...resource, ['DIAMOND_NECRON_HEAD', { id: 'DIAMOND_NECRON_HEAD', name: 'Diamond Necron Head', category: 'HELMET', tier: 'SPECIAL', dungeon_item: true, stats: { STRENGTH: 40 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const c = itemContribution({ ...newItem('DIAMOND_NECRON_HEAD', res), reforge: 'ancient' }, ctx);
+  close(c.global.strength, 150 * 6.35);
+  close(c.global.critDamage, 100 * 6.35);
+  close(c.global.critChance, 30 * 1.5);
+});

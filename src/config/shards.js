@@ -1,6 +1,6 @@
 // Attribute shards that raise DPS. Source: https://hypixelskyblock.minecraft.wiki/w/Attributes
 // Each attribute goes from level 1 to 10. `perLevel` is the effect of one level.
-// Bazaar id: SHARD_<ID>.
+// Bazaar id: SHARD_<ID>. `attribute` is the key in the profile's attributes.stacks (syphoned shard count).
 //
 //   family   'elemental' | 'unlimited' | 'ruler' | 'box' (what the echo shards boost)
 //   echo     boosts another family by `perLevel.echo` per level (0.02 = +2% per level)
@@ -9,41 +9,41 @@
 
 export const SHARDS = {
   // Elemental: +1 strength per level each. Bolt is newer than the M7 archer sheet.
-  FLASH: { name: 'Flash', rarity: 'COMMON', family: 'elemental', perLevel: { strength: 1 } },
-  QUAKE: { name: 'Quake', rarity: 'UNCOMMON', family: 'elemental', perLevel: { strength: 1 } },
-  BOLT: { name: 'Bolt', rarity: 'RARE', family: 'elemental', perLevel: { strength: 1 } },
-  AERO: { name: 'Aero', rarity: 'EPIC', family: 'elemental', perLevel: { strength: 1 } },
-  TEMPEST: { name: 'Tempest', rarity: 'LEGENDARY', family: 'elemental', perLevel: { strength: 1 } },
-  STARBORN: { name: 'Starborn', rarity: 'LEGENDARY', echo: 'elemental', perLevel: { echo: 0.02 } },
+  FLASH: { name: 'Flash', attribute: 'light_elemental', rarity: 'COMMON', family: 'elemental', perLevel: { strength: 1 } },
+  QUAKE: { name: 'Quake', attribute: 'stone_elemental', rarity: 'UNCOMMON', family: 'elemental', perLevel: { strength: 1 } },
+  BOLT: { name: 'Bolt', attribute: 'lightning_elemental', rarity: 'RARE', family: 'elemental', perLevel: { strength: 1 } },
+  AERO: { name: 'Aero', attribute: 'wind_elemental', rarity: 'EPIC', family: 'elemental', perLevel: { strength: 1 } },
+  TEMPEST: { name: 'Tempest', attribute: 'storm_elemental', rarity: 'LEGENDARY', family: 'elemental', perLevel: { strength: 1 } },
+  STARBORN: { name: 'Starborn', attribute: 'echo_of_elemental', rarity: 'LEGENDARY', echo: 'elemental', perLevel: { echo: 0.02 } },
 
   // Unlimited Power / Energy: +0.1% strength / crit damage per level.
-  JORMUNG: { name: 'Jormung', rarity: 'LEGENDARY', family: 'unlimited', perLevel: { additiveStrength: 0.001 } },
-  ETHERDRAKE: { name: 'Etherdrake', rarity: 'LEGENDARY', family: 'unlimited', perLevel: { additiveCritDamage: 0.001 } },
-  MOLTHORN: { name: 'Molthorn', rarity: 'LEGENDARY', echo: 'unlimited', perLevel: { echo: 0.05 } },
+  JORMUNG: { name: 'Jormung', attribute: 'unlimited_power', rarity: 'LEGENDARY', family: 'unlimited', perLevel: { additiveStrength: 0.001 } },
+  ETHERDRAKE: { name: 'Etherdrake', attribute: 'unlimited_energy', rarity: 'LEGENDARY', family: 'unlimited', perLevel: { additiveCritDamage: 0.001 } },
+  MOLTHORN: { name: 'Molthorn', attribute: 'almighty', rarity: 'LEGENDARY', echo: 'unlimited', perLevel: { echo: 0.05 } },
 
   // Rulers: +3% damage per level against one mob type. Dragons are Ender, withers are Undead.
-  BRUISER: { name: 'Zealot Bruiser', rarity: 'UNCOMMON', family: 'ruler', target: 'dragon', perLevel: { additiveDamage: 3 } },
-  ZOMBIE_SOLDIER: { name: 'Zombie Soldier', rarity: 'UNCOMMON', family: 'ruler', target: 'wither', perLevel: { additiveDamage: 3 } },
-  CAIMAN: { name: 'Caiman', rarity: 'EPIC', echo: 'ruler', perLevel: { echo: 0.02 } },
+  BRUISER: { name: 'Zealot Bruiser', attribute: 'ender', rarity: 'UNCOMMON', family: 'ruler', target: 'dragon', perLevel: { additiveDamage: 3 } },
+  ZOMBIE_SOLDIER: { name: 'Zombie Soldier', attribute: 'undead', rarity: 'UNCOMMON', family: 'ruler', target: 'wither', perLevel: { additiveDamage: 3 } },
+  CAIMAN: { name: 'Caiman', attribute: 'echo_of_ruler', rarity: 'EPIC', echo: 'ruler', perLevel: { echo: 0.02 } },
 
   // Tuning Box: +1 tuning point per level.
-  HIDEONBOX: { name: 'Hideonbox', rarity: 'LEGENDARY', family: 'box', perLevel: { tuningPoints: 1 } },
-  CUBOA: { name: 'Cuboa', rarity: 'UNCOMMON', echo: 'box', perLevel: { echo: 0.02 } },
+  HIDEONBOX: { name: 'Hideonbox', attribute: 'tuning_box', rarity: 'LEGENDARY', family: 'box', perLevel: { tuningPoints: 1 } },
+  CUBOA: { name: 'Cuboa', attribute: 'echo_of_boxes', rarity: 'UNCOMMON', echo: 'box', perLevel: { echo: 0.02 } },
 
   // Echo of Echoes: boosts every echo shard above by +5% per level.
-  TIAMAT: { name: 'Tiamat', rarity: 'LEGENDARY', echo: 'echo', perLevel: { echo: 0.05 } },
+  TIAMAT: { name: 'Tiamat', attribute: 'echo_of_echoes', rarity: 'LEGENDARY', echo: 'echo', perLevel: { echo: 0.05 } },
 
   // Speed: frees tuning points (see TUNING_PER_POINT).
-  OBSIDIAN_DEFENDER: { name: 'Obsidian Defender', rarity: 'UNCOMMON', perLevel: { speed: 1 } },
+  OBSIDIAN_DEFENDER: { name: 'Obsidian Defender', attribute: 'speed', rarity: 'UNCOMMON', perLevel: { speed: 1 } },
 
   // Faker: dungeon blessings +1% stronger per level.
-  MIMIC: { name: 'Mimic', rarity: 'EPIC', perLevel: { blessingShard: 0.01 } },
+  MIMIC: { name: 'Mimic', attribute: 'faker', rarity: 'EPIC', perLevel: { blessingShard: 0.01 } },
 
   // Plain damage attributes.
-  POWER_DRAGON: { name: 'Power Dragon', rarity: 'LEGENDARY', perLevel: { additiveDamage: 3 } },
-  SKELETOR: { name: 'Skeletor', rarity: 'RARE', classes: ['arch'], perLevel: { additiveDamage: 2.5 } },
-  THORN: { name: 'Thorn', rarity: 'EPIC', perLevel: { additiveDamage: 1.5 } },
-  BARBARIAN_DUKE_X: { name: 'Barbarian Duke X', rarity: 'EPIC', classes: ['bers'], perLevel: { additiveDamage: 2.5 } },
+  POWER_DRAGON: { name: 'Power Dragon', attribute: 'elite', rarity: 'LEGENDARY', perLevel: { additiveDamage: 3 } },
+  SKELETOR: { name: 'Skeletor', attribute: 'deadeye', rarity: 'RARE', classes: ['arch'], perLevel: { additiveDamage: 2.5 } },
+  THORN: { name: 'Thorn', attribute: 'dominance', rarity: 'EPIC', perLevel: { additiveDamage: 1.5 } },
+  BARBARIAN_DUKE_X: { name: 'Barbarian Duke X', attribute: 'warrior', rarity: 'EPIC', classes: ['bers'], perLevel: { additiveDamage: 2.5 } },
 };
 
 export const SHARD_MAX_LEVEL = 10;

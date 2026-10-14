@@ -15,7 +15,7 @@
 //     dragon: { ... },       // applies only against dragons
 //     classes: ['arch'],     // only count these stats for these classes (optional)
 //     dpsMultiplier: 3,      // weapons only: hits per shot or swing (the damage formula is per hit)
-//     statMultiplier: 2,     // multiplies the item's own base stats (e.g. Necron heads on Floor 7)
+//     statMultiplier: 2,     // multiplies every stat on the item, reforge and gems included (Necron heads on Floor 7)
 //   }
 //
 // Stat keys you can use:

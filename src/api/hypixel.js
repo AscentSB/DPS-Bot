@@ -32,14 +32,21 @@ export async function getSelectedProfile(uuid) {
   return profiles.find((p) => p.selected) ?? profiles[0];
 }
 
-// Every inventory blob on the member that can hold gear.
-function inventoryBlobs(inv) {
+// Every inventory blob on the member that can hold gear, including wardrobe armor and
+// equipment sets stored under member.loadout.
+function inventoryBlobs(member) {
+  const inv = member.inventory;
   if (!inv) return [];
   const blobs = [
     inv.inv_contents, inv.inv_armor, inv.equipment_contents, inv.ender_chest_contents,
     inv.wardrobe_contents, inv.personal_vault_contents, inv.bag_contents?.talisman_bag,
   ];
   for (const bp of Object.values(inv.backpack_contents ?? {})) blobs.push(bp);
+  for (const group of [member.loadout?.armor, member.loadout?.equipment]) {
+    for (const set of Object.values(group ?? {})) {
+      for (const piece of Object.values(set ?? {})) if (piece?.data) blobs.push(piece);
+    }
+  }
   return blobs.filter((b) => b?.data).map((b) => b.data);
 }
 
@@ -47,7 +54,7 @@ function inventoryBlobs(inv) {
 export function readMember(profile, uuid, resource) {
   const member = profile?.members?.[uuid];
   if (!member) throw new Error('Player is not a member of this profile.');
-  const blobs = inventoryBlobs(member.inventory);
+  const blobs = inventoryBlobs(member);
   if (blobs.length === 0) throw new Error('Inventory API is disabled for this profile. Turn it on in SkyBlock settings.');
 
   const items = [];
@@ -98,19 +105,13 @@ function readTuning(slot) {
   return { allocation, split };
 }
 
-// Attribute levels from syphoned shard counts. The field layout is not documented, so this
-// accepts { stacks: { id: count } } or { id: count } with shard ids in any case.
+// Attribute levels from member.attributes.stacks: { attribute_name: syphoned shard count }.
 function readShards(attributes) {
-  const source = attributes?.stacks ?? attributes;
+  const stacks = attributes?.stacks ?? {};
   const levels = {};
-  if (!source || typeof source !== 'object') return levels;
-  for (const [key, value] of Object.entries(source)) {
-    const id = key.toUpperCase();
-    const shard = SHARDS[id];
-    const count = Number(value);
-    if (!shard || !(count > 0)) continue;
-    const cum = SHARDS_CUMULATIVE[shard.rarity];
-    levels[id] = cum.filter((need) => count >= need).length;
+  for (const [id, shard] of Object.entries(SHARDS)) {
+    const count = Number(stacks[shard.attribute] ?? 0);
+    if (count > 0) levels[id] = SHARDS_CUMULATIVE[shard.rarity].filter((need) => count >= need).length;
   }
   return levels;
 }

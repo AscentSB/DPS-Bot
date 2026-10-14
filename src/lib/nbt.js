@@ -33,6 +33,11 @@ export function petInfo(extra) {
   }
 }
 
+// Item resource names can carry formatting like "%%light_purple%%" or "§d".
+export function cleanName(name) {
+  return String(name ?? '').replace(/%%[a-z_]+%%/gi, '').replace(/§./g, '').trim();
+}
+
 // Turn one simplified NBT item into the item state the calculator uses.
 // Returns null for empty slots or items with no SkyBlock ITEM_ID.
 export function toItemState(nbtItem, resource) {
@@ -45,7 +50,7 @@ export function toItemState(nbtItem, resource) {
   const info = resource?.get(id);
   return {
     id,
-    name: info?.name ?? id,
+    name: cleanName(info?.name ?? id),
     category: info?.category,
     baseRarity: info?.tier ?? 'COMMON',
     recomb: Number(extra.rarity_upgrades ?? 0) > 0,

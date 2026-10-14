@@ -20,7 +20,8 @@ async function refreshBazaar() {
   const next = new Map();
   for (const [id, product] of Object.entries(data.products)) {
     const price = product.quick_status?.buyPrice;
-    if (price > 0) next.set(id, price);
+    // Under 1 coin is a troll sell offer (e.g. 10 stones listed at 0.1), not a real price.
+    if (price >= 1) next.set(id, price);
   }
   bazaar = next;
   bazaarAt = Date.now();

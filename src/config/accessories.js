@@ -84,6 +84,9 @@ export const DEFAULT_TUNING_SPLIT = {
   mage: { intelligence: 1 },
 };
 
+// Accessories that cannot be recombobulated (SkyCrypt SPECIAL_ACCESSORIES).
+export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX', 'RIFT_PRISM'];
+
 // Enrichments on Legendary and higher accessories. Item ids: TALISMAN_ENRICHMENT_<KEY>.
 export const ENRICHMENTS = {
   strength: { key: 'STRENGTH', stats: { strength: 1 } },

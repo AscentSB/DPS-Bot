@@ -12,10 +12,11 @@ import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
+import { cleanName } from '../lib/nbt.js';
 
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed'];
 
@@ -37,7 +38,7 @@ export function newItem(id, resource) {
   const info = resource.get(id);
   const dungeonizable = Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost);
   return {
-    id, name: info?.name ?? id, category: info?.category, baseRarity: info?.tier ?? 'COMMON', recomb: false,
+    id, name: cleanName(info?.name ?? id), category: info?.category, baseRarity: info?.tier ?? 'COMMON', recomb: false,
     stars: dungeonizable ? MAX_STARS : 0, masterStars: 0, dungeon: dungeonizable ? true : undefined,
     enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null,
   };
@@ -187,7 +188,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   };
 
   for (const item of upgradableItems(loadout)) {
-    const name = item.name ?? resource.get(item.id)?.name ?? item.id;
+    const name = cleanName(item.name ?? resource.get(item.id)?.name ?? item.id);
     const slot = slotName(loadout, item);
     const isAccessory = item.category === ACCESSORY_CATEGORY;
     const weaponLike = isWeaponCategory(item.category) && (item === loadout.weapon || item === loadout.rag);
@@ -235,7 +236,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (frag && resource.has(frag.id)) {
       const info = resource.get(frag.id);
       push(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, frag.parts,
-        (l) => replaceItem(l, item, { ...item, id: frag.id, name: info.name ?? item.name, category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
+        (l) => replaceItem(l, item, { ...item, id: frag.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
     }
 
     // Recombobulator.
@@ -243,7 +244,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Reforge stones.
     if (!isAccessory) {
-      const rarity = itemRarity(item);
+      const rarity = statRarity(itemRarity(item));
       for (const [key, reforge] of Object.entries(allReforges())) {
         if (!reforge.stone || !reforgeAppliesTo(reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
         if (getReforge(item.reforge) === reforge) continue;
@@ -281,7 +282,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
-    const buy = (reforgeKeyName, reforge) => push(`Buy ${info.name ?? id}${reforge ? ` + ${reforge.name} reforge` : ''}`,
+    const buy = (reforgeKeyName, reforge) => push(`Buy ${cleanName(info.name ?? id)}${reforge ? ` + ${reforge.name} reforge` : ''}`,
       reforge ? [{ id }, { id: reforge.stone }] : [{ id }], (l) => {
       const next = cloneLoadout(l);
       const item = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
@@ -370,7 +371,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
 // Best reforge stone for a fresh item of this category/rarity, tested in the current loadout. Cached per run.
 function bestReforge(loadout, ctx, item) {
-  const rarity = itemRarity(item);
+  const rarity = statRarity(itemRarity(item));
   const dungeon = isDungeon(item, ctx.resource);
   const key = `${item.category}:${rarity}:${dungeon}`;
   ctx.reforgeCache ??= new Map();
@@ -396,7 +397,7 @@ function bestReforge(loadout, ctx, item) {
 function gemUpgrades(item, ctx) {
   const slots = ctx.resource.get(item.id)?.gemstone_slots;
   if (!Array.isArray(slots) || !slots.length) return [];
-  const rarity = itemRarity(item);
+  const rarity = statRarity(itemRarity(item));
   const counts = {};
   const out = [];
   for (const slot of slots) {
