@@ -581,3 +581,18 @@ test('floor-scaled dungeon armor: highest floor tier, 50% stat boost and +1 rari
   const low = { ...makeContext({ cls: 'arch', cataLevel: 24, resource: res }), secretDigit: 5 };
   close(itemContribution({ ...chest, reforge: null }, low).global.critChance, 4.5 * 1.8);
 });
+
+test('accessory chains: owning the Pesthunter Relic supersedes the Artifact even without a direct NEU link', async () => {
+  const { accessorySuperseded } = await import('../src/calc/stats.js');
+  assert.ok(accessorySuperseded('PESTHUNTER_ARTIFACT', new Set(['PESTHUNTER_RELIC'])));
+  assert.ok(accessorySuperseded('PESTHUNTER_BADGE', new Set(['PESTHUNTER_RELIC'])));
+  assert.ok(!accessorySuperseded('PESTHUNTER_RELIC', new Set(['PESTHUNTER_ARTIFACT'])));
+});
+
+test('mutual accessory families (Abiphone cases) count once, not zero times', async () => {
+  const { countedAccessories } = await import('../src/calc/stats.js');
+  const acc = (id, baseRarity = 'RARE') => [id, { id, category: 'ACCESSORY', baseRarity }];
+  const counted = countedAccessories({ accessories: new Map([acc('ABICASE_BLUE_RED'), acc('ABICASE_BLUE_BLUE'), acc('PESTHUNTER_RELIC', 'LEGENDARY'), acc('PESTHUNTER_ARTIFACT', 'EPIC')]) }).map((i) => i.id);
+  assert.equal(counted.filter((id) => id.startsWith('ABICASE')).length, 1);
+  assert.deepEqual(counted.filter((id) => id.startsWith('PESTHUNTER')), ['PESTHUNTER_RELIC']);
+});

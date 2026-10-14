@@ -16,7 +16,7 @@ import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
-import { floorTierIndex, dropStatMultiplier } from '../lib/drops.js';
+import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { PHASE_PETS } from '../config/pets.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
@@ -260,37 +260,68 @@ export function itemContribution(item, ctx, opts) {
 
 // ---------- Accessories ----------
 
+// Accessory families. NEU lists each family as upgrade chains (BADGE -> [RING, ARTIFACT, RELIC]); some links are
+// missing (no ARTIFACT -> [RELIC]) and some groups are mutual (Abiphone cases), so every item in any chain
+// together is one family. Hatcessories are one family too. Only the best owned member of a family counts.
+const ACCESSORY_FAMILY = new Map();
+const CHAIN_POSITION = new Map();
+(() => {
+  const parent = new Map();
+  const find = (x) => {
+    if (!parent.has(x)) parent.set(x, x);
+    while (parent.get(x) !== x) x = parent.get(x);
+    return x;
+  };
+  for (const [id, ups] of Object.entries(ACCESSORY_DATA.upgrades)) {
+    const chain = [id, ...ups];
+    chain.forEach((member, i) => {
+      CHAIN_POSITION.set(member, Math.max(CHAIN_POSITION.get(member) ?? 0, i));
+      parent.set(find(member), find(id));
+    });
+  }
+  for (const id of parent.keys()) ACCESSORY_FAMILY.set(id, find(id));
+})();
+
 export function isHatcessory(id) {
   return HATCESSORY.test(id);
 }
 
-// True when a better accessory of the same family is owned. Hatcessories are one family:
-// owning any hat makes every other hat a duplicate.
-export function accessorySuperseded(id, accessoryIds) {
-  if (isHatcessory(id)) return [...accessoryIds].some((other) => other !== id && isHatcessory(other));
-  return (ACCESSORY_DATA.upgrades[id] ?? []).some((up) => accessoryIds.has(up));
+export function accessoryFamily(id) {
+  return isHatcessory(id) ? 'HATCESSORY' : ACCESSORY_FAMILY.get(id) ?? null;
+}
+
+// Higher is better: rarity first, then position in the upgrade chain.
+function familyRank(rarity, id) {
+  return statRarityIndex(rarity) * 100 + (CHAIN_POSITION.get(id) ?? 0);
+}
+
+// True when an owned accessory of the same family is at least as good (by base rarity when the resource is
+// given, otherwise by chain position), so this one would add nothing.
+export function accessorySuperseded(id, accessoryIds, resource) {
+  const family = accessoryFamily(id);
+  if (!family) return false;
+  const rank = (x) => (resource ? familyRank(dropBaseRarity(x, resource), x) : CHAIN_POSITION.get(x) ?? 0);
+  return [...accessoryIds].some((other) => other !== id && accessoryFamily(other) === family && rank(other) >= rank(id));
 }
 
 export function countedAccessories(loadout) {
-  const ids = new Set(loadout.accessories.keys());
   const out = [];
-  let hat = null;
+  const best = new Map();
   for (const item of loadout.accessories.values()) {
     if (IGNORED_ACCESSORIES.has(item.id)) continue;
-    // Only the highest-rarity hat counts.
-    if (isHatcessory(item.id)) {
-      if (!hat || hatRank(item) > hatRank(hat)) hat = item;
+    const family = accessoryFamily(item.id);
+    if (!family) {
+      out.push(item);
       continue;
     }
-    if (accessorySuperseded(item.id, ids)) continue;
-    out.push(item);
+    const prev = best.get(family);
+    if (!prev || itemFamilyRank(item) > itemFamilyRank(prev)) best.set(family, item);
   }
-  if (hat) out.push(hat);
-  return out;
+  return [...out, ...best.values()];
 }
 
-function hatRank(item) {
-  return statRarityIndex(itemRarity(item)) * 2 + (item.recomb ? 1 : 0);
+function itemFamilyRank(item) {
+  return familyRank(itemRarity(item), item.id) * 2 + (item.recomb ? 1 : 0);
 }
 
 function statRarityIndex(rarity) {

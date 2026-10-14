@@ -300,7 +300,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const isEquip = Boolean(equipSlot);
     const isAcc = cat === ACCESSORY_CATEGORY;
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
-    if (isAcc && accessorySuperseded(id, accIds)) continue;
+    if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
     const buy = (reforgeKeyName, reforge) => push(`Buy ${cleanName(info.name ?? id)}${reforge ? ` + ${reforge.name} reforge` : ''}`,
       reforge ? [{ id }, ...reforgeCost(reforge, newItem(id, resource))] : [{ id }], (l) => {
