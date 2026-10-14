@@ -713,3 +713,13 @@ test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berser
   close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115);
   close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 0);
 });
+
+test('Tier V Beacon: +5 crit chance for Archer and Berserker, +5% ability damage for Mage', async () => {
+  const { mageDamage } = await import('../src/calc/formulas.js');
+  const w = weightsFor('arch');
+  const cc = (cls) => { const ctx = makeContext({ cls, cataLevel: 50, resource }); return evaluate(buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w), ctx, w).stats.wither.critChance; };
+  // Terminator divides crit chance by 4: (30 + 5) x 0.25.
+  close(cc('arch'), 35 * 0.25);
+  const s = { damage: 0, critDamage: 0, strength: 0, additiveDamage: 0, intelligence: 1000 };
+  close(mageDamage({ ...s, abilityDamage: 5 }, 0), mageDamage(s, 0) * 1.05);
+});

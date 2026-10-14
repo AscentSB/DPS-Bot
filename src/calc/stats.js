@@ -50,7 +50,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0, abilityDamage: 0,
   };
 }
 
@@ -585,6 +585,7 @@ export function finalStats(bucket, ctx) {
     intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, effect),
     critChance: calcCritChance(bucket.critChance, bucket.additiveCritChance, bucket.multCritChance),
     additiveDamage: bucket.additiveDamage + classAdditiveDamage(ctx),
+    abilityDamage: bucket.abilityDamage,
   };
 }
 

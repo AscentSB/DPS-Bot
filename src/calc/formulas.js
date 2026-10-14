@@ -162,7 +162,8 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
 // Mage. hyperion = true applies the 1.5x Hyperion multiplier (use only for withers).
 export function mageDamage(s, defense, hyperion = false) {
   const melee = s.damage * (1 + s.critDamage / 100) * (1 + s.strength / 100) * (1 + s.additiveDamage / 100);
-  const ability = MAGE_ABILITY_SCALING * (MAGE_ABILITY_BASE + s.intelligence / MAGE_INT_DIVISOR);
+  // abilityDamage: percent ability damage (Beacon).
+  const ability = MAGE_ABILITY_SCALING * (MAGE_ABILITY_BASE + s.intelligence / MAGE_INT_DIVISOR) * (1 + (s.abilityDamage ?? 0) / 100);
   const raw = (melee + ability) * defenseMultiplier(defense) * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1);
   return applySoftCap(raw);
 }
