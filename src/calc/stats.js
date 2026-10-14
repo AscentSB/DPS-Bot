@@ -699,8 +699,10 @@ export function selectPet(loadout, ctx, weights) {
     let best = null;
     let bestScore = -Infinity;
     for (const pet of pool.length ? pool : candidates) {
+      // Weighted over both bosses: tuning is shared, so a pet for one boss can change the other.
       const r = evaluate({ ...loadout, activePets: { ...activePets, [target]: pet } }, ctx, weights);
-      if (r[target] > bestScore) { bestScore = r[target]; best = pet; }
+      const score = r.wither * weights.wither + r.dragon * weights.dragon;
+      if (score > bestScore) { bestScore = score; best = pet; }
     }
     activePets[target] = best;
   }
