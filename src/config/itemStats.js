@@ -15,6 +15,7 @@
 //     dragon: { ... },       // applies only against dragons
 //     classes: ['arch'],     // only count these stats for these classes (optional)
 //     dpsMultiplier: 3,      // weapons only: hits per shot or swing (the damage formula is per hit)
+//     statMultiplier: 2,     // multiplies the item's own base stats (e.g. Necron heads on Floor 7)
 //   }
 //
 // Stat keys you can use:
@@ -33,6 +34,10 @@
 export const ITEM_STATS = {
   // Terminator: fires 3 arrows per shot; crit chance is quartered (the 1/4 in the old cc/400 term).
   TERMINATOR: { stats: { multCritChance: 0.25 }, dpsMultiplier: 3 },
+
+  // Necron heads: 2x stats on The Catacombs Floor VII.
+  DIAMOND_NECRON_HEAD: { statMultiplier: 2 },
+  GOLD_NECRON_HEAD: { statMultiplier: 2 },
 
   // Master Skulls boost strength in Master Mode. Only your highest tier counts.
   MASTER_SKULL_TIER_1: { stats: { multStrength: 1.01 } },

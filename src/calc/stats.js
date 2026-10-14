@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION_SPEED,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -13,6 +13,8 @@ import {
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS } from '../config/essence.js';
+import { ARMOR_SETS } from '../config/armorSets.js';
+import { petStats } from '../lib/pets.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -44,7 +46,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0,
   };
 }
 
@@ -66,6 +68,10 @@ function addLoose(target, stats, scale = 1) {
 }
 
 // ---------- Item helpers ----------
+
+function isBow(item) {
+  return item?.category === 'BOW';
+}
 
 export function isWeaponCategory(category) {
   return ALL_WEAPON_CATEGORIES.has(category);
@@ -122,13 +128,14 @@ export function baseItemStats(id, resource, cls) {
   const classOk = !override.classes || !cls || override.classes.includes(cls);
   const stats = {};
   if (!override.replaceStats && info) {
+    const m = override.statMultiplier ?? 1;
     for (const [apiKey, value] of Object.entries(info.stats ?? {})) {
       const key = STAT_ALIASES[apiKey.toUpperCase()];
-      if (key && typeof value === 'number') stats[key] = (stats[key] ?? 0) + value;
+      if (key && typeof value === 'number') stats[key] = (stats[key] ?? 0) + value * m;
     }
     for (const [apiKey, values] of Object.entries(info.tiered_stats ?? {})) {
       const key = STAT_ALIASES[apiKey.toUpperCase()];
-      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[values.length - 1];
+      if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[values.length - 1] * m;
     }
   }
   if (classOk) for (const [key, value] of Object.entries(override.stats ?? {})) addLoose(stats, { [key]: value });
@@ -327,8 +334,27 @@ function extraStats(entries, active, bucket) {
   }
 }
 
-function petStrength(entries, active) {
-  return entries.filter((e) => !e.activeWith || active.has(e.activeWith)).reduce((sum, e) => sum + (e.petStrength ?? 0), 0);
+// Best Jellyfish buff among owned pets (it stays on the Dungeon potion after swapping pets).
+function potionBoost(loadout, ctx) {
+  let best = 0;
+  for (const pet of loadout.pets ?? []) {
+    if (pet.type !== 'JELLYFISH') continue;
+    best = Math.max(best, petStats(pet, ctx.petProfile).potionBoost);
+  }
+  return best;
+}
+
+function setBonuses(loadout, cls) {
+  const ids = Object.values(loadout.armor).filter(Boolean).map((i) => i.id);
+  const out = {};
+  for (const s of ARMOR_SETS) {
+    if (s.classes && !s.classes.includes(cls)) continue;
+    const n = ids.filter((id) => s.pieces.includes(id)).length;
+    if (!n) continue;
+    addLoose(out, s.perPiece, n);
+    if (n >= 4) addLoose(out, s.full);
+  }
+  return out;
 }
 
 // ---------- Whole loadout ----------
@@ -345,9 +371,9 @@ function secretDigitFor(loadout, ctx) {
 function rawStats(loadout, ctx, activeExtras) {
   const c = { ...ctx, secretDigit: secretDigitFor(loadout, ctx) };
   const buckets = { wither: emptyBucket(), dragon: emptyBucket() };
-  const add = (stats, target) => {
-    if (!target || target === 'global') for (const t of TARGETS) addInto(buckets[t], stats);
-    else addInto(buckets[target], stats);
+  const add = (stats, target, scale = 1) => {
+    if (!target || target === 'global') for (const t of TARGETS) addInto(buckets[t], stats, scale);
+    else addInto(buckets[target], stats, scale);
   };
   const misc = MISC_BUFFS[c.cls] ?? {};
   add(misc.stats);
@@ -373,8 +399,18 @@ function rawStats(loadout, ctx, activeExtras) {
   add(extrasBucket.wither, 'wither');
   add(extrasBucket.dragon, 'dragon');
 
+  // Active pet (one at a time) and the Dungeon potion, buffed by your best Jellyfish.
+  const pet = loadout.activePet ? petStats(loadout.activePet, c.petProfile) : null;
+  if (pet) {
+    add(pet.stats);
+    add(pet.wither, 'wither');
+    add(pet.dragon, 'dragon');
+  }
+  add(DUNGEON_POTION, null, 1 + potionBoost(loadout, c));
+  add(setBonuses(loadout, c.cls));
+
   if (loadout.rag) {
-    const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: petStrength(activeExtras, activeKeys) });
+    const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: pet?.petStrength ?? 0 });
     add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) });
   }
 
@@ -384,8 +420,9 @@ function rawStats(loadout, ctx, activeExtras) {
     if (!level) continue;
     const { petCritDamage, ...stats } = perk.perLevel;
     add(Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, v * level])));
-    const pet = petCritDamage && activeExtras.find((e) => e.key === perk.pet);
-    if (pet) add({ critDamage: (pet.stats?.critDamage ?? 0) * petCritDamage * level });
+    if (petCritDamage && loadout.activePet?.type === perk.pet) {
+      add({ critDamage: (petStats(loadout.activePet, c.petProfile).stats.critDamage ?? 0) * petCritDamage * level });
+    }
   }
 
   const shards = shardStats(loadout, c);
@@ -395,7 +432,8 @@ function rawStats(loadout, ctx, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
-  const speed = BASE_SPEED + DUNGEON_POTION_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
+  if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
+  const speed = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
   add(speedTuning(speed, c));
   return { buckets, ap: acc.ap, speed };
 }
@@ -460,6 +498,34 @@ export function activeExtras(loadout, ctx, weights) {
   const keys = new Set(active.map((e) => e.key));
   active = active.filter((e) => !e.activeWith || keys.has(e.activeWith));
   return active;
+}
+
+// Owned pets that can matter for damage, one per type (highest rarity, keeping a held item).
+export function dpsPets(pets, ctx) {
+  const byType = new Map();
+  const order = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
+  for (const pet of pets ?? []) {
+    const s = petStats(pet, ctx.petProfile);
+    const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength'].some((k) => s.stats[k])
+      || Object.keys(s.dragon).length || Object.keys(s.wither).length;
+    if (!useful) continue;
+    const key = `${pet.type}:${pet.heldItem ?? ''}`;
+    const prev = byType.get(key);
+    if (!prev || order.indexOf(pet.tier) > order.indexOf(prev.tier)) byType.set(key, pet);
+  }
+  return [...byType.values()];
+}
+
+// Pick the owned pet that gives the most weighted damage and make it the active pet.
+export function selectPet(loadout, ctx, weights) {
+  let best = null;
+  let bestScore = -Infinity;
+  for (const pet of [null, ...dpsPets(loadout.pets, ctx)]) {
+    const r = evaluate({ ...loadout, activePet: pet }, ctx, weights);
+    const score = r.wither * weights.wither + r.dragon * weights.dragon;
+    if (score > bestScore) { bestScore = score; best = pet; }
+  }
+  return { ...loadout, activePet: best };
 }
 
 // Damage against each target for the loadout. Returns { wither, dragon, stats, ap, extras }.

@@ -19,15 +19,18 @@ function resolveId(extra) {
     const entries = Object.entries(extra.enchantments ?? {});
     if (entries.length === 1) return `ENCHANTMENT_${entries[0][0].toUpperCase()}_${entries[0][1]}`;
   }
-  if (id === 'PET' && extra.petInfo) {
-    try {
-      const info = typeof extra.petInfo === 'string' ? JSON.parse(extra.petInfo) : extra.petInfo;
-      if (info?.type && info?.tier) return `PET_${info.type}_${info.tier}`;
-    } catch {
-      // fall through
-    }
-  }
+  const pet = petInfo(extra);
+  if (pet?.type && pet?.tier) return `PET_${pet.type}_${pet.tier}`;
   return id;
+}
+
+export function petInfo(extra) {
+  if (extra?.id !== 'PET' || !extra.petInfo) return null;
+  try {
+    return typeof extra.petInfo === 'string' ? JSON.parse(extra.petInfo) : extra.petInfo;
+  } catch {
+    return null;
+  }
 }
 
 // Turn one simplified NBT item into the item state the calculator uses.
@@ -55,6 +58,7 @@ export function toItemState(nbtItem, resource) {
     reforge: extra.modifier ?? null,
     gems: normalizeGems(extra.gems),
     enrichment: extra.talisman_enrichment ?? null,
+    pet: petInfo(extra),
   };
 }
 

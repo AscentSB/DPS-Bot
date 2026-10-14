@@ -1,6 +1,7 @@
 import { getJson } from './http.js';
 import { AUCTION_REFRESH_MS, BAZAAR_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
+import { petLevel, maxPetLevel } from '../lib/pets.js';
 
 // Prices come only from the bazaar (instant buy) and the auction house (lowest BIN).
 // NPC prices are never used.
@@ -39,15 +40,20 @@ async function refreshAuctions() {
   for (const page of pages) {
     for (const auction of page.auctions ?? []) {
       if (!auction.bin) continue;
-      let id;
+      let item;
       try {
-        id = toItemState(decodeItems(auction.item_bytes)[0])?.id;
+        item = toItemState(decodeItems(auction.item_bytes)[0]);
       } catch {
         continue;
       }
-      if (!id) continue;
-      const prev = next.get(id);
-      if (prev === undefined || auction.starting_bid < prev) next.set(id, auction.starting_bid);
+      if (!item?.id) continue;
+      const keys = [item.id];
+      // Max-level pets also get PET_<TYPE>_<TIER>_MAX (level 100, Golden Dragon 200).
+      if (item.pet && petLevel(item.pet.type, item.pet.tier, item.pet.exp) >= maxPetLevel(item.pet.type)) keys.push(`${item.id}_MAX`);
+      for (const key of keys) {
+        const prev = next.get(key);
+        if (prev === undefined || auction.starting_bid < prev) next.set(key, auction.starting_bid);
+      }
     }
   }
   auctions = next;

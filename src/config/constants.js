@@ -40,12 +40,16 @@ export const BENEDICTION_BUFF = 0.25;
 
 // Speed: you need SPEED_CAP speed (with your damage pet) before extra speed helps. Only speed above
 // the cap can be taken off tuning and moved to crit damage / crit chance.
-// Speed = base 100 + Dungeon VII potion (Speed III) + Wolf Slayer + every tracked gear/accessory/perk source.
+// Speed = base 100 + Dungeon VII potion (Speed III, see DUNGEON_POTION) + Wolf Slayer + every tracked gear/accessory/perk source.
 // The Rogue Sword is not counted. Put any other always-on speed in EXTRA_SPEED.
 export const BASE_SPEED = 100;
 export const SPEED_CAP = 500;
-export const DUNGEON_POTION_SPEED = 15;
 export const EXTRA_SPEED = 0;
+
+// Dungeon VII potion (Ophelia): Strength V, Critical III, Archery III, Speed III.
+// A Jellyfish pet makes it up to 50% stronger, and the buff stays after swapping pets.
+// bowDamage only counts while holding a bow.
+export const DUNGEON_POTION = { strength: 40, critChance: 20, critDamage: 30, bowDamage: 50, speed: 15 };
 
 // Wolf Slayer: +1 speed at levels 1, 3 and 8. XP needed for levels 1-9.
 export const WOLF_SLAYER_XP = [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000];

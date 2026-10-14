@@ -44,8 +44,8 @@ function convertStats(byRarity) {
 // Reforges that grant a stat per Catacombs level.
 const CATA_ABILITY = { ancient: 'critDamage', withered: 'strength' };
 
-const [basic, stones, misc] = await Promise.all([
-  getJson('reforges.json'), getJson('reforgestones.json'), getJson('misc.json'),
+const [basic, stones, misc, petMeta, petNums] = await Promise.all([
+  getJson('reforges.json'), getJson('reforgestones.json'), getJson('misc.json'), getJson('pets.json'), getJson('petnums.json'),
 ]);
 
 const reforges = {};
@@ -87,7 +87,29 @@ await Promise.all(starred.map(async (id) => {
   fragged[base] = { id, parts: Object.entries(counts).map(([item, qty]) => ({ id: item, qty })) };
 }));
 
+// Pets: leveling tables and stat numbers at level 1 and max for every pet with a DPS stat.
+const PET_STATS = { STRENGTH: 'strength', CRIT_DAMAGE: 'critDamage', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence', SPEED: 'speed' };
+const petStats = {};
+for (const [type, rarities] of Object.entries(petNums)) {
+  for (const [rarity, data] of Object.entries(rarities)) {
+    if (!data?.['1'] || !data?.['100']) continue;
+    const pick = (nums) => Object.fromEntries(Object.entries(nums ?? {}).filter(([k]) => PET_STATS[k]).map(([k, v]) => [PET_STATS[k], v]));
+    (petStats[type] ??= {})[rarity] = {
+      min: pick(data['1'].statNums), max: pick(data['100'].statNums),
+      otherMin: data['1'].otherNums ?? [], otherMax: data['100'].otherNums ?? [],
+      ...(data.stats_levelling_curve ? { curve: data.stats_levelling_curve } : {}),
+    };
+  }
+}
+const pets = {
+  levels: petMeta.pet_levels,
+  rarityOffset: petMeta.pet_rarity_offset,
+  custom: Object.fromEntries(Object.entries(petMeta.custom_pet_leveling).map(([k, v]) => [k, { levels: v.pet_levels ?? [], maxLevel: v.max_level ?? 100, type: v.type ?? 0 }])),
+  stats: petStats,
+};
+
 await mkdir(OUT, { recursive: true });
+await writeFile(new URL('pets.json', OUT), JSON.stringify(pets) + '\n');
 await writeFile(new URL('reforges.json', OUT), JSON.stringify(reforges, null, 1) + '\n');
 await writeFile(new URL('accessories.json', OUT), JSON.stringify(accessories, null, 1) + '\n');
 await writeFile(new URL('fragged.json', OUT), JSON.stringify(fragged, null, 1) + '\n');

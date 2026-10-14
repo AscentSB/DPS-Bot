@@ -70,6 +70,11 @@ export function readMember(profile, uuid, resource) {
     shards: readShards(member.attributes),
     perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },
     profileSpeed: wolfSlayerSpeed(member.slayer?.slayer_bosses?.wolf?.xp ?? 0),
+    // Golden Dragon perks. Missing values count as maxed.
+    petProfile: {
+      bank: profile.banking?.balance ?? undefined,
+      goldCollection: member.collection?.GOLD_INGOT ?? undefined,
+    },
   };
 }
 

@@ -12,8 +12,10 @@ import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
+import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
+import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
 
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed'];
 
@@ -25,8 +27,9 @@ export function weightsFor(cls, target) {
 }
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, resource }) {
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, resource };
+// petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, resource }) {
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -51,6 +54,8 @@ function cloneLoadout(l) {
     extras: new Set(l.extras),
     shards: { ...l.shards },
     perks: { ...l.perks },
+    pets: [...(l.pets ?? [])],
+    activePet: l.activePet ?? null,
   };
 }
 
@@ -63,7 +68,9 @@ function score(loadout, ctx, weights) {
 export function buildLoadout(profile, ctx, weights) {
   const { items = [], pets = [], shards = {}, perks = {} } = profile;
   const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
-  const loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks } };
+  // Pets are assumed level 100 (Golden Dragon 200).
+  const ownedPets = pets.map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null }));
+  let loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards }, perks: { ...perks }, pets: ownedPets, activePet: null };
   const bySlot = { weapon: [], rag: [] };
   for (const slot of [...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) bySlot[slot] = [];
 
@@ -78,7 +85,8 @@ export function buildLoadout(profile, ctx, weights) {
     }
   }
 
-  for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned, pets)) loadout.extras.add(entry.key);
+  for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
+  loadout = selectPet(loadout, ctx, weights);
 
   for (let pass = 0; pass < 2; pass++) {
     for (const [slot, options] of Object.entries(bySlot)) {
@@ -96,20 +104,15 @@ export function buildLoadout(profile, ctx, weights) {
 
   // Tuning points already spent come from the profile; new ones from extra Accessory Power follow the split.
   if (ctx.tuning) ctx.tuning.basePoints = Math.floor(totalAccessoryPower(loadout, ctx.resource) / 10);
-  return loadout;
+  return selectPet(loadout, ctx, weights);
 }
 
 function accessoryRank(item) {
   return (item.recomb ? 2 : 0) + (item.enrichment ? 1 : 0);
 }
 
-function extraOwned(entry, ownedItems, pets) {
-  const o = entry.owned;
-  if (!o) return false;
-  if (o.items?.some((id) => ownedItems.has(id))) return true;
-  if (o.pets?.some((type) => pets.some((p) => p.type === type))) return true;
-  if (o.petItem && pets.some((p) => p.type === o.petItem.pet && p.heldItem === o.petItem.item)) return true;
-  return false;
+function extraOwned(entry, ownedItems) {
+  return Boolean(entry.owned?.items?.some((id) => ownedItems.has(id)));
 }
 
 function setSlot(l, slot, item) {
@@ -278,9 +281,10 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
-    push(`Buy ${info.name ?? id}`, [{ id }], (l) => {
+    const buy = (reforgeKeyName, reforge) => push(`Buy ${info.name ?? id}${reforge ? ` + ${reforge.name} reforge` : ''}`,
+      reforge ? [{ id }, { id: reforge.stone }] : [{ id }], (l) => {
       const next = cloneLoadout(l);
-      const item = newItem(id, resource);
+      const item = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
       next.owned.add(id);
       if (isRag) next.rag = item;
       if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
@@ -289,6 +293,12 @@ export function availableUpgrades(loadout, ctx, prices) {
       else if (isAcc) next.accessories.set(id, item);
       return next;
     }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : cat}` });
+    buy();
+    // Gear can come with the best reforge stone for its slot; the planner picks whichever is better per million.
+    if (!isAcc) {
+      const best = bestReforge(loadout, ctx, newItem(id, resource));
+      if (best) buy(best.key, best.reforge);
+    }
   }
 
   // Attribute shards: straight to max level, like the sheet.
@@ -302,10 +312,40 @@ export function availableUpgrades(loadout, ctx, prices) {
       (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
   }
 
+  // Pets (level 100, Golden Dragon 200) from the auction house. One active at a time.
+  const ownedTypes = new Set(loadout.pets.map((p) => p.type));
+  for (const type of allPetTypes()) {
+    if (ownedTypes.has(type)) continue;
+    const tier = BUY_RARITIES.find((t) => petTiers(type).includes(t));
+    if (!tier) continue;
+    const pet = { type, tier, heldItem: null };
+    if (!dpsPets([pet], ctx).length) continue;
+    push(`Buy ${titleCase(type.toLowerCase())} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }],
+      (l) => { const next = cloneLoadout(l); next.pets.push(pet); next.activePet = pet; return next; }, { group: 'pet' });
+  }
+
+  // Pet items for the active pet.
+  const active = loadout.activePet;
+  if (active) {
+    const before = petStats(active, ctx.petProfile).stats;
+    for (const [itemId, item] of Object.entries(PET_ITEMS)) {
+      if (active.heldItem === itemId) continue;
+      const after = petStats({ ...active, heldItem: itemId }, ctx.petProfile).stats;
+      if (!['strength', 'critDamage', 'critChance', 'intelligence'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
+      push(`${item.name} on ${titleCase(active.type.toLowerCase())} Pet`, [{ id: itemId }], (l) => {
+        const next = cloneLoadout(l);
+        const pet = { ...active, heldItem: itemId };
+        next.pets = next.pets.map((p) => (p === active ? pet : p));
+        next.activePet = pet;
+        return next;
+      }, { group: `petitem:${active.type}` });
+    }
+  }
+
   // Essence shop perks: any level above the current one (essence bought on the bazaar, Catacombs 20+).
   if (ctx.cataLevel >= ESSENCE_MIN_CATA) {
     for (const [key, perk] of Object.entries(ESSENCE_PERKS)) {
-      if (perk.pet && !loadout.extras.has(perk.pet)) continue;
+      if (perk.pet && !loadout.pets.some((p) => p.type === perk.pet)) continue;
       const current = loadout.perks?.[key] ?? 0;
       for (let level = current + 1; level <= perk.costs.length; level++) {
         const qty = perk.costs.slice(current, level).reduce((a, b) => a + b, 0);
@@ -326,6 +366,30 @@ export function availableUpgrades(loadout, ctx, prices) {
       { unverified: !entry.owned, group: entry.group && `extra:${entry.group}` });
   }
   return ups;
+}
+
+// Best reforge stone for a fresh item of this category/rarity, tested in the current loadout. Cached per run.
+function bestReforge(loadout, ctx, item) {
+  const rarity = itemRarity(item);
+  const dungeon = isDungeon(item, ctx.resource);
+  const key = `${item.category}:${rarity}:${dungeon}`;
+  ctx.reforgeCache ??= new Map();
+  if (ctx.reforgeCache.has(key)) return ctx.reforgeCache.get(key);
+  const slot = ARMOR_SLOTS.includes(item.category) ? item.category : EQUIPMENT_SLOTS.includes(item.category) ? item.category : 'weapon';
+  const dummy = { ...item, id: '__REFORGE_TEST__', name: 'test' };
+  let best = null;
+  let bestScore = -Infinity;
+  for (const [rKey, reforge] of Object.entries(allReforges())) {
+    if (!reforge.stone || !reforgeAppliesTo(reforge, dummy)) continue;
+    if (!hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
+    const trial = cloneLoadout(loadout);
+    setSlot(trial, slot, { ...dummy, reforge: rKey });
+    const r = evaluate(trial, ctx, ctx.weights ?? { wither: 50, dragon: 50 });
+    const score = r.wither + r.dragon;
+    if (score > bestScore) { bestScore = score; best = { key: rKey, reforge }; }
+  }
+  ctx.reforgeCache.set(key, best);
+  return best;
 }
 
 // Gem upgrades for one item: the best DPS gem at each upgrade quality, per slot.
@@ -377,6 +441,7 @@ function gemUpgrades(item, ctx) {
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
   const steps = [];
   const used = new Set();
+  ctx.weights = weights;
   let loadout = startLoadout;
   let current = evaluate(loadout, ctx, weights);
   const startDamage = current;
@@ -395,8 +460,8 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
     if (best.group) used.add(best.group);
-    loadout = best.next;
-    current = best.after;
+    loadout = selectPet(best.next, ctx, weights);
+    current = evaluate(loadout, ctx, weights);
   }
   return { steps, startDamage, endDamage: current, loadout };
 }

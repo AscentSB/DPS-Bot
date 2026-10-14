@@ -156,8 +156,8 @@ test('Ragnarock grants 1.5x its strength, and Chimera copies the active pet', ()
   const a = raw(strDiff(base));
   const b = raw(strDiff(rag));
   assert.ok(b > a);
-  const chim = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'RAGNAROCK_AXE', stars: 0, enchants: { ultimate_chimera: 5 } }]), { pets: [{ type: 'GOLDEN_DRAGON', heldItem: 'ANTIQUE_REMEDIES' }] }), ctx, w);
-  assert.ok(chim.extras.has('PET_GOLDEN_DRAGON'));
+  const chim = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'RAGNAROCK_AXE', stars: 0, enchants: { ultimate_chimera: 5 } }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'ANTIQUE_REMEDIES' }] }), ctx, w);
+  assert.equal(chim.activePet.type, 'GOLDEN_DRAGON');
   assert.ok(raw(strDiff(chim)) > b);
 });
 
@@ -238,4 +238,47 @@ test('Wolf Slayer speed: +1 at levels 1, 3 and 8', async () => {
   assert.equal(wolfSlayerSpeed(10), 1);
   assert.equal(wolfSlayerSpeed(250), 2);
   assert.equal(wolfSlayerSpeed(400000), 3);
+});
+
+test('pets: Golden Dragon 200 matches the sheet (300 str with Heph Remedies, +5% str, +250% damage)', async () => {
+  const { petStats } = await import('../src/lib/pets.js');
+  const gd = petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_REMEDIES' });
+  assert.ok(Math.abs(gd.stats.strength - (50 + 99.9) * 2) < 1e-6);
+  assert.equal(gd.stats.additiveStrength, 0.05);
+  assert.equal(gd.stats.additiveDamage, 250);
+  const ed = petStats({ type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: 'GOLD_CLAWS' });
+  assert.equal(ed.stats.critDamage, 75);
+  assert.equal(ed.dragon.additiveDamage, 200);
+  assert.equal(petStats({ type: 'JELLYFISH', tier: 'LEGENDARY' }).potionBoost, 0.5);
+});
+
+test('only one pet is active; a Jellyfish buffs the Dungeon potion even when another pet is active', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const gdOnly = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), ctx, w);
+  const both = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { type: 'JELLYFISH', tier: 'LEGENDARY' }] }), ctx, w);
+  assert.equal(both.activePet.type, 'GOLDEN_DRAGON');
+  const a = evaluate(gdOnly, ctx, w).stats.dragon;
+  const b = evaluate(both, ctx, w).stats.dragon;
+  assert.ok(b.strength > a.strength && b.critChance > a.critChance);
+});
+
+test('armor sets: Skeleton Master gives +5% arrow damage per piece and +25% for the full set with a bow', () => {
+  const res = new Map([...resource, ...['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'].map((s) => [`SKELETON_MASTER_${s}`, { id: `SKELETON_MASTER_${s}`, name: s, category: s, tier: 'EPIC', dungeon_item: true }])]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const pieces = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'].map((s) => newItem(`SKELETON_MASTER_${s}`, res));
+  const none = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
+  const full = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), ...pieces]), ctx, w);
+  assert.equal(evaluate(full, ctx, w).stats.dragon.additiveDamage - evaluate(none, ctx, w).stats.dragon.additiveDamage, 4 * 5 + 25);
+});
+
+test('gear buys also come bundled with the best reforge stone', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
+  const p = { get: (id) => ({ POWER_WITHER_LEGGINGS: { price: 50e6, source: 'AH' }, PRECURSOR_GEAR: { price: 1e6, source: 'BZ' } })[id] ?? null };
+  const labels = availableUpgrades(loadout, ctx, p).map((u) => u.label);
+  assert.ok(labels.includes("Buy Necron's Leggings"));
+  assert.ok(labels.includes("Buy Necron's Leggings + Ancient reforge"));
 });
