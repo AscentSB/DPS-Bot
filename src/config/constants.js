@@ -38,8 +38,8 @@ export const BLESSING_FLOOR_BUFF = 0.2;
 export const PAUL_BENEDICTION = false;
 export const BENEDICTION_BUFF = 0.25;
 
-// Speed: you need SPEED_CAP speed (with your damage pet) before extra speed helps. Only speed above
-// the cap can be taken off tuning and moved to crit damage / crit chance.
+// Speed: tuning points go into speed until you reach SPEED_CAP (with your damage pet). Only the
+// points left after that can go to crit damage / crit chance. Speed past the cap does nothing.
 // Speed = base 100 + Dungeon VII potion (Speed III, see DUNGEON_POTION) + Wolf Slayer + every tracked gear/accessory/perk source.
 // The Rogue Sword is not counted. Put any other always-on speed in EXTRA_SPEED.
 export const BASE_SPEED = 100;

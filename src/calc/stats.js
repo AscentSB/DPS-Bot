@@ -248,39 +248,25 @@ export function totalAccessoryPower(loadout, resource) {
   return countedAccessories(loadout).reduce((sum, item) => sum + accessoryPower(item, resource), 0);
 }
 
-function tuningStats(points, ctx) {
-  const stats = {};
-  const base = ctx.tuning;
-  const basePoints = base?.basePoints ?? 0;
-  if (base?.allocation && Object.keys(base.allocation).length) {
-    for (const [stat, n] of Object.entries(base.allocation)) addLoose(stats, { [stat]: n * (TUNING_PER_POINT[stat] ?? 0) });
-  } else {
-    distribute(stats, Math.min(points, basePoints), ctx);
-  }
-  distribute(stats, points - basePoints, ctx);
-  return stats;
-}
-
-// New tuning points follow the profile's split over DPS stats (never speed), or the class default.
+// Tuning points go to the DPS stats by the profile's split (never speed), or the class default.
 function distribute(stats, points, ctx) {
-  if (!points) return;
+  if (!(points > 0)) return;
   const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => stat !== 'speed' && TUNING_PER_POINT[stat]);
   const total = entries.reduce((sum, [, share]) => sum + share, 0);
   const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(DEFAULT_TUNING_SPLIT[ctx.cls]);
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
 }
 
-// Speed past the cap moves tuning points off speed onto DPS stats. Below the cap speed adds nothing.
-function speedTuning(speed, ctx) {
-  let points = Math.max(0, speed - SPEED_CAP) / TUNING_PER_POINT.speed;
-  const inSpeed = ctx.tuning?.allocation ? ctx.tuning.allocation.speed ?? 0 : Infinity;
-  if (points > inSpeed) points = inSpeed;
-  const stats = {};
-  distribute(stats, points, ctx);
-  return stats;
+// Tuning points fill speed up to the cap first; only what is left goes to DPS stats.
+// speed: speed from everything except tuning.
+export function tuningAllocation(points, speed, ctx) {
+  const speedPoints = Math.min(points, Math.max(0, Math.ceil((SPEED_CAP - speed) / TUNING_PER_POINT.speed)));
+  const stats = { speed: speedPoints * TUNING_PER_POINT.speed };
+  distribute(stats, points - speedPoints, ctx);
+  return { stats, speedPoints, dpsPoints: points - speedPoints };
 }
 
-// Accessory bag: own stats, Accessory Power, power stats, tuning, enrichments.
+// Accessory bag: own stats, Accessory Power, power stats, enrichments, and how many tuning points it gives.
 export function accessoryStats(loadout, ctx, extraTuningPoints = 0) {
   const counted = countedAccessories(loadout);
   const stats = {};
@@ -296,7 +282,6 @@ export function accessoryStats(loadout, ctx, extraTuningPoints = 0) {
   addLoose(stats, power.stats, mult);
   addLoose(stats, power.bonus);
   const points = Math.floor(ap / AP_PER_TUNING_POINT) + extraTuningPoints;
-  addLoose(stats, tuningStats(points, ctx));
   return { stats, ap, tuningPoints: points };
 }
 
@@ -442,9 +427,10 @@ function rawStats(loadout, ctx, activeExtras) {
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
   if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
-  const speed = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
-  add(speedTuning(speed, c));
-  return { buckets, ap: acc.ap, speed };
+  const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed;
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c);
+  add(tuning.stats);
+  return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }
 
 // Final stats after the strength / crit damage / intelligence / crit chance formulas.
@@ -466,8 +452,8 @@ export function hasHyperion(loadout) {
 }
 
 function evaluateWith(loadout, ctx, activeExtras) {
-  const { buckets, ap, speed } = rawStats(loadout, ctx, activeExtras);
-  const result = { stats: {}, ap, speed };
+  const { buckets, ap, speed, tuning } = rawStats(loadout, ctx, activeExtras);
+  const result = { stats: {}, ap, speed, tuning: { speed: tuning.speedPoints, dps: tuning.dpsPoints } };
   for (const target of TARGETS) {
     const s = finalStats(buckets[target], ctx.cls);
     const defense = TARGET_DEFENSE[target];

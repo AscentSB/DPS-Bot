@@ -7,6 +7,7 @@
 //   perLevel  stats per level. `blessing` = blessings x% more effective (0.01 = 1%).
 //             `petCritDamage` = fraction of the pet's crit damage added (needs that pet type active).
 //   costs     essence for each level (index 0 = level 1)
+//   profileOnly  counted when the profile has it, never offered (essence not on the bazaar)
 
 export const ESSENCE_MIN_CATA = 20;
 
@@ -18,5 +19,7 @@ export const ESSENCE_PERKS = {
   permanent_intelligence: { name: 'Forbidden Intelligence', essence: 'WITHER', perLevel: { intelligence: 2 }, costs: [100, 250, 500, 1000, 1500] },
   permanent_speed: { name: 'Forbidden Speed', essence: 'WITHER', perLevel: { speed: 1 }, costs: [100, 250] },
   forbidden_blessing: { name: 'Forbidden Blessing', essence: 'WITHER', perLevel: { blessing: 0.01 }, costs: [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000] },
+  // Rift Sun Gecko shop. Applies outside the Rift too. Not the Quiz dungeon blessing.
+  blessing_of_time: { name: 'Blessing of Time (Rift)', essence: 'SUN_GECKO', perLevel: { strength: 2, intelligence: 2, speed: 1 }, costs: [0, 0, 0], profileOnly: true },
   edrag_cd: { name: 'Infused Dragon', essence: 'DRAGON', pet: 'ENDER_DRAGON', perLevel: { petCritDamage: 0.02 }, costs: [500, 1500, 2500, 3500, 4000] },
 };

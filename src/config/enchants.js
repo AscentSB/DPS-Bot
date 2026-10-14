@@ -25,6 +25,8 @@ export const ENCHANTS = {
   snipe: { categories: ['BOW'], target: 'global', stats: { additiveDamage: [1, 2, 3, 5] } },
   overload: { categories: ['BOW'], target: 'global', stats: { critDamage: [1, 2, 3, 4, 5], critChance: [1, 2, 3, 4, 5] } },
   toxophilite: { categories: ['BOW'], target: 'global', stats: { critChance: [10] } },
+  // Sugar Rush: +2 speed per level on boots (helps reach the 500 speed cap).
+  sugar_rush: { categories: ['BOOTS'], target: 'global', stats: { speed: [2, 4, 6] } },
   big_brain: { categories: ['HELMET'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
   smarty_pants: { categories: ['LEGGINGS'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
   // Legion is handled as a percent of combat stats per piece; see LEGION_* in constants.js.

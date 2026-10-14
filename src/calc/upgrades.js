@@ -103,8 +103,6 @@ export function buildLoadout(profile, ctx, weights) {
     }
   }
 
-  // Tuning points already spent come from the profile; new ones from extra Accessory Power follow the split.
-  if (ctx.tuning) ctx.tuning.basePoints = Math.floor(totalAccessoryPower(loadout, ctx.resource) / 10);
   return selectPet(loadout, ctx, weights);
 }
 
@@ -260,10 +258,10 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Enrichments on Legendary+ accessories.
     if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
-      const best = BEST_ENRICHMENT[cls];
-      if (item.enrichment !== best) {
-        push(`${titleCase(best)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[best].key}` }],
-          (l) => replaceItem(l, item, { ...item, enrichment: best }));
+      for (const kind of [BEST_ENRICHMENT[cls], 'walk_speed']) {
+        if (item.enrichment === kind) continue;
+        push(`${kind === 'walk_speed' ? 'Speed' : titleCase(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
+          (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
       }
     }
   }
@@ -346,7 +344,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   // Essence shop perks: any level above the current one (essence bought on the bazaar, Catacombs 20+).
   if (ctx.cataLevel >= ESSENCE_MIN_CATA) {
     for (const [key, perk] of Object.entries(ESSENCE_PERKS)) {
-      if (perk.pet && !loadout.pets.some((p) => p.type === perk.pet)) continue;
+      if (perk.profileOnly || (perk.pet && !loadout.pets.some((p) => p.type === perk.pet))) continue;
       const current = loadout.perks?.[key] ?? 0;
       for (let level = current + 1; level <= perk.costs.length; level++) {
         const qty = perk.costs.slice(current, level).reduce((a, b) => a + b, 0);

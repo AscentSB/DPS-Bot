@@ -69,15 +69,15 @@ export const DEFAULT_POWER = { arch: 'silky', bers: 'silky', mage: 'sighted' };
 // Every 10 Accessory Power grants 1 tuning point.
 export const AP_PER_TUNING_POINT = 10;
 export const TUNING_PER_POINT = { strength: 1, critDamage: 1, critChance: 0.2, intelligence: 2, speed: 1.5 };
-// Speed above SPEED_CAP (constants.js) lets you move tuning points off speed onto DPS stats
-// (1 point per 1.5 speed). Capped at the points the profile has in speed when its tuning is known.
+// Tuning points go into speed until you reach SPEED_CAP (constants.js), 1.5 speed per point.
+// Only the points left over go to crit chance / crit damage (by the profile's split).
 // Profile tuning keys -> stat keys.
 export const TUNING_KEYS = {
   strength: 'strength', critical_damage: 'critDamage', crit_damage: 'critDamage',
   critical_chance: 'critChance', crit_chance: 'critChance', intelligence: 'intelligence',
   walk_speed: 'speed', speed: 'speed',
 };
-// Where new tuning points go when your Accessory Power rises, if the profile has no tuning yet.
+// How leftover tuning points split over DPS stats when the profile has no tuning yet.
 export const DEFAULT_TUNING_SPLIT = {
   arch: { strength: 0.5, critDamage: 0.5 },
   bers: { strength: 0.5, critDamage: 0.5 },

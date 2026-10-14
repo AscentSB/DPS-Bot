@@ -209,27 +209,42 @@ test('Forbidden Blessing makes the Power blessing stronger', () => {
   assert.ok(ratio > 1);
 });
 
-test('speed only helps past the 500 cap, capped by points in speed', () => {
-  const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 380 } }]]);
+test('tuning points fill speed up to 500 first; only leftover points reach crit stats', async () => {
+  const { tuningAllocation } = await import('../src/calc/stats.js');
+  const ctx = { cls: 'arch', tuning: { split: { critChance: 1 } } };
+  // 200 points, 380 speed: 80 points to speed (120 speed), 120 points to crit chance (0.2 each).
+  const a = tuningAllocation(200, 380, ctx);
+  assert.equal(a.speedPoints, 80);
+  assert.equal(a.stats.speed, 120);
+  assert.ok(Math.abs(a.stats.critChance - 24) < 1e-9);
+  // Not enough points to reach 500: everything goes to speed, nothing to crit.
+  const b = tuningAllocation(50, 300, ctx);
+  assert.equal(b.speedPoints, 50);
+  assert.equal(b.stats.critChance, undefined);
+  // Already at 500: all points go to crit.
+  assert.equal(tuningAllocation(100, 520, ctx).speedPoints, 0);
+});
+
+test('a speed upgrade below 500 frees tuning points for crit; past 500 it does nothing', () => {
+  const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 200 } }]]);
   const w = weightsFor('arch');
-  const cases = [
-    [null, 0, false], // 495 -> 500: still at or below the cap
-    [null, 5, true],
-    [{ allocation: { speed: 20, critDamage: 20 }, split: { speed: 0.5, critDamage: 0.5 } }, 0, true], // 495 gear speed + 30 from tuning: 16.7 of 20 points free, +5 speed frees more
-    [{ allocation: { critDamage: 30 }, split: { critDamage: 1 } }, 5, false],
-  ];
-  for (const [tuning, extraBoots, expectGain] of cases) {
-    const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning });
-    const boots = { ...newItem('FAST_BOOTS', res) };
-    const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), boots]), ctx, w);
-    // Start at 100 + 15 potion + 380 = 495 (+ extraBoots via shard levels), then add 5 more speed.
-    const start = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots } };
-    const faster = { ...loadout, shards: { OBSIDIAN_DEFENDER: extraBoots + 5 } };
-    const a = evaluate(start, ctx, w);
-    const b = evaluate(faster, ctx, w);
-    assert.equal(b.speed - a.speed, 5);
-    assert.equal(b.dragon > a.dragon, expectGain, `tuning=${JSON.stringify(tuning)} start=${a.speed}`);
-  }
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning: { split: { critChance: 1 } } });
+  const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('FAST_BOOTS', res)]), ctx, w);
+  // Give the bag plenty of tuning points.
+  loadout.accessories = new Map(Array.from({ length: 60 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
+  const base = evaluate(loadout, ctx, w);
+  assert.ok(base.speed >= 500 && base.tuning.speed > 0);
+  const faster = evaluate({ ...loadout, shards: { OBSIDIAN_DEFENDER: 10 } }, ctx, w);
+  assert.ok(faster.tuning.speed < base.tuning.speed);
+  assert.ok(faster.stats.dragon.critChance > base.stats.dragon.critChance);
+  // Past 500 with no speed points left to free, more speed changes nothing.
+  const capped = { ...loadout, armor: { BOOTS: { ...newItem('FAST_BOOTS', res), id: 'FAST_BOOTS' } }, shards: {} };
+  const res2 = new Map([...res, ['FAST_BOOTS', { ...res.get('FAST_BOOTS'), stats: { WALK_SPEED: 450 } }]]);
+  const ctx2 = { ...ctx, resource: res2 };
+  const c1 = evaluate(capped, ctx2, w);
+  const c2 = evaluate({ ...capped, shards: { OBSIDIAN_DEFENDER: 10 } }, ctx2, w);
+  assert.equal(c1.tuning.speed, 0);
+  assert.equal(c2.dragon, c1.dragon);
 });
 
 test('Wolf Slayer speed: +1 at levels 1, 3 and 8', async () => {
