@@ -47,7 +47,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, arrows: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0,
   };
 }
 
@@ -84,6 +84,11 @@ export function arrowsPerVolley(weapon, extraArrows, ctx) {
   const base = ITEM_STATS[weapon.id]?.arrows ?? 1;
   const doubleshot = ctx.cls === 'arch' ? DOUBLESHOT_BASE + DOUBLESHOT_PER_LEVEL * (ctx.archerLevel ?? 0) : 0;
   return base + extraArrows + doubleshot;
+}
+
+// Attack speed after percent boosts (Ender Dragon's Superior perk raises all of it, tuning included).
+export function attackSpeedOf(bucket) {
+  return bucket.attackSpeed * (1 + bucket.additiveAttackSpeed);
 }
 
 function isBow(item) {
@@ -272,10 +277,11 @@ export function totalAccessoryPower(loadout, resource) {
   return countedAccessories(loadout).reduce((sum, item) => sum + accessoryPower(item, resource), 0);
 }
 
-// Tuning points go to the DPS stats by the profile's split (never speed), or the class default.
+// Leftover tuning points go to the DPS stats by the profile's split, or the class default.
+// Never speed or attack speed: both are already at their cap when points are left over.
 function distribute(stats, points, ctx) {
   if (!(points > 0)) return;
-  const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => stat !== 'speed' && TUNING_PER_POINT[stat]);
+  const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => stat !== 'speed' && stat !== 'attackSpeed' && TUNING_PER_POINT[stat]);
   const total = entries.reduce((sum, [, share]) => sum + share, 0);
   const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(DEFAULT_TUNING_SPLIT[ctx.cls]);
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
@@ -283,8 +289,9 @@ function distribute(stats, points, ctx) {
 
 // Tuning order: attack speed up to the cap, then speed up to the cap, then DPS stats.
 // speed / attackSpeed: what the player has from everything except tuning.
-export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP) {
-  const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / TUNING_PER_POINT.attackSpeed)));
+// asMult: percent boost on attack speed, which also raises what each tuning point gives.
+export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP, asMult = 1) {
+  const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / (TUNING_PER_POINT.attackSpeed * asMult) - 1e-9)));
   const left = points - asPoints;
   const speedPoints = Math.min(left, Math.max(0, Math.ceil((SPEED_CAP - speed) / TUNING_PER_POINT.speed)));
   const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
@@ -457,7 +464,7 @@ function rawStats(loadout, ctx, activeExtras) {
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   const clearSwap = Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS));
   const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, buckets.wither.attackSpeed);
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, attackSpeedOf(buckets.wither), 1 + buckets.wither.additiveAttackSpeed);
   add(tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }
@@ -482,14 +489,16 @@ export function hasHyperion(loadout) {
 
 function evaluateWith(loadout, ctx, activeExtras) {
   const { buckets, ap, speed, tuning } = rawStats(loadout, ctx, activeExtras);
-  const attackSpeed = buckets.wither.attackSpeed;
-  const shots = volleysPerSecond(loadout.weapon, attackSpeed, ctx);
   const arrows = arrowsPerVolley(loadout.weapon, buckets.wither.arrows, ctx);
+  // Attack speed and volleys per target: dragon-only buffs (Weirder Tuba) raise them in P5 only.
+  const attackSpeeds = Object.fromEntries(TARGETS.map((t) => [t, attackSpeedOf(buckets[t])]));
+  const volleys = Object.fromEntries(TARGETS.map((t) => [t, volleysPerSecond(loadout.weapon, attackSpeeds[t], ctx)]));
   const result = {
-    stats: {}, ap, speed, attackSpeed, volleysPerSecond: shots, arrowsPerVolley: arrows,
+    stats: {}, ap, speed, attackSpeed: attackSpeeds.wither, attackSpeeds, volleysPerSecond: volleys.wither, volleys, arrowsPerVolley: arrows,
     tuning: { attackSpeed: tuning.attackSpeedPoints, speed: tuning.speedPoints, dps: tuning.dpsPoints },
   };
   for (const target of TARGETS) {
+    const shots = volleys[target];
     const s = finalStats(buckets[target], ctx.cls);
     const defense = TARGET_DEFENSE[target];
     let dmg;

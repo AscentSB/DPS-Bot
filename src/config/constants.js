@@ -164,6 +164,11 @@ export const LEGION_PLAYERS = 4;
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;
 
+// Blacksmith reforges (no stone, e.g. Blended on equipment) cost 500 coins per roll and roll at random
+// from every basic reforge for the item type, so getting one costs 500 x that many rolls on average.
+// Source: https://hypixelskyblock.minecraft.wiki/w/Reforging#Basic_Reforging
+export const BLACKSMITH_REFORGE_COST = 500;
+
 // Price refresh intervals.
 export const AUCTION_REFRESH_MS = 5 * 60 * 1000;
 export const BAZAAR_REFRESH_MS = 2 * 60 * 1000;

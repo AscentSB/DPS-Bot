@@ -28,13 +28,14 @@ export const PET_PERKS = {
     additiveStrength: (n[2] ?? 0) / 100,
     additiveDamage: Math.min(n[4] ?? 0, (n[3] ?? 0) * (p.bank / 1e6)),
   }),
-  // End Strike: +n[0]% damage to Ender mobs (dragons). Superior: +n[3]% all combat stats.
+  // End Strike: +n[0]% damage to Ender mobs (dragons). Superior: +n[3]% all combat stats, attack speed included.
   ENDER_DRAGON: (n) => ({
     dragon: { additiveDamage: n[0] ?? 0 },
     additiveStrength: (n[3] ?? 0) / 100,
     additiveCritDamage: (n[3] ?? 0) / 100,
     additiveCritChance: (n[3] ?? 0) / 100,
     additiveIntelligence: (n[3] ?? 0) / 100,
+    additiveAttackSpeed: (n[3] ?? 0) / 100,
   }),
   // Powerful Potions: Dungeon Potions are n[2]% stronger. Stays after swapping to another pet.
   JELLYFISH: (n) => ({ potionBoost: (n[2] ?? 0) / 100 }),

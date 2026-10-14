@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -249,13 +249,14 @@ export function availableUpgrades(loadout, ctx, prices) {
     // Recombobulator.
     if (canRecomb(item)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
 
-    // Reforge stones.
+    // Reforges: stones, and blacksmith reforges (random rolls, priced as the average number of rolls).
     if (!isAccessory) {
       const rarity = statRarity(itemRarity(item));
       for (const [key, reforge] of Object.entries(allReforges())) {
-        if (!reforge.stone || !reforgeAppliesTo(reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
+        if (!reforgeAppliesTo(reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
         if (getReforge(item.reforge) === reforge) continue;
-        push(`${reforge.name} reforge on ${name}`, [{ id: reforge.stone }], (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
+        push(`${reforge.name} reforge on ${name}${reforge.stone ? '' : ' (blacksmith)'}`, reforgeCost(reforge, item),
+          (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
       }
     }
 
@@ -290,7 +291,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (isAcc && accessorySuperseded(id, accIds)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
     const buy = (reforgeKeyName, reforge) => push(`Buy ${cleanName(info.name ?? id)}${reforge ? ` + ${reforge.name} reforge` : ''}`,
-      reforge ? [{ id }, { id: reforge.stone }] : [{ id }], (l) => {
+      reforge ? [{ id }, ...reforgeCost(reforge, newItem(id, resource))] : [{ id }], (l) => {
       const next = cloneLoadout(l);
       const item = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
       next.owned.add(id);
@@ -386,7 +387,14 @@ export function availableUpgrades(loadout, ctx, prices) {
   return ups;
 }
 
-// Best reforge stone for a fresh item of this category/rarity, tested in the current loadout. Cached per run.
+// Cost parts for one reforge: its stone, or the coins for the expected number of blacksmith rolls.
+function reforgeCost(reforge, item) {
+  if (reforge.stone) return [{ id: reforge.stone }];
+  const rolls = Object.values(allReforges()).filter((r) => !r.stone && reforgeAppliesTo(r, item)).length;
+  return [{ coins: BLACKSMITH_REFORGE_COST * Math.max(1, rolls) }];
+}
+
+// Best reforge (stone or blacksmith) for a fresh item of this category/rarity, tested in the current loadout. Cached per run.
 function bestReforge(loadout, ctx, item) {
   const rarity = statRarity(itemRarity(item));
   const dungeon = isDungeon(item, ctx.resource);
@@ -398,7 +406,7 @@ function bestReforge(loadout, ctx, item) {
   let best = null;
   let bestScore = -Infinity;
   for (const [rKey, reforge] of Object.entries(allReforges())) {
-    if (!reforge.stone || !reforgeAppliesTo(reforge, dummy)) continue;
+    if (!reforgeAppliesTo(reforge, dummy)) continue;
     if (!hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
     const trial = cloneLoadout(loadout);
     setSlot(trial, slot, { ...dummy, reforge: rKey });

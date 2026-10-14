@@ -376,3 +376,42 @@ test("Maxor's boots speed gets the full dungeon multiplier, Catacombs boost incl
   const c = itemContribution(newItem('SPEED_WITHER_BOOTS', res), makeContext({ cls: 'arch', cataLevel: 50, resource: res }));
   close(c.global.speed, 30 * (4.85 + 1.5));
 });
+
+test("Ender Dragon's Superior perk raises attack speed, tuning points included", async () => {
+  const { tuningAllocation } = await import('../src/calc/stats.js');
+  const ctx = { cls: 'arch', tuning: { split: { critChance: 1 } } };
+  // 73 attack speed x 1.1 = 80.3. Each point gives 0.33, so 60 points reach 100 (66 without the boost).
+  assert.equal(tuningAllocation(300, 500, ctx, 73 * 1.1, 1.1).attackSpeedPoints, 60);
+  assert.equal(tuningAllocation(300, 500, ctx, 73).attackSpeedPoints, 90);
+  const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
+  const c = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const base = buildLoadout(profile([newItem('TERMINATOR', res)]), c, w);
+  const ed = evaluate({ ...base, activePet: { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null } }, c, w);
+  const none = evaluate({ ...base, activePet: null }, c, w);
+  // Terminator 60 + Silky's 5 attack speed bonus = 65, x1.1 with Ender Dragon.
+  close(none.attackSpeed, 65);
+  close(ed.attackSpeed, 71.5);
+});
+
+test('Weirder Tuba counts against dragons only', () => {
+  const c = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const base = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), c, w);
+  const tuba = { ...base, extras: new Set(['WEIRDER_TUBA']) };
+  const a = evaluate(base, c, w);
+  const b = evaluate(tuba, c, w);
+  close(b.wither, a.wither);
+  assert.ok(b.dragon > a.dragon);
+  close(b.attackSpeeds.dragon - a.attackSpeeds.dragon, 5);
+});
+
+test('Blended (blacksmith) reforge is offered on equipment at 9 rolls x 500 coins', () => {
+  const c = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const base = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'SOULWEAVER_GLOVES' }])), c, w);
+  const up = availableUpgrades(base, c, prices).find((u) => u.label.startsWith('Blended reforge on'));
+  assert.ok(up);
+  assert.equal(up.cost, 4500);
+  assert.equal(up.apply(base).equipment.GLOVES.reforge, 'blended');
+});

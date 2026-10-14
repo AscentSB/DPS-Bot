@@ -20,13 +20,15 @@
 
 export const EXTRA_UPGRADES = [
   // ---- Ability items (buffs while used) ----
+  // Tubas: Howl only gets used during dragons (P5), so the buff counts against dragons only.
+  // Source: https://hypixelskyblock.minecraft.wiki/w/Weirder_Tuba (outside the Rift).
   {
     key: 'WEIRD_TUBA', name: 'Weird Tuba', group: 'tuba',
-    stats: { strength: 30 }, cost: [{ id: 'WEIRD_TUBA' }], owned: { items: ['WEIRD_TUBA'] },
+    dragon: { strength: 30, speed: 30 }, cost: [{ id: 'WEIRD_TUBA' }], owned: { items: ['WEIRD_TUBA'] },
   },
   {
     key: 'WEIRDER_TUBA', name: 'Weirder Tuba', group: 'tuba',
-    stats: { strength: 40, critDamage: 10 }, cost: [{ id: 'WEIRDER_TUBA' }], owned: { items: ['WEIRDER_TUBA'] },
+    dragon: { strength: 40, attackSpeed: 5, speed: 30, critDamage: 10 }, cost: [{ id: 'WEIRDER_TUBA' }], owned: { items: ['WEIRDER_TUBA'] },
   },
   {
     key: 'SWORD_OF_BAD_HEALTH', name: 'Sword of Bad Health (ability)',
