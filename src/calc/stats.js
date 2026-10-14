@@ -473,11 +473,12 @@ function rawStats(loadout, ctx, activeExtras) {
   add(DUNGEON_POTION, null, 1 + potionBoost(loadout, c));
   add(setBonuses(loadout, c.cls));
 
+  // Ragnarock: the ability is cast with whichever owned pet has the most strength (swap, cast, swap back),
+  // so Chimera copies that pet's strength in every phase.
   if (loadout.rag) {
-    for (const t of TARGETS) {
-      const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: pets[t]?.petStrength ?? 0 });
-      add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) }, t);
-    }
+    const ragPetStrength = Math.max(0, ...(loadout.pets ?? []).map((p) => petStats(p, c.petProfile).petStrength ?? 0));
+    const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: ragPetStrength });
+    add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) });
   }
 
   // Essence shop perks.

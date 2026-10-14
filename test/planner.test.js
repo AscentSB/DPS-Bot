@@ -557,3 +557,14 @@ test('Combat skill adds 0.5 base crit chance per level; 2.67B combat XP is level
   // Terminator divides crit chance by 4: +30 flat -> +7.5.
   close(at(60) - at(0), 30 * 0.25);
 });
+
+test('Ragnarock is cast with the highest-strength owned pet, whatever pet is active', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const gd = { type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'ANTIQUE_REMEDIES' };
+  const ed = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const l = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'RAGNAROCK_AXE', stars: 0, enchants: { ultimate_chimera: 5 } }]), { pets: [gd, ed] }), ctx, w);
+  const strengthWith = (pets) => evaluate({ ...l, pets, activePets: { wither: ed, dragon: ed } }, ctx, w).stats.dragon.strength;
+  // Owning the Golden Dragon raises strength even while the Ender Dragon is active.
+  assert.ok(strengthWith([gd, ed]) > strengthWith([ed]));
+});
