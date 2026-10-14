@@ -17,8 +17,11 @@ test('catacombs level and boost', () => {
   assert.equal(cataLevelFromXp(50), 1);
   assert.equal(cataLevelFromXp(569_809_640), 50);
   assert.equal(cataLevelFromXp(2e9), 50);
-  close(cataBoost(10), 0.45);
-  close(cataBoost(21), 1.18);
+  close(cataBoost(0), 0.10);
+  close(cataBoost(4), 0.31);
+  close(cataBoost(10), 0.85);
+  close(cataBoost(21), 1.95);
+  close(cataBoost(60), 4.85);
   close(cataBoost(50) + 1.5, 6.35);
 });
 

@@ -57,16 +57,17 @@ export const SECRET_DIGIT_CAP = 5;
 export const DEFAULT_SECRET_DIGIT = 0;
 export const MAX_MASTER_STARS = 5;
 
-// Catacombs dungeon item stat bonus in percent, cumulative. Index 0 = level 1.
-// Copied from the "Stats Increment" column of the Catacombs/Levels table on
-// https://hypixelskyblock.minecraft.wiki/w/Catacombs/Levels
+// Catacombs dungeon item stat bonus in percent, cumulative. Index = Catacombs level (0 to 50).
+// Level 0 already gives +10%. From the current Dungeoneering table:
+// https://hypixelskyblock.minecraft.wiki/w/Dungeoneering
 // Paste new values here if Hypixel changes them. cataBoost = value / 100.
 export const CATA_STAT_BONUS = [
-  4, 8, 12, 16, 20, 25, 30, 35, 40, 45,
-  51, 57, 63, 69, 75, 82, 89, 96, 103, 110,
-  118, 126, 134, 142, 150, 159, 168, 177, 186, 195,
-  205, 215, 225, 235, 245, 257, 269, 281, 293, 305,
-  319, 333, 347, 361, 375, 391, 408, 426, 445, 485,
+  10,
+  15, 20, 25, 31, 38, 46, 55, 65, 75, 85,
+  95, 105, 115, 125, 135, 145, 155, 165, 175, 185,
+  195, 205, 215, 225, 235, 245, 255, 265, 275, 285,
+  295, 305, 315, 325, 335, 345, 355, 365, 375, 385,
+  395, 405, 415, 425, 435, 445, 455, 465, 475, 485,
 ];
 
 // XP needed for each Catacombs level (not cumulative). Index 0 = level 1.

@@ -42,8 +42,8 @@ export function cataLevelFromXp(xp) {
 }
 
 export function cataBoost(level) {
-  const capped = Math.max(0, Math.min(level, CATA_STAT_BONUS.length));
-  return capped === 0 ? 0 : CATA_STAT_BONUS[capped - 1] / 100;
+  const capped = Math.max(0, Math.min(level, CATA_STAT_BONUS.length - 1));
+  return CATA_STAT_BONUS[capped] / 100;
 }
 
 // basestat * (cataBoost + 1.5 + 5 * masterstars + .01 * secretdigit)
