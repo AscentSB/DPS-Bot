@@ -60,12 +60,13 @@ export const ITEM_STATS = {
 //  MISC BUFFS (potions, mayor perks, anything always active)
 // ============================================================================
 // Always active for the given class. Same keys as above, split by target.
-// A Tier V Beacon is assumed on crit chance (+5) for Archer and Berserker and on ability damage (+5%) for Mage.
-// Source: https://hypixelskyblock.minecraft.wiki/w/Beacon
+// A Tier V Beacon powered by Scorched Power Crystals (+20%) is assumed: crit chance 5 x 1.2 = 6 for Archer and
+// Berserker, ability damage 5% x 1.2 = 6% for Mage. Source: https://hypixelskyblock.minecraft.wiki/w/Beacon
+const BEACON_SCORCHED = 1.2;
 export const MISC_BUFFS = {
-  arch: { stats: { critChance: 5 }, wither: {}, dragon: {} },
-  bers: { stats: { critChance: 5 }, wither: {}, dragon: {} },
-  mage: { stats: { abilityDamage: 5 }, wither: {}, dragon: {} },
+  arch: { stats: { critChance: 5 * BEACON_SCORCHED }, wither: {}, dragon: {} },
+  bers: { stats: { critChance: 5 * BEACON_SCORCHED }, wither: {}, dragon: {} },
+  mage: { stats: { abilityDamage: 5 * BEACON_SCORCHED }, wither: {}, dragon: {} },
 };
 
 // ============================================================================
