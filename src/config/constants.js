@@ -1,7 +1,8 @@
 // Tunable constants for the DPS model. Every number the formulas use lives here.
 
+// baseAdditiveDamage: Archer 310 matches the M7 archer sheet (combat 60 and class bonuses).
 export const CLASSES = {
-  arch: { label: 'Archer', weights: { wither: 50, dragon: 50 }, baseAdditiveDamage: 0 },
+  arch: { label: 'Archer', weights: { wither: 50, dragon: 50 }, baseAdditiveDamage: 310 },
   bers: { label: 'Berserker', weights: { wither: 20, dragon: 80 }, baseAdditiveDamage: 1200 },
   mage: { label: 'Mage', weights: { wither: 80, dragon: 20 }, baseAdditiveDamage: 0 },
 };
@@ -18,18 +19,20 @@ export const TARGET_DEFENSE = {
 // damage = BASE_DAMAGE + weapon_damage
 export const BASE_DAMAGE = 5;
 
-// Flat values added before the multipliers: (stat + base)(1 + add1 + add2)(mult)(constant)
-export const BASE_STRENGTH = 76;
-export const BASE_CRIT_DAMAGE = 76;
-export const BASE_INTELLIGENCE = 48;
+// Dungeon blessings. Strength and crit damage use Power, intelligence uses Wisdom.
+//   stat = (flat + 4 * blessing)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * 0.02 * blessing)
+// Power 19 gives the +76 and the .38 in the original formula. Wisdom 12 gives +48 and .24.
+export const POWER_BLESSING = 19;
+export const WISDOM_BLESSING = 12;
+export const BLESSING_FLAT_PER_LEVEL = 4;
+export const BLESSING_PERCENT_PER_LEVEL = 0.02;
+export const BLESSING_MULT = 1.1 * 1.1 * 1.2;
 
-export const STRENGTH_CONSTANT = 1.1 * 1.1 * 1.2 * 0.38;
-export const CRIT_DAMAGE_CONSTANT = 1.1 * 1.1 * 1.2 * 0.38;
-export const INTELLIGENCE_CONSTANT = 1.1 * 1.1 * 1.2 * 0.24;
-
-// Base crit chance before gear. Crit chance is capped in the damage formula.
+// crit chance = (flat + BASE_CRIT_CHANCE)(1 + additive)(multiplicative). Terminator has a 0.25 multiplier.
 export const BASE_CRIT_CHANCE = 30;
-export const CRIT_CHANCE_CAP = 100;
+
+// Damage formula switches at 100% and 200% crit chance (overload).
+export const OVERLOAD_MULTIPLIER = 1.5;
 
 // Mage formula: .3 * (.09 + intelligence / MAGE_INT_DIVISOR)
 export const MAGE_INT_DIVISOR = 100;
@@ -45,17 +48,18 @@ export const SOFT_CAP = 1_000_000;
 export const SOFT_CAP_KEEP = 0.1;
 
 // Dungeon item stats:
-//   stat       * (cataBoost + DUNGEON_BASE_ADD + MASTER_STAR_STEP * masterStars + SECRET_STEP * secretDigit)
-//   critChance * (CRIT_BASE + CRIT_MASTER_STAR_STEP * masterStars + SECRET_STEP * min(secretDigit, SECRET_DIGIT_CAP))
-// cataBoost comes from the player's Catacombs level (see CATA_STAT_BONUS below).
-export const DUNGEON_BASE_ADD = 1.5;
-export const MASTER_STAR_STEP = 5; // as specified. Change to 0.05 if master stars should give +5% each.
-export const CRIT_BASE = 1.5;
-export const CRIT_MASTER_STAR_STEP = 0.05;
+//   stat       * (1 + cataBoost + 0.1 * stars + 0.05 * masterStars + 0.01 * secretDigit)
+//   critChance * (1 + 0.1 * stars + 0.05 * masterStars + 0.01 * secretDigit)
+// At 5 stars this is cataBoost + 1.5 + ... and 1.5 + ... as in the original formula.
+// secretDigit comes from the General's Medallion: number of digits in your secret count, capped at 5.
+export const DUNGEON_BASE = 1;
+export const STAR_STEP = 0.1;
+export const MAX_STARS = 5;
+export const MASTER_STAR_STEP = 0.05;
+export const MAX_MASTER_STARS = 5;
 export const SECRET_STEP = 0.01;
 export const SECRET_DIGIT_CAP = 5;
-export const DEFAULT_SECRET_DIGIT = 0;
-export const MAX_MASTER_STARS = 5;
+export const GENERAL_MEDALLION_ID = 'GENERAL_MEDALLION';
 
 // Catacombs dungeon item stat bonus in percent, cumulative. Index = Catacombs level (0 to 50).
 // Level 0 already gives +10%. From the current Dungeoneering table:
@@ -79,9 +83,14 @@ export const CATA_XP_PER_LEVEL = [
   15000000, 19000000, 24000000, 30000000, 38000000, 48000000, 60000000, 75000000, 93000000, 116250000,
 ];
 
-// Hot potato books on weapons.
+// Hot potato books (weapons only for damage and strength).
 export const HOT_POTATO = { id: 'HOT_POTATO_BOOK', max: 10, damage: 2, strength: 2 };
 export const FUMING_POTATO = { id: 'FUMING_POTATO_BOOK', max: 5, damage: 2, strength: 2 };
+
+// The Art of War: +5 strength on a weapon, one per item.
+export const ART_OF_WAR = { id: 'THE_ART_OF_WAR', strength: 5 };
+
+export const RECOMBOBULATOR_ID = 'RECOMBOBULATOR_3000';
 
 // Bazaar ids for master stars, in order. A star can only be bought after the one before it.
 export const MASTER_STAR_IDS = [
@@ -98,6 +107,18 @@ export const CLASS_WEAPON_CATEGORIES = {
 export const ARMOR_SLOTS = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'];
 export const EQUIPMENT_SLOTS = ['NECKLACE', 'CLOAK', 'BELT', 'GLOVES', 'BRACELET'];
 export const ACCESSORY_CATEGORY = 'ACCESSORY';
+
+export const RARITIES = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC', 'DIVINE'];
+export const SPECIAL_RARITIES = ['SPECIAL', 'VERY_SPECIAL'];
+
+// Ragnarock: its ability grants RAGNAROCK_MULTIPLIER x the axe's strength.
+export const RAGNAROCK_ID = 'RAGNAROCK_AXE';
+export const RAGNAROCK_MULTIPLIER = 1.5;
+export const CHIMERA_PER_LEVEL = 0.2;
+
+// Legion: +0.07% combat stats per level per nearby player. A dungeon party has 4 other players.
+export const LEGION_PER_LEVEL = 0.0007;
+export const LEGION_PLAYERS = 4;
 
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;

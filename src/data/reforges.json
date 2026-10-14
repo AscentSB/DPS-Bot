@@ -1,0 +1,3030 @@
+{
+ "astute": {
+  "name": "Astute",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "intelligence": 4
+   },
+   "RARE": {
+    "intelligence": 5
+   },
+   "EPIC": {
+    "intelligence": 6
+   },
+   "LEGENDARY": {
+    "intelligence": 8
+   },
+   "MYTHIC": {
+    "intelligence": 10
+   },
+   "DIVINE": {
+    "intelligence": 12
+   }
+  }
+ },
+ "awkward": {
+  "name": "Awkward",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 5,
+    "intelligence": -5
+   },
+   "UNCOMMON": {
+    "critChance": 12,
+    "critDamage": 10,
+    "intelligence": -10
+   },
+   "RARE": {
+    "critChance": 15,
+    "critDamage": 15,
+    "intelligence": -18
+   },
+   "EPIC": {
+    "critChance": 20,
+    "critDamage": 22,
+    "intelligence": -32
+   },
+   "LEGENDARY": {
+    "critChance": 25,
+    "critDamage": 30,
+    "intelligence": -50
+   },
+   "MYTHIC": {
+    "critChance": 30,
+    "critDamage": 40,
+    "intelligence": -60
+   },
+   "DIVINE": {
+    "critChance": 35,
+    "critDamage": 50,
+    "intelligence": -70
+   }
+  }
+ },
+ "blended": {
+  "name": "Blended",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "critDamage": 1,
+    "intelligence": 1
+   },
+   "UNCOMMON": {
+    "strength": 1,
+    "critChance": 1,
+    "critDamage": 2,
+    "intelligence": 1
+   },
+   "RARE": {
+    "strength": 1,
+    "critChance": 2,
+    "critDamage": 2,
+    "intelligence": 1
+   },
+   "EPIC": {
+    "strength": 1,
+    "critChance": 2,
+    "critDamage": 2,
+    "intelligence": 2
+   },
+   "LEGENDARY": {
+    "strength": 2,
+    "critChance": 3,
+    "critDamage": 2,
+    "intelligence": 2
+   },
+   "MYTHIC": {
+    "strength": 2,
+    "critChance": 3,
+    "critDamage": 2,
+    "intelligence": 3
+   },
+   "DIVINE": {
+    "strength": 2,
+    "critChance": 3,
+    "critDamage": 3,
+    "intelligence": 3
+   }
+  }
+ },
+ "brilliant": {
+  "name": "Brilliant",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 5
+   },
+   "UNCOMMON": {
+    "intelligence": 6
+   },
+   "RARE": {
+    "intelligence": 7
+   },
+   "EPIC": {
+    "intelligence": 9
+   },
+   "LEGENDARY": {
+    "intelligence": 12
+   },
+   "MYTHIC": {
+    "intelligence": 15
+   },
+   "DIVINE": {
+    "intelligence": 18
+   }
+  }
+ },
+ "clean": {
+  "name": "Clean",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 2
+   },
+   "UNCOMMON": {
+    "critChance": 4
+   },
+   "RARE": {
+    "critChance": 6
+   },
+   "EPIC": {
+    "critChance": 8
+   },
+   "LEGENDARY": {
+    "critChance": 10
+   },
+   "MYTHIC": {
+    "critChance": 12
+   },
+   "DIVINE": {
+    "critChance": 14
+   }
+  }
+ },
+ "colossal": {
+  "name": "Colossal",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "deadly": {
+  "name": "Deadly",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 5
+   },
+   "UNCOMMON": {
+    "critChance": 13,
+    "critDamage": 10
+   },
+   "RARE": {
+    "critChance": 16,
+    "critDamage": 18
+   },
+   "EPIC": {
+    "critChance": 19,
+    "critDamage": 32
+   },
+   "LEGENDARY": {
+    "critChance": 22,
+    "critDamage": 50
+   },
+   "MYTHIC": {
+    "critChance": 25,
+    "critDamage": 70
+   },
+   "DIVINE": {
+    "critChance": 28,
+    "critDamage": 90
+   }
+  }
+ },
+ "doublebit": {
+  "name": "Double-Bit",
+  "stone": null,
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "epic": {
+  "name": "Epic",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 15,
+    "critDamage": 10
+   },
+   "UNCOMMON": {
+    "strength": 20,
+    "critDamage": 15
+   },
+   "RARE": {
+    "strength": 25,
+    "critDamage": 20
+   },
+   "EPIC": {
+    "strength": 32,
+    "critDamage": 27
+   },
+   "LEGENDARY": {
+    "strength": 40,
+    "critDamage": 35
+   },
+   "MYTHIC": {
+    "strength": 50,
+    "critDamage": 45
+   },
+   "DIVINE": {
+    "strength": 60,
+    "critDamage": 55
+   }
+  }
+ },
+ "excellent": {
+  "name": "Excellent",
+  "stone": null,
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "fair": {
+  "name": "Fair",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 2,
+    "critDamage": 2,
+    "intelligence": 2
+   },
+   "UNCOMMON": {
+    "strength": 3,
+    "critChance": 3,
+    "critDamage": 3,
+    "intelligence": 3
+   },
+   "RARE": {
+    "strength": 4,
+    "critChance": 4,
+    "critDamage": 4,
+    "intelligence": 4
+   },
+   "EPIC": {
+    "strength": 7,
+    "critChance": 7,
+    "critDamage": 7,
+    "intelligence": 7
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 10,
+    "critDamage": 10,
+    "intelligence": 10
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 12,
+    "critDamage": 12,
+    "intelligence": 12
+   },
+   "DIVINE": {
+    "strength": 14,
+    "critChance": 14,
+    "critDamage": 14,
+    "intelligence": 14
+   }
+  }
+ },
+ "fast": {
+  "name": "Fast",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {}
+ },
+ "fierce": {
+  "name": "Fierce",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 2,
+    "critDamage": 4
+   },
+   "UNCOMMON": {
+    "strength": 4,
+    "critChance": 3,
+    "critDamage": 7
+   },
+   "RARE": {
+    "strength": 6,
+    "critChance": 4,
+    "critDamage": 10
+   },
+   "EPIC": {
+    "strength": 8,
+    "critChance": 5,
+    "critDamage": 14
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 6,
+    "critDamage": 18
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 8,
+    "critDamage": 24
+   },
+   "DIVINE": {
+    "strength": 14,
+    "critChance": 10,
+    "critDamage": 30
+   }
+  }
+ },
+ "fine": {
+  "name": "Fine",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 5,
+    "critDamage": 2
+   },
+   "UNCOMMON": {
+    "strength": 7,
+    "critChance": 7,
+    "critDamage": 4
+   },
+   "RARE": {
+    "strength": 12,
+    "critChance": 9,
+    "critDamage": 7
+   },
+   "EPIC": {
+    "strength": 18,
+    "critChance": 12,
+    "critDamage": 10
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 15,
+    "critDamage": 15
+   },
+   "MYTHIC": {
+    "strength": 40,
+    "critChance": 20,
+    "critDamage": 20
+   },
+   "DIVINE": {
+    "strength": 55,
+    "critChance": 25,
+    "critDamage": 25
+   }
+  }
+ },
+ "fortunate": {
+  "name": "Fortunate",
+  "stone": null,
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "gentle": {
+  "name": "Gentle",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3
+   },
+   "UNCOMMON": {
+    "strength": 5
+   },
+   "RARE": {
+    "strength": 7
+   },
+   "EPIC": {
+    "strength": 10
+   },
+   "LEGENDARY": {
+    "strength": 15
+   },
+   "MYTHIC": {
+    "strength": 20
+   },
+   "DIVINE": {
+    "strength": 25
+   }
+  }
+ },
+ "grand": {
+  "name": "Grand",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 25
+   },
+   "UNCOMMON": {
+    "strength": 32
+   },
+   "RARE": {
+    "strength": 40
+   },
+   "EPIC": {
+    "strength": 50
+   },
+   "LEGENDARY": {
+    "strength": 60
+   },
+   "MYTHIC": {
+    "strength": 70
+   },
+   "DIVINE": {
+    "strength": 80
+   }
+  }
+ },
+ "great": {
+  "name": "Great",
+  "stone": null,
+  "types": [
+   "AXE"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critDamage": 2
+   },
+   "UNCOMMON": {
+    "strength": 4,
+    "critDamage": 4
+   },
+   "RARE": {
+    "strength": 6,
+    "critDamage": 6
+   },
+   "EPIC": {
+    "strength": 9,
+    "critDamage": 9
+   },
+   "LEGENDARY": {
+    "strength": 12,
+    "critDamage": 12
+   },
+   "MYTHIC": {
+    "strength": 16,
+    "critDamage": 16
+   },
+   "DIVINE": {
+    "strength": 20,
+    "critDamage": 20
+   }
+  }
+ },
+ "greenthumb": {
+  "name": "Green Thumb",
+  "stone": null,
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "hasty": {
+  "name": "Hasty",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 20
+   },
+   "UNCOMMON": {
+    "strength": 5,
+    "critChance": 25
+   },
+   "RARE": {
+    "strength": 7,
+    "critChance": 30
+   },
+   "EPIC": {
+    "strength": 10,
+    "critChance": 40
+   },
+   "LEGENDARY": {
+    "strength": 15,
+    "critChance": 50
+   },
+   "MYTHIC": {
+    "strength": 20,
+    "critChance": 60
+   },
+   "DIVINE": {
+    "strength": 25,
+    "critChance": 70
+   }
+  }
+ },
+ "heavy": {
+  "name": "Heavy",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "critDamage": -1
+   },
+   "UNCOMMON": {
+    "critDamage": -2
+   },
+   "RARE": {
+    "critDamage": -2
+   },
+   "EPIC": {
+    "critDamage": -3
+   },
+   "LEGENDARY": {
+    "critDamage": -5
+   },
+   "MYTHIC": {
+    "critDamage": -7
+   },
+   "DIVINE": {
+    "critDamage": -9
+   }
+  }
+ },
+ "hefty": {
+  "name": "Hefty",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critDamage": -2
+   },
+   "UNCOMMON": {
+    "critDamage": -2
+   },
+   "RARE": {
+    "critDamage": -3
+   },
+   "EPIC": {
+    "critDamage": -3
+   },
+   "LEGENDARY": {
+    "critDamage": -4
+   },
+   "MYTHIC": {
+    "critDamage": -5
+   },
+   "DIVINE": {
+    "critDamage": -6
+   }
+  }
+ },
+ "heroic": {
+  "name": "Heroic",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 15,
+    "intelligence": 40
+   },
+   "UNCOMMON": {
+    "strength": 20,
+    "intelligence": 50
+   },
+   "RARE": {
+    "strength": 25,
+    "intelligence": 65
+   },
+   "EPIC": {
+    "strength": 32,
+    "intelligence": 80
+   },
+   "LEGENDARY": {
+    "strength": 40,
+    "intelligence": 100
+   },
+   "MYTHIC": {
+    "strength": 50,
+    "intelligence": 125
+   },
+   "DIVINE": {
+    "strength": 60,
+    "intelligence": 150
+   }
+  }
+ },
+ "honored": {
+  "name": "Honored",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "strength": 1,
+    "critChance": 1,
+    "intelligence": 3
+   },
+   "RARE": {
+    "strength": 2,
+    "critChance": 1,
+    "intelligence": 4
+   },
+   "EPIC": {
+    "strength": 2,
+    "critChance": 2,
+    "intelligence": 5
+   },
+   "LEGENDARY": {
+    "strength": 3,
+    "critChance": 2,
+    "intelligence": 6
+   },
+   "MYTHIC": {
+    "strength": 3,
+    "critChance": 2,
+    "intelligence": 7
+   },
+   "DIVINE": {
+    "strength": 3,
+    "critChance": 2,
+    "intelligence": 8
+   }
+  }
+ },
+ "legendary": {
+  "name": "Legendary",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 5,
+    "critDamage": 5,
+    "intelligence": 5
+   },
+   "UNCOMMON": {
+    "strength": 7,
+    "critChance": 7,
+    "critDamage": 10,
+    "intelligence": 8
+   },
+   "RARE": {
+    "strength": 12,
+    "critChance": 9,
+    "critDamage": 15,
+    "intelligence": 12
+   },
+   "EPIC": {
+    "strength": 18,
+    "critChance": 12,
+    "critDamage": 22,
+    "intelligence": 18
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 15,
+    "critDamage": 28,
+    "intelligence": 25
+   },
+   "MYTHIC": {
+    "strength": 32,
+    "critChance": 18,
+    "critDamage": 36,
+    "intelligence": 35
+   },
+   "DIVINE": {
+    "strength": 39,
+    "critChance": 21,
+    "critDamage": 44,
+    "intelligence": 45
+   }
+  }
+ },
+ "light": {
+  "name": "Light",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "critDamage": 1
+   },
+   "UNCOMMON": {
+    "critChance": 1,
+    "critDamage": 2
+   },
+   "RARE": {
+    "critChance": 2,
+    "critDamage": 3
+   },
+   "EPIC": {
+    "critChance": 2,
+    "critDamage": 4
+   },
+   "LEGENDARY": {
+    "critChance": 3,
+    "critDamage": 5
+   },
+   "MYTHIC": {
+    "critChance": 3,
+    "critDamage": 6
+   },
+   "DIVINE": {
+    "critChance": 3,
+    "critDamage": 7
+   }
+  }
+ },
+ "lumberjacks": {
+  "name": "Lumberjack's",
+  "stone": null,
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "lush": {
+  "name": "Lush",
+  "stone": null,
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "menacing": {
+  "name": "Menacing",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "critDamage": 2
+   },
+   "UNCOMMON": {
+    "critChance": 1,
+    "critDamage": 3
+   },
+   "RARE": {
+    "critChance": 1,
+    "critDamage": 3
+   },
+   "EPIC": {
+    "critChance": 1,
+    "critDamage": 4
+   },
+   "LEGENDARY": {
+    "critChance": 2,
+    "critDamage": 4
+   },
+   "MYTHIC": {
+    "critChance": 2,
+    "critDamage": 5
+   },
+   "DIVINE": {
+    "critChance": 2,
+    "critDamage": 6
+   }
+  }
+ },
+ "mythic": {
+  "name": "Mythic",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 1,
+    "intelligence": 20
+   },
+   "UNCOMMON": {
+    "strength": 4,
+    "critChance": 2,
+    "intelligence": 25
+   },
+   "RARE": {
+    "strength": 6,
+    "critChance": 3,
+    "intelligence": 30
+   },
+   "EPIC": {
+    "strength": 8,
+    "critChance": 4,
+    "intelligence": 40
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 5,
+    "intelligence": 50
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 6,
+    "intelligence": 60
+   },
+   "DIVINE": {
+    "strength": 14,
+    "critChance": 7,
+    "intelligence": 70
+   }
+  }
+ },
+ "neat": {
+  "name": "Neat",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 4,
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "critChance": 12,
+    "critDamage": 8,
+    "intelligence": 6
+   },
+   "RARE": {
+    "critChance": 14,
+    "critDamage": 14,
+    "intelligence": 10
+   },
+   "EPIC": {
+    "critChance": 17,
+    "critDamage": 20,
+    "intelligence": 15
+   },
+   "LEGENDARY": {
+    "critChance": 20,
+    "critDamage": 30,
+    "intelligence": 20
+   },
+   "MYTHIC": {
+    "critChance": 25,
+    "critDamage": 40,
+    "intelligence": 30
+   },
+   "DIVINE": {
+    "critChance": 30,
+    "critDamage": 50,
+    "intelligence": 40
+   }
+  }
+ },
+ "odd": {
+  "name": "Odd",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 5,
+    "intelligence": -5
+   },
+   "UNCOMMON": {
+    "critChance": 12,
+    "critDamage": 10,
+    "intelligence": -10
+   },
+   "RARE": {
+    "critChance": 15,
+    "critDamage": 15,
+    "intelligence": -18
+   },
+   "EPIC": {
+    "critChance": 20,
+    "critDamage": 22,
+    "intelligence": -32
+   },
+   "LEGENDARY": {
+    "critChance": 25,
+    "critDamage": 30,
+    "intelligence": -50
+   },
+   "MYTHIC": {
+    "critChance": 30,
+    "critDamage": 40,
+    "intelligence": -75
+   },
+   "DIVINE": {
+    "critChance": 35,
+    "critDamage": 50,
+    "intelligence": -100
+   }
+  }
+ },
+ "peasants": {
+  "name": "Peasant's",
+  "stone": null,
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "prospectors": {
+  "name": "Prospector's",
+  "stone": null,
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "pure": {
+  "name": "Pure",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 2,
+    "critDamage": 2,
+    "intelligence": 2
+   },
+   "UNCOMMON": {
+    "strength": 3,
+    "critChance": 4,
+    "critDamage": 3,
+    "intelligence": 3
+   },
+   "RARE": {
+    "strength": 4,
+    "critChance": 6,
+    "critDamage": 4,
+    "intelligence": 4
+   },
+   "EPIC": {
+    "strength": 6,
+    "critChance": 8,
+    "critDamage": 6,
+    "intelligence": 6
+   },
+   "LEGENDARY": {
+    "strength": 8,
+    "critChance": 10,
+    "critDamage": 8,
+    "intelligence": 8
+   },
+   "MYTHIC": {
+    "strength": 10,
+    "critChance": 12,
+    "critDamage": 10,
+    "intelligence": 10
+   },
+   "DIVINE": {
+    "strength": 12,
+    "critChance": 14,
+    "critDamage": 12,
+    "intelligence": 12
+   }
+  }
+ },
+ "rapid": {
+  "name": "Rapid",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critDamage": 35
+   },
+   "UNCOMMON": {
+    "strength": 3,
+    "critDamage": 45
+   },
+   "RARE": {
+    "strength": 4,
+    "critDamage": 55
+   },
+   "EPIC": {
+    "strength": 7,
+    "critDamage": 65
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critDamage": 75
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critDamage": 90
+   },
+   "DIVINE": {
+    "strength": 14,
+    "critDamage": 105
+   }
+  }
+ },
+ "rich": {
+  "name": "Rich",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 2,
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "critChance": 12,
+    "critDamage": 4,
+    "intelligence": 6
+   },
+   "RARE": {
+    "critChance": 14,
+    "critDamage": 7,
+    "intelligence": 10
+   },
+   "EPIC": {
+    "critChance": 17,
+    "critDamage": 10,
+    "intelligence": 15
+   },
+   "LEGENDARY": {
+    "critChance": 20,
+    "critDamage": 15,
+    "intelligence": 20
+   },
+   "MYTHIC": {
+    "critChance": 25,
+    "critDamage": 20,
+    "intelligence": 30
+   },
+   "DIVINE": {
+    "critChance": 30,
+    "critDamage": 25,
+    "intelligence": 40
+   }
+  }
+ },
+ "robust": {
+  "name": "Robust",
+  "stone": null,
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "rugged": {
+  "name": "Rugged",
+  "stone": null,
+  "types": [
+   "AXE"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 4,
+    "critDamage": 3
+   },
+   "UNCOMMON": {
+    "strength": 6,
+    "critDamage": 5
+   },
+   "RARE": {
+    "strength": 9,
+    "critDamage": 8
+   },
+   "EPIC": {
+    "strength": 13,
+    "critDamage": 12
+   },
+   "LEGENDARY": {
+    "strength": 18,
+    "critDamage": 16
+   },
+   "MYTHIC": {
+    "strength": 24,
+    "critDamage": 22
+   },
+   "DIVINE": {
+    "strength": 30,
+    "critDamage": 28
+   }
+  }
+ },
+ "sharp": {
+  "name": "Sharp",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 10,
+    "critDamage": 20
+   },
+   "UNCOMMON": {
+    "critChance": 12,
+    "critDamage": 30
+   },
+   "RARE": {
+    "critChance": 14,
+    "critDamage": 40
+   },
+   "EPIC": {
+    "critChance": 17,
+    "critDamage": 55
+   },
+   "LEGENDARY": {
+    "critChance": 20,
+    "critDamage": 75
+   },
+   "MYTHIC": {
+    "critChance": 25,
+    "critDamage": 90
+   },
+   "DIVINE": {
+    "critChance": 30,
+    "critDamage": 105
+   }
+  }
+ },
+ "smart": {
+  "name": "Smart",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 20
+   },
+   "UNCOMMON": {
+    "intelligence": 40
+   },
+   "RARE": {
+    "intelligence": 60
+   },
+   "EPIC": {
+    "intelligence": 80
+   },
+   "LEGENDARY": {
+    "intelligence": 100
+   },
+   "MYTHIC": {
+    "intelligence": 120
+   },
+   "DIVINE": {
+    "intelligence": 140
+   }
+  }
+ },
+ "soft": {
+  "name": "Soft",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "critDamage": 1
+   },
+   "UNCOMMON": {
+    "critChance": 1,
+    "critDamage": 1
+   },
+   "RARE": {
+    "critChance": 1,
+    "critDamage": 1
+   },
+   "EPIC": {
+    "critChance": 1,
+    "critDamage": 2
+   },
+   "LEGENDARY": {
+    "critChance": 1,
+    "critDamage": 2
+   },
+   "MYTHIC": {
+    "critChance": 1,
+    "critDamage": 2
+   },
+   "DIVINE": {
+    "critChance": 1,
+    "critDamage": 2
+   }
+  }
+ },
+ "spicy": {
+  "name": "Spicy",
+  "stone": null,
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 1,
+    "critDamage": 25
+   },
+   "UNCOMMON": {
+    "strength": 3,
+    "critChance": 1,
+    "critDamage": 35
+   },
+   "RARE": {
+    "strength": 4,
+    "critChance": 1,
+    "critDamage": 45
+   },
+   "EPIC": {
+    "strength": 7,
+    "critChance": 1,
+    "critDamage": 60
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 1,
+    "critDamage": 80
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 1,
+    "critDamage": 100
+   },
+   "DIVINE": {
+    "strength": 14,
+    "critChance": 1,
+    "critDamage": 120
+   }
+  }
+ },
+ "stained": {
+  "name": "Stained",
+  "stone": null,
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1
+   },
+   "UNCOMMON": {
+    "critChance": 1
+   },
+   "RARE": {
+    "critChance": 2
+   },
+   "EPIC": {
+    "critChance": 2
+   },
+   "LEGENDARY": {
+    "critChance": 3
+   },
+   "MYTHIC": {
+    "critChance": 4
+   },
+   "DIVINE": {
+    "critChance": 5
+   }
+  }
+ },
+ "sturdy": {
+  "name": "Sturdy",
+  "stone": null,
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "titanic": {
+  "name": "Titanic",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "unreal": {
+  "name": "Unreal",
+  "stone": null,
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 8,
+    "critDamage": 5
+   },
+   "UNCOMMON": {
+    "strength": 7,
+    "critChance": 9,
+    "critDamage": 10
+   },
+   "RARE": {
+    "strength": 12,
+    "critChance": 10,
+    "critDamage": 18
+   },
+   "EPIC": {
+    "strength": 18,
+    "critChance": 11,
+    "critDamage": 32
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 13,
+    "critDamage": 50
+   },
+   "MYTHIC": {
+    "strength": 34,
+    "critChance": 15,
+    "critDamage": 70
+   },
+   "DIVINE": {
+    "strength": 43,
+    "critChance": 17,
+    "critDamage": 90
+   }
+  }
+ },
+ "unyielding": {
+  "name": "Unyielding",
+  "stone": null,
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "wise": {
+  "name": "Wise",
+  "stone": null,
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 25
+   },
+   "UNCOMMON": {
+    "intelligence": 50
+   },
+   "RARE": {
+    "intelligence": 75
+   },
+   "EPIC": {
+    "intelligence": 100
+   },
+   "LEGENDARY": {
+    "intelligence": 125
+   },
+   "MYTHIC": {
+    "intelligence": 150
+   },
+   "DIVINE": {
+    "intelligence": 175
+   }
+  }
+ },
+ "zooming": {
+  "name": "Zooming",
+  "stone": null,
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "ambered": {
+  "name": "Ambered",
+  "stone": "AMBER_MATERIAL",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "warped": {
+  "name": "Warped",
+  "stone": "AOTE_STONE",
+  "types": [],
+  "items": [
+   "ASPECT_OF_THE_END",
+   "ASPECT_OF_THE_VOID"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 165
+   },
+   "UNCOMMON": {
+    "strength": 165
+   },
+   "RARE": {
+    "strength": 165,
+    "intelligence": 65
+   },
+   "EPIC": {
+    "strength": 165,
+    "intelligence": 100
+   },
+   "LEGENDARY": {
+    "strength": 165,
+    "intelligence": 150
+   },
+   "MYTHIC": {
+    "strength": 165,
+    "intelligence": 150
+   }
+  }
+ },
+ "beady": {
+  "name": "Beady",
+  "stone": "BEADY_EYES",
+  "types": [
+   "VACUUM"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 10
+   },
+   "UNCOMMON": {
+    "intelligence": 20
+   },
+   "RARE": {
+    "intelligence": 30
+   },
+   "EPIC": {
+    "intelligence": 40
+   },
+   "LEGENDARY": {
+    "intelligence": 50
+   },
+   "MYTHIC": {
+    "intelligence": 60
+   },
+   "DIVINE": {
+    "intelligence": 70
+   }
+  }
+ },
+ "blazing": {
+  "name": "Blazing",
+  "stone": "BLAZEN_SPHERE",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "waxed": {
+  "name": "Waxed",
+  "stone": "BLAZE_WAX",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 2
+   },
+   "UNCOMMON": {
+    "critChance": 3
+   },
+   "RARE": {
+    "critChance": 4
+   },
+   "EPIC": {
+    "critChance": 5
+   },
+   "LEGENDARY": {
+    "critChance": 6
+   },
+   "MYTHIC": {
+    "critChance": 7
+   },
+   "DIVINE": {
+    "critChance": 8
+   }
+  }
+ },
+ "blessed": {
+  "name": "Blessed",
+  "stone": "BLESSED_FRUIT",
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "thorny": {
+  "name": "Thorny",
+  "stone": "BLOOMING_THORNS",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "greaterspook": {
+  "name": "Greater Spook",
+  "stone": "BOO_STONE",
+  "types": [],
+  "items": [
+   "GREAT_SPOOK_HELMET",
+   "GREAT_SPOOK_CHESTPLATE",
+   "GREAT_SPOOK_LEGGINGS",
+   "GREAT_SPOOK_BOOTS",
+   "GREAT_SPOOK_BELT",
+   "GREAT_SPOOK_CLOAK",
+   "GREAT_SPOOK_NECKLACE",
+   "GREAT_SPOOK_GLOVES"
+  ],
+  "stats": {}
+ },
+ "bulky": {
+  "name": "Bulky",
+  "stone": "BULKY_STONE",
+  "types": [
+   "SWORD"
+  ],
+  "stats": {}
+ },
+ "rooted": {
+  "name": "Rooted",
+  "stone": "BURROWING_SPORES",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "calcified": {
+  "name": "Calcified",
+  "stone": "CALCIFIED_HEART",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "candied": {
+  "name": "Candied",
+  "stone": "CANDY_CORN",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "buzzing": {
+  "name": "Buzzing",
+  "stone": "CLIPPED_WINGS",
+  "types": [
+   "VACUUM"
+  ],
+  "stats": {}
+ },
+ "erudite": {
+  "name": "Erudite",
+  "stone": "DAEDALUS_NOTES",
+  "types": [],
+  "items": [
+   "DEIFIC_SPADE",
+   "ARCHAIC_SPADE",
+   "ANCESTRAL_SPADE"
+  ],
+  "stats": {}
+ },
+ "submerged": {
+  "name": "Submerged",
+  "stone": "DEEP_SEA_ORB",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 2
+   },
+   "UNCOMMON": {
+    "critChance": 4
+   },
+   "RARE": {
+    "critChance": 6
+   },
+   "EPIC": {
+    "critChance": 8
+   },
+   "LEGENDARY": {
+    "critChance": 10
+   },
+   "MYTHIC": {
+    "critChance": 12
+   },
+   "DIVINE": {
+    "critChance": 14
+   }
+  }
+ },
+ "perfect": {
+  "name": "Perfect",
+  "stone": "DIAMOND_ATOM",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "fleet": {
+  "name": "Fleet",
+  "stone": "DIAMONITE",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "dirty": {
+  "name": "Dirty",
+  "stone": "DIRT_BOTTLE",
+  "types": [
+   "SWORD",
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2
+   },
+   "UNCOMMON": {
+    "strength": 4
+   },
+   "RARE": {
+    "strength": 6
+   },
+   "EPIC": {
+    "strength": 10
+   },
+   "LEGENDARY": {
+    "strength": 12
+   },
+   "MYTHIC": {
+    "strength": 15
+   },
+   "DIVINE": {
+    "strength": 20
+   }
+  }
+ },
+ "fabled": {
+  "name": "Fabled",
+  "stone": "DRAGON_CLAW",
+  "types": [
+   "SWORD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 30,
+    "critDamage": 15
+   },
+   "UNCOMMON": {
+    "strength": 35,
+    "critDamage": 20
+   },
+   "RARE": {
+    "strength": 40,
+    "critDamage": 25
+   },
+   "EPIC": {
+    "strength": 50,
+    "critDamage": 32
+   },
+   "LEGENDARY": {
+    "strength": 60,
+    "critDamage": 40
+   },
+   "MYTHIC": {
+    "strength": 75,
+    "critDamage": 50
+   },
+   "DIVINE": {
+    "strength": 90,
+    "critDamage": 65
+   }
+  }
+ },
+ "renowned": {
+  "name": "Renowned",
+  "stone": "DRAGON_HORN",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 2,
+    "critDamage": 3,
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "strength": 4,
+    "critChance": 4,
+    "critDamage": 4,
+    "intelligence": 4
+   },
+   "RARE": {
+    "strength": 6,
+    "critChance": 6,
+    "critDamage": 6,
+    "intelligence": 6
+   },
+   "EPIC": {
+    "strength": 8,
+    "critChance": 8,
+    "critDamage": 8,
+    "intelligence": 8
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 10,
+    "critDamage": 10,
+    "intelligence": 10
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 12,
+    "critDamage": 12,
+    "intelligence": 12
+   },
+   "DIVINE": {
+    "strength": 15,
+    "critChance": 15,
+    "critDamage": 15,
+    "intelligence": 15
+   }
+  }
+ },
+ "spiked": {
+  "name": "Spiked",
+  "stone": "DRAGON_SCALE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 2,
+    "critDamage": 3,
+    "intelligence": 3
+   },
+   "UNCOMMON": {
+    "strength": 4,
+    "critChance": 4,
+    "critDamage": 4,
+    "intelligence": 4
+   },
+   "RARE": {
+    "strength": 6,
+    "critChance": 6,
+    "critDamage": 6,
+    "intelligence": 6
+   },
+   "EPIC": {
+    "strength": 8,
+    "critChance": 8,
+    "critDamage": 8,
+    "intelligence": 8
+   },
+   "LEGENDARY": {
+    "strength": 10,
+    "critChance": 10,
+    "critDamage": 10,
+    "intelligence": 10
+   },
+   "MYTHIC": {
+    "strength": 12,
+    "critChance": 12,
+    "critDamage": 12,
+    "intelligence": 12
+   },
+   "DIVINE": {
+    "strength": 15,
+    "critChance": 15,
+    "critDamage": 15,
+    "intelligence": 15
+   }
+  }
+ },
+ "royal": {
+  "name": "Royal",
+  "stone": "DWARVEN_TREASURE",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "hyper": {
+  "name": "Hyper",
+  "stone": "ENDSTONE_GEODE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2
+   },
+   "UNCOMMON": {
+    "strength": 4
+   },
+   "RARE": {
+    "strength": 6
+   },
+   "EPIC": {
+    "strength": 7
+   },
+   "LEGENDARY": {
+    "strength": 10
+   },
+   "MYTHIC": {
+    "strength": 12
+   },
+   "DIVINE": {
+    "strength": 14
+   }
+  }
+ },
+ "coldfused": {
+  "name": "Coldfused",
+  "stone": "ENTROPY_SUPPRESSOR",
+  "types": [],
+  "items": [
+   "BURSTFIRE_DAGGER",
+   "BURSTMAW_DAGGER",
+   "FIREDUST_DAGGER",
+   "HEARTFIRE_DAGGER",
+   "HEARTMAW_DAGGER",
+   "MAWDUST_DAGGER"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 15,
+    "critDamage": 20
+   },
+   "UNCOMMON": {
+    "strength": 20,
+    "critDamage": 30
+   },
+   "RARE": {
+    "strength": 25,
+    "critDamage": 40
+   },
+   "EPIC": {
+    "strength": 35,
+    "critDamage": 50
+   },
+   "LEGENDARY": {
+    "strength": 45,
+    "critDamage": 60
+   },
+   "MYTHIC": {
+    "strength": 55,
+    "critDamage": 70
+   },
+   "DIVINE": {
+    "strength": 65,
+    "critDamage": 90
+   }
+  }
+ },
+ "sticky": {
+  "name": "Sticky",
+  "stone": "EXTREMELY_MILD_ADHESIVE",
+  "types": [
+   "FISHING_NET"
+  ],
+  "stats": {}
+ },
+ "blooming": {
+  "name": "Blooming",
+  "stone": "FLOWERING_BOUQUET",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "glacial": {
+  "name": "Glacial",
+  "stone": "FRIGID_HUSK",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "festive": {
+  "name": "Festive",
+  "stone": "FROZEN_BAUBLE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 5
+   },
+   "UNCOMMON": {
+    "intelligence": 10
+   },
+   "RARE": {
+    "intelligence": 15
+   },
+   "EPIC": {
+    "intelligence": 20
+   },
+   "LEGENDARY": {
+    "intelligence": 25
+   },
+   "MYTHIC": {
+    "intelligence": 30
+   },
+   "DIVINE": {
+    "intelligence": 35
+   }
+  }
+ },
+ "fanged": {
+  "name": "Fanged",
+  "stone": "FULL_JAW_FANGING_KIT",
+  "types": [
+   "SWORD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 30,
+    "critChance": 3
+   },
+   "UNCOMMON": {
+    "strength": 35,
+    "critChance": 4
+   },
+   "RARE": {
+    "strength": 40,
+    "critChance": 5
+   },
+   "EPIC": {
+    "strength": 50,
+    "critChance": 7
+   },
+   "LEGENDARY": {
+    "strength": 60,
+    "critChance": 8
+   },
+   "MYTHIC": {
+    "strength": 65,
+    "critChance": 10
+   },
+   "DIVINE": {
+    "strength": 75,
+    "critChance": 12
+   }
+  }
+ },
+ "geometric": {
+  "name": "Geometric",
+  "stone": "GEOMETRIC_ODDITY",
+  "types": [],
+  "items": [
+   "FROGGLES",
+   "SILVER_FROGGLES",
+   "GOLDEN_FROGGLES",
+   "DIAMOND_FROGGLES"
+  ],
+  "stats": {}
+ },
+ "giant": {
+  "name": "Giant",
+  "stone": "GIANT_TOOTH",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "lustrous": {
+  "name": "Lustrous",
+  "stone": "GLEAMING_CRYSTAL",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "bountiful": {
+  "name": "Bountiful",
+  "stone": "GOLDEN_BALL",
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "stiff": {
+  "name": "Stiff",
+  "stone": "HARDENED_WOOD",
+  "types": [
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2
+   },
+   "UNCOMMON": {
+    "strength": 4
+   },
+   "RARE": {
+    "strength": 6
+   },
+   "EPIC": {
+    "strength": 8
+   },
+   "LEGENDARY": {
+    "strength": 10
+   },
+   "MYTHIC": {
+    "strength": 12
+   },
+   "DIVINE": {
+    "strength": 14
+   }
+  }
+ },
+ "deepfried": {
+  "name": "Deep Fried",
+  "stone": "HASHBROWN",
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "heated": {
+  "name": "Heated",
+  "stone": "HOT_STUFF",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "jaded": {
+  "name": "Jaded",
+  "stone": "JADERALD",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "jerrys": {
+  "name": "Jerry's",
+  "stone": "JERRY_STONE",
+  "types": [],
+  "items": [
+   "ASPECT_OF_THE_JERRY",
+   "ASPECT_OF_THE_JERRY_SIGNATURE"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "UNCOMMON": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "RARE": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "EPIC": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "MYTHIC": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   },
+   "DIVINE": {
+    "strength": 25,
+    "critChance": 10,
+    "critDamage": 50
+   }
+  }
+ },
+ "chomp": {
+  "name": "Chomp",
+  "stone": "KUUDRA_MANDIBLE",
+  "types": [
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 5,
+    "critChance": 5
+   },
+   "UNCOMMON": {
+    "strength": 10,
+    "critChance": 10
+   },
+   "RARE": {
+    "strength": 17,
+    "critChance": 17
+   },
+   "EPIC": {
+    "strength": 25,
+    "critChance": 25
+   },
+   "LEGENDARY": {
+    "strength": 35,
+    "critChance": 35
+   },
+   "MYTHIC": {
+    "strength": 50,
+    "critChance": 50
+   },
+   "DIVINE": {
+    "strength": 70,
+    "critChance": 70
+   }
+  }
+ },
+ "magnetic": {
+  "name": "Magnetic",
+  "stone": "LAPIS_CRYSTAL",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "earthy": {
+  "name": "Earthy",
+  "stone": "LARGE_WALNUT",
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "lucky": {
+  "name": "Lucky",
+  "stone": "LUCKY_DICE",
+  "types": [
+   "ROD"
+  ],
+  "stats": {}
+ },
+ "groovy": {
+  "name": "Groovy",
+  "stone": "MANGROVE_GEM",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "mantid": {
+  "name": "Mantid",
+  "stone": "MANTID_CLAW",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "marshy": {
+  "name": "Marshy",
+  "stone": "MARSHROOM",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "fortified": {
+  "name": "Fortified",
+  "stone": "METEOR_SHARD",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "gilded": {
+  "name": "Gilded",
+  "stone": "MIDAS_JEWEL",
+  "types": [],
+  "items": [
+   "MIDAS_SWORD",
+   "MIDAS_STAFF",
+   "STARRED_MIDAS_STAFF",
+   "STARRED_MIDAS_SWORD"
+  ],
+  "stats": {
+   "LEGENDARY": {
+    "strength": 75
+   },
+   "MYTHIC": {
+    "strength": 90
+   }
+  }
+ },
+ "moil": {
+  "name": "Moil",
+  "stone": "MOIL_LOG",
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "cubic": {
+  "name": "Cubic",
+  "stone": "MOLTEN_CUBE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3
+   },
+   "UNCOMMON": {
+    "strength": 5
+   },
+   "RARE": {
+    "strength": 7
+   },
+   "EPIC": {
+    "strength": 10
+   },
+   "LEGENDARY": {
+    "strength": 12
+   },
+   "MYTHIC": {
+    "strength": 15
+   },
+   "DIVINE": {
+    "strength": 18
+   }
+  }
+ },
+ "moonglade": {
+  "name": "Moonglade",
+  "stone": "MOONGLADE_JEWEL",
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "lunar": {
+  "name": "Lunar",
+  "stone": "MOONSTONE",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "majestic": {
+  "name": "Majestic",
+  "stone": "MORNING_DEW",
+  "types": [],
+  "items": [
+   "SAFARI_BELT"
+  ],
+  "stats": {}
+ },
+ "necrotic": {
+  "name": "Necrotic",
+  "stone": "NECROMANCER_BROOCH",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 30
+   },
+   "UNCOMMON": {
+    "intelligence": 60
+   },
+   "RARE": {
+    "intelligence": 90
+   },
+   "EPIC": {
+    "intelligence": 120
+   },
+   "LEGENDARY": {
+    "intelligence": 150
+   },
+   "MYTHIC": {
+    "intelligence": 200
+   },
+   "DIVINE": {
+    "intelligence": 250
+   }
+  }
+ },
+ "fruitful": {
+  "name": "Fruitful",
+  "stone": "ONYX",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "precise": {
+  "name": "Precise",
+  "stone": "OPTICAL_LENS",
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 3,
+    "critChance": 8,
+    "critDamage": 5
+   },
+   "UNCOMMON": {
+    "strength": 7,
+    "critChance": 9,
+    "critDamage": 10
+   },
+   "RARE": {
+    "strength": 12,
+    "critChance": 10,
+    "critDamage": 18
+   },
+   "EPIC": {
+    "strength": 18,
+    "critChance": 11,
+    "critDamage": 32
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 13,
+    "critDamage": 50
+   },
+   "MYTHIC": {
+    "strength": 34,
+    "critChance": 15,
+    "critDamage": 70
+   },
+   "DIVINE": {
+    "strength": 45,
+    "critChance": 18,
+    "critDamage": 90
+   }
+  }
+ },
+ "trashy": {
+  "name": "Trashy",
+  "stone": "OVERFLOWING_TRASH_CAN",
+  "types": [
+   "ROD"
+  ],
+  "stats": {}
+ },
+ "mossy": {
+  "name": "Mossy",
+  "stone": "OVERGROWN_GRASS",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "overpriced": {
+  "name": "Overpriced",
+  "stone": "OVERPRICED_DRINK",
+  "types": [
+   "FARMING_TOOL"
+  ],
+  "stats": {}
+ },
+ "stellar": {
+  "name": "Stellar",
+  "stone": "PETRIFIED_STARFALL",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "pitchin": {
+  "name": "Pitchin'",
+  "stone": "PITCHIN_KOI",
+  "types": [
+   "ROD"
+  ],
+  "stats": {}
+ },
+ "scraped": {
+  "name": "Scraped",
+  "stone": "POCKET_ICEBERG",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "ancient": {
+  "name": "Ancient",
+  "stone": "PRECURSOR_GEAR",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 4,
+    "critChance": 3,
+    "intelligence": 6
+   },
+   "UNCOMMON": {
+    "strength": 8,
+    "critChance": 5,
+    "intelligence": 9
+   },
+   "RARE": {
+    "strength": 12,
+    "critChance": 7,
+    "intelligence": 12
+   },
+   "EPIC": {
+    "strength": 18,
+    "critChance": 9,
+    "intelligence": 16
+   },
+   "LEGENDARY": {
+    "strength": 25,
+    "critChance": 12,
+    "intelligence": 20
+   },
+   "MYTHIC": {
+    "strength": 35,
+    "critChance": 15,
+    "intelligence": 25
+   },
+   "DIVINE": {
+    "strength": 50,
+    "critChance": 20,
+    "intelligence": 30
+   }
+  },
+  "cataStat": "critDamage"
+ },
+ "undead": {
+  "name": "Undead",
+  "stone": "PREMIUM_FLESH",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 1
+   },
+   "UNCOMMON": {
+    "strength": 2
+   },
+   "RARE": {
+    "strength": 2
+   },
+   "EPIC": {
+    "strength": 3
+   },
+   "LEGENDARY": {
+    "strength": 5
+   },
+   "MYTHIC": {
+    "strength": 7
+   },
+   "DIVINE": {
+    "strength": 10
+   }
+  }
+ },
+ "bloodsoaked": {
+  "name": "Blood-Soaked",
+  "stone": "PRESUMED_GALLON_OF_RED_PAINT",
+  "types": [
+   "CLOAK"
+  ],
+  "stats": {}
+ },
+ "mithraic": {
+  "name": "Mithraic",
+  "stone": "PURE_MITHRIL",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "reinforced": {
+  "name": "Reinforced",
+  "stone": "RARE_DIAMOND",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "ridiculous": {
+  "name": "Ridiculous",
+  "stone": "RED_NOSE",
+  "types": [
+   "HELMET"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1
+   },
+   "UNCOMMON": {
+    "critChance": 2
+   },
+   "RARE": {
+    "critChance": 3
+   },
+   "EPIC": {
+    "critChance": 4
+   },
+   "LEGENDARY": {
+    "critChance": 5
+   },
+   "MYTHIC": {
+    "critChance": 6
+   },
+   "DIVINE": {
+    "critChance": 7
+   }
+  }
+ },
+ "loving": {
+  "name": "Loving",
+  "stone": "RED_SCARF",
+  "types": [
+   "CHESTPLATE"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 20
+   },
+   "UNCOMMON": {
+    "intelligence": 40
+   },
+   "RARE": {
+    "intelligence": 60
+   },
+   "EPIC": {
+    "intelligence": 80
+   },
+   "LEGENDARY": {
+    "intelligence": 100
+   },
+   "MYTHIC": {
+    "intelligence": 120
+   },
+   "DIVINE": {
+    "intelligence": 140
+   }
+  }
+ },
+ "refined": {
+  "name": "Refined",
+  "stone": "REFINED_AMBER",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "auspicious": {
+  "name": "Auspicious",
+  "stone": "ROCK_GEMSTONE",
+  "types": [
+   "PICKAXE"
+  ],
+  "stats": {}
+ },
+ "treacherous": {
+  "name": "Treacherous",
+  "stone": "RUSTY_ANCHOR",
+  "types": [
+   "ROD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 5
+   },
+   "UNCOMMON": {
+    "strength": 10
+   },
+   "RARE": {
+    "strength": 15
+   },
+   "EPIC": {
+    "strength": 20
+   },
+   "LEGENDARY": {
+    "strength": 25
+   },
+   "MYTHIC": {
+    "strength": 30
+   },
+   "DIVINE": {
+    "strength": 35
+   }
+  }
+ },
+ "empowered": {
+  "name": "Empowered",
+  "stone": "SADAN_BROOCH",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "headstrong": {
+  "name": "Headstrong",
+  "stone": "SALMON_OPAL",
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2,
+    "critChance": 10,
+    "critDamage": 4
+   },
+   "UNCOMMON": {
+    "strength": 5,
+    "critChance": 11,
+    "critDamage": 8
+   },
+   "RARE": {
+    "strength": 10,
+    "critChance": 12,
+    "critDamage": 16
+   },
+   "EPIC": {
+    "strength": 16,
+    "critChance": 13,
+    "critDamage": 28
+   },
+   "LEGENDARY": {
+    "strength": 23,
+    "critChance": 15,
+    "critDamage": 42
+   },
+   "MYTHIC": {
+    "strength": 33,
+    "critChance": 17,
+    "critDamage": 60
+   },
+   "DIVINE": {
+    "strength": 45,
+    "critChance": 20,
+    "critDamage": 80
+   }
+  }
+ },
+ "salty": {
+  "name": "Salty",
+  "stone": "SALT_CUBE",
+  "types": [
+   "ROD"
+  ],
+  "stats": {}
+ },
+ "strengthened": {
+  "name": "Strengthened",
+  "stone": "SEARING_STONE",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 2
+   },
+   "UNCOMMON": {
+    "strength": 3
+   },
+   "RARE": {
+    "strength": 4
+   },
+   "EPIC": {
+    "strength": 5
+   },
+   "LEGENDARY": {
+    "strength": 6
+   },
+   "MYTHIC": {
+    "strength": 7
+   },
+   "DIVINE": {
+    "strength": 8
+   }
+  }
+ },
+ "glistening": {
+  "name": "Glistening",
+  "stone": "SHINY_PRISM",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {
+   "COMMON": {
+    "intelligence": 5
+   },
+   "UNCOMMON": {
+    "intelligence": 6
+   },
+   "RARE": {
+    "intelligence": 8
+   },
+   "EPIC": {
+    "intelligence": 10
+   },
+   "LEGENDARY": {
+    "intelligence": 12
+   },
+   "MYTHIC": {
+    "intelligence": 15
+   },
+   "DIVINE": {
+    "intelligence": 18
+   }
+  }
+ },
+ "bloodshot": {
+  "name": "Bloodshot",
+  "stone": "SHRIVELED_CORNEA",
+  "types": [
+   "BELT"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 1,
+    "critChance": 1,
+    "critDamage": 1
+   },
+   "UNCOMMON": {
+    "strength": 2,
+    "critChance": 2,
+    "critDamage": 2
+   },
+   "RARE": {
+    "strength": 3,
+    "critChance": 3,
+    "critDamage": 3
+   },
+   "EPIC": {
+    "strength": 4,
+    "critChance": 4,
+    "critDamage": 4
+   },
+   "LEGENDARY": {
+    "strength": 5,
+    "critChance": 5,
+    "critDamage": 5
+   },
+   "MYTHIC": {
+    "strength": 6,
+    "critChance": 6,
+    "critDamage": 6
+   },
+   "DIVINE": {
+    "strength": 7,
+    "critChance": 7,
+    "critDamage": 7
+   }
+  }
+ },
+ "bustling": {
+  "name": "Bustling",
+  "stone": "SKYMART_BROCHURE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "spiritual": {
+  "name": "Spiritual",
+  "stone": "SPIRIT_DECOY",
+  "types": [
+   "BOW"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 4,
+    "critChance": 7,
+    "critDamage": 10
+   },
+   "UNCOMMON": {
+    "strength": 8,
+    "critChance": 8,
+    "critDamage": 15
+   },
+   "RARE": {
+    "strength": 14,
+    "critChance": 9,
+    "critDamage": 23
+   },
+   "EPIC": {
+    "strength": 20,
+    "critChance": 10,
+    "critDamage": 37
+   },
+   "LEGENDARY": {
+    "strength": 28,
+    "critChance": 12,
+    "critDamage": 55
+   },
+   "MYTHIC": {
+    "strength": 38,
+    "critChance": 14,
+    "critDamage": 75
+   },
+   "DIVINE": {
+    "strength": 50,
+    "critChance": 16,
+    "critDamage": 100
+   }
+  }
+ },
+ "squeaky": {
+  "name": "Squeaky",
+  "stone": "SQUEAKY_TOY",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "sunny": {
+  "name": "Sunny",
+  "stone": "SUNSTONE",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "suspicious": {
+  "name": "Suspicious",
+  "stone": "SUSPICIOUS_VIAL",
+  "types": [
+   "SWORD"
+  ],
+  "stats": {
+   "COMMON": {
+    "critChance": 1,
+    "critDamage": 30
+   },
+   "UNCOMMON": {
+    "critChance": 2,
+    "critDamage": 40
+   },
+   "RARE": {
+    "critChance": 3,
+    "critDamage": 50
+   },
+   "EPIC": {
+    "critChance": 5,
+    "critDamage": 65
+   },
+   "LEGENDARY": {
+    "critChance": 7,
+    "critDamage": 85
+   },
+   "MYTHIC": {
+    "critChance": 10,
+    "critDamage": 110
+   },
+   "DIVINE": {
+    "critChance": 13,
+    "critDamage": 140
+   }
+  }
+ },
+ "snowy": {
+  "name": "Snowy",
+  "stone": "TERRY_SNOWGLOBE",
+  "types": [
+   "EQUIPMENT"
+  ],
+  "stats": {}
+ },
+ "dimensional": {
+  "name": "Dimensional",
+  "stone": "TITANIUM_TESSERACT",
+  "types": [
+   "ARMOR"
+  ],
+  "stats": {}
+ },
+ "toil": {
+  "name": "Toil",
+  "stone": "TOIL_LOG",
+  "types": [
+   "AXE"
+  ],
+  "stats": {}
+ },
+ "withered": {
+  "name": "Withered",
+  "stone": "WITHER_BLOOD",
+  "types": [
+   "SWORD"
+  ],
+  "stats": {
+   "COMMON": {
+    "strength": 60
+   },
+   "UNCOMMON": {
+    "strength": 75
+   },
+   "RARE": {
+    "strength": 90
+   },
+   "EPIC": {
+    "strength": 110
+   },
+   "LEGENDARY": {
+    "strength": 135
+   },
+   "MYTHIC": {
+    "strength": 170
+   },
+   "DIVINE": {
+    "strength": 220
+   }
+  },
+  "cataStat": "strength"
+ }
+}

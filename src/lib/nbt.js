@@ -10,33 +10,66 @@ export function decodeItems(base64) {
   return Array.isArray(parsed?.i) ? parsed.i : [];
 }
 
+// Id used for pricing and lookups.
+//   ENCHANTED_BOOK with one enchant -> ENCHANTMENT_<NAME>_<LEVEL> (matches bazaar ids)
+//   PET -> PET_<TYPE>_<TIER>
+function resolveId(extra) {
+  const id = extra.id;
+  if (id === 'ENCHANTED_BOOK') {
+    const entries = Object.entries(extra.enchantments ?? {});
+    if (entries.length === 1) return `ENCHANTMENT_${entries[0][0].toUpperCase()}_${entries[0][1]}`;
+  }
+  if (id === 'PET' && extra.petInfo) {
+    try {
+      const info = typeof extra.petInfo === 'string' ? JSON.parse(extra.petInfo) : extra.petInfo;
+      if (info?.type && info?.tier) return `PET_${info.type}_${info.tier}`;
+    } catch {
+      // fall through
+    }
+  }
+  return id;
+}
+
 // Turn one simplified NBT item into the item state the calculator uses.
 // Returns null for empty slots or items with no SkyBlock ITEM_ID.
 export function toItemState(nbtItem, resource) {
   const extra = nbtItem?.tag?.ExtraAttributes;
-  const id = extra?.id;
-  if (!id) return null;
+  if (!extra?.id) return null;
 
-  let enchants = { ...(extra.enchantments ?? {}) };
-  let resolvedId = id;
-  // Enchanted books are keyed as ENCHANTMENT_<NAME>_<LEVEL> so they match bazaar ids.
-  if (id === 'ENCHANTED_BOOK') {
-    const entries = Object.entries(enchants);
-    if (entries.length === 1) resolvedId = `ENCHANTMENT_${entries[0][0].toUpperCase()}_${entries[0][1]}`;
-    enchants = {};
-  }
-
+  const id = resolveId(extra);
+  const isBook = extra.id === 'ENCHANTED_BOOK';
   const stars = Number(extra.upgrade_level ?? extra.dungeon_item_level ?? 0);
-  const info = resource?.get(resolvedId);
+  const info = resource?.get(id);
   return {
-    id: resolvedId,
-    name: info?.name ?? resolvedId,
+    id,
+    name: info?.name ?? id,
     category: info?.category,
-    rarity: info?.tier,
-    stars,
+    baseRarity: info?.tier ?? 'COMMON',
+    recomb: Number(extra.rarity_upgrades ?? 0) > 0,
+    stars: Math.min(stars, 5),
     masterStars: Math.max(0, Math.min(5, stars - 5)),
-    enchants,
+    dungeon: Number(extra.dungeon_item ?? 0) > 0 || stars > 0 ? true : undefined,
+    enchants: isBook ? {} : { ...(extra.enchantments ?? {}) },
     hpb: Number(extra.hot_potato_count ?? 0),
+    artOfWar: Number(extra.art_of_war_count ?? 0) > 0,
     reforge: extra.modifier ?? null,
+    gems: normalizeGems(extra.gems),
+    enrichment: extra.talisman_enrichment ?? null,
   };
+}
+
+// gems NBT looks like { JASPER_0: 'PERFECT', COMBAT_0: { quality: 'FLAWLESS' }, COMBAT_0_gem: 'JASPER', unlocked_slots: [...] }
+// Returns { slots: { COMBAT_0: { gem: 'JASPER', quality: 'FLAWLESS' } }, unlocked: [...] }
+export function normalizeGems(raw) {
+  const out = { slots: {}, unlocked: Array.isArray(raw?.unlocked_slots) ? [...raw.unlocked_slots] : [] };
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [key, value] of Object.entries(raw)) {
+    if (key === 'unlocked_slots' || key.endsWith('_gem')) continue;
+    const quality = typeof value === 'string' ? value : value?.quality;
+    if (!quality) continue;
+    const type = key.replace(/_\d+$/, '');
+    const gem = raw[`${key}_gem`] ?? type;
+    out.slots[key] = { gem, quality };
+  }
+  return out;
 }

@@ -1,11 +1,19 @@
 import {
-  CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY,
-  MASTER_STAR_IDS, MAX_MASTER_STARS, HOT_POTATO, FUMING_POTATO, MAX_UPGRADES_LISTED,
+  CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
+  MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
+  MAX_UPGRADES_LISTED,
 } from '../config/constants.js';
-import { ENCHANTS } from '../config/enchants.js';
-import { evaluate, weightedGain, baseItemStats } from './stats.js';
+import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
+import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT } from '../config/accessories.js';
+import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE } from '../config/shards.js';
+import { EXTRA_UPGRADES } from '../config/upgrades.js';
+import {
+  evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower,
+} from './stats.js';
 
-const ALL_WEAPON_CATEGORIES = new Set(Object.values(CLASS_WEAPON_CATEGORIES).flat());
+const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
 export function weightsFor(cls, target) {
@@ -14,19 +22,20 @@ export function weightsFor(cls, target) {
   return { ...CLASSES[cls].weights };
 }
 
-export function makeContext({ cls, cataLevel, secretDigit = 0, resource }) {
-  return {
-    cls,
-    cataLevel,
-    secretDigit,
-    resource,
-    isWeapon: (item) => ALL_WEAPON_CATEGORIES.has(item.category),
-  };
+// profile: { cataLevel, secrets, power, tuning } from readMember.
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, resource }) {
+  return { cls, cataLevel, secrets, power, tuning, resource };
 }
 
+// A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
 export function newItem(id, resource) {
   const info = resource.get(id);
-  return { id, name: info?.name ?? id, category: info?.category, rarity: info?.tier, masterStars: 0, enchants: {}, hpb: 0, reforge: null };
+  const dungeonizable = Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost);
+  return {
+    id, name: info?.name ?? id, category: info?.category, baseRarity: info?.tier ?? 'COMMON', recomb: false,
+    stars: dungeonizable ? MAX_STARS : 0, masterStars: 0, dungeon: dungeonizable ? true : undefined,
+    enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null,
+  };
 }
 
 function cloneLoadout(l) {
@@ -34,38 +43,39 @@ function cloneLoadout(l) {
     weapon: l.weapon,
     armor: { ...l.armor },
     equipment: { ...l.equipment },
+    rag: l.rag,
     accessories: new Map(l.accessories),
     owned: new Set(l.owned),
+    extras: new Set(l.extras),
+    shards: { ...l.shards },
   };
 }
 
 function score(loadout, ctx, weights) {
-  const r = evaluate(loadout, ctx);
+  const r = evaluate(loadout, ctx, weights);
   return r.wither * weights.wither + r.dragon * weights.dragon;
 }
 
-// Pick the best owned item for each slot. Runs two passes so slots settle against each other.
-export function buildLoadout(ownedItems, ctx, weights) {
+// Profile -> starting loadout. Picks the best owned item for each slot (two passes so slots settle).
+export function buildLoadout(profile, ctx, weights) {
+  const { items = [], pets = [], shards = {} } = profile;
   const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
-  const loadout = { weapon: null, armor: {}, equipment: {}, accessories: new Map(), owned: new Set() };
-  const bySlot = { weapon: [] };
+  const loadout = { weapon: null, armor: {}, equipment: {}, rag: null, accessories: new Map(), owned: new Set(), extras: new Set(), shards: { ...shards } };
+  const bySlot = { weapon: [], rag: [] };
   for (const slot of [...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) bySlot[slot] = [];
 
-  for (const item of ownedItems) {
+  for (const item of items) {
     loadout.owned.add(item.id);
+    if (item.id === RAGNAROCK_ID) bySlot.rag.push(item);
     if (weaponCats.includes(item.category)) bySlot.weapon.push(item);
     else if (bySlot[item.category]) bySlot[item.category].push(item);
     else if (item.category === ACCESSORY_CATEGORY) {
       const prev = loadout.accessories.get(item.id);
-      if (!prev || (item.masterStars ?? 0) > (prev.masterStars ?? 0)) loadout.accessories.set(item.id, item);
+      if (!prev || accessoryRank(item) > accessoryRank(prev)) loadout.accessories.set(item.id, item);
     }
   }
 
-  const setSlot = (l, slot, item) => {
-    if (slot === 'weapon') l.weapon = item;
-    else if (ARMOR_SLOTS.includes(slot)) l.armor[slot] = item;
-    else l.equipment[slot] = item;
-  };
+  for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned, pets)) loadout.extras.add(entry.key);
 
   for (let pass = 0; pass < 2; pass++) {
     for (const [slot, options] of Object.entries(bySlot)) {
@@ -80,144 +90,288 @@ export function buildLoadout(ownedItems, ctx, weights) {
       if (best) setSlot(loadout, slot, best);
     }
   }
+
+  // Tuning points already spent come from the profile; new ones from extra Accessory Power follow the split.
+  if (ctx.tuning) ctx.tuning.basePoints = Math.floor(totalAccessoryPower(loadout, ctx.resource) / 10);
   return loadout;
 }
 
-function slotOf(loadout, item) {
-  if (loadout.weapon === item) return 'weapon';
-  for (const [slot, it] of Object.entries(loadout.armor)) if (it === item) return slot;
-  for (const [slot, it] of Object.entries(loadout.equipment)) if (it === item) return slot;
-  if (loadout.accessories.get(item.id) === item) return 'accessory';
-  return null;
+function accessoryRank(item) {
+  return (item.recomb ? 2 : 0) + (item.enrichment ? 1 : 0);
 }
 
-function replaceItem(loadout, oldItem, newItemState) {
+function extraOwned(entry, ownedItems, pets) {
+  const o = entry.owned;
+  if (!o) return false;
+  if (o.items?.some((id) => ownedItems.has(id))) return true;
+  if (o.pets?.some((type) => pets.some((p) => p.type === type))) return true;
+  if (o.petItem && pets.some((p) => p.type === o.petItem.pet && p.heldItem === o.petItem.item)) return true;
+  return false;
+}
+
+function setSlot(l, slot, item) {
+  if (slot === 'weapon') l.weapon = item;
+  else if (slot === 'rag') l.rag = item;
+  else if (ARMOR_SLOTS.includes(slot)) l.armor[slot] = item;
+  else l.equipment[slot] = item;
+}
+
+// Stable name for where an item sits, used to group mutually exclusive upgrades.
+function slotName(loadout, item) {
+  if (loadout.weapon === item) return 'weapon';
+  if (loadout.rag === item) return 'rag';
+  for (const [slot, it] of Object.entries(loadout.armor)) if (it === item) return slot;
+  for (const [slot, it] of Object.entries(loadout.equipment)) if (it === item) return slot;
+  return item.id;
+}
+
+// Replace an item everywhere it is used (a Ragnarock can be both weapon and ability item).
+function replaceItem(loadout, oldItem, next) {
   const l = cloneLoadout(loadout);
-  const slot = slotOf(loadout, oldItem);
-  if (slot === 'weapon') l.weapon = newItemState;
-  else if (slot === 'accessory') l.accessories.set(newItemState.id, newItemState);
-  else if (ARMOR_SLOTS.includes(slot)) l.armor[slot] = newItemState;
-  else if (slot) l.equipment[slot] = newItemState;
+  if (l.weapon === oldItem) l.weapon = next;
+  if (l.rag === oldItem) l.rag = next;
+  for (const slot of Object.keys(l.armor)) if (l.armor[slot] === oldItem) l.armor[slot] = next;
+  for (const slot of Object.keys(l.equipment)) if (l.equipment[slot] === oldItem) l.equipment[slot] = next;
+  if (l.accessories.get(oldItem.id) === oldItem) l.accessories.set(next.id, next);
   return l;
 }
 
-function equippedItems(loadout) {
-  return [loadout.weapon, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...loadout.accessories.values()].filter(Boolean);
+function upgradableItems(loadout) {
+  const set = new Set([loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...loadout.accessories.values()]);
+  set.delete(null);
+  set.delete(undefined);
+  return [...set];
 }
 
-// Every upgrade available from the current loadout. Each upgrade only depends on
-// things already in the loadout, so a master star can never land on a missing item
-// and the 5th master star can never come before the 4th.
+// cost parts: [{ id, qty }] or [{ coins, estimate }]. Returns { cost, source, estimate } or null if unpriced.
+function priceParts(parts, prices) {
+  let cost = 0;
+  const sources = new Set();
+  let estimate = false;
+  for (const part of parts) {
+    if (part.coins) {
+      cost += part.coins;
+      if (part.estimate) estimate = true;
+      sources.add(part.estimate ? 'est.' : 'coins');
+      continue;
+    }
+    const p = prices.get(part.id);
+    if (!p) return null;
+    cost += p.price * (part.qty ?? 1);
+    sources.add(p.source);
+  }
+  return { cost, source: [...sources].join('+'), estimate };
+}
+
+function hasDpsStats(stats) {
+  return DPS_STATS.some((k) => stats?.[k]);
+}
+
+function hasUsefulStats(id, resource, cls) {
+  const b = baseItemStats(id, resource, cls);
+  return [b.global, b.wither, b.dragon].some((s) => Object.values(s).some((v) => v !== 0 && v !== 1));
+}
+
+// Every upgrade available from the current loadout. Each one only depends on what the loadout
+// already has, so a master star never lands on a missing item and the 5th star never comes before the 4th.
 export function availableUpgrades(loadout, ctx, prices) {
-  const upgrades = [];
-  const { resource } = ctx;
+  const ups = [];
+  const { resource, cls } = ctx;
+  const push = (label, parts, apply, extra = {}) => {
+    const p = priceParts(parts, prices);
+    if (p) ups.push({ label, ...p, apply, ...extra });
+  };
 
-  for (const item of equippedItems(loadout)) {
+  for (const item of upgradableItems(loadout)) {
     const name = item.name ?? resource.get(item.id)?.name ?? item.id;
+    const slot = slotName(loadout, item);
+    const isAccessory = item.category === ACCESSORY_CATEGORY;
+    const weaponLike = isWeaponCategory(item.category) && (item === loadout.weapon || item === loadout.rag);
 
-    // Master stars: only the next star, only on dungeon items.
-    if (baseItemStats(item.id, resource).dungeon && item.masterStars < MAX_MASTER_STARS) {
-      const starId = MASTER_STAR_IDS[item.masterStars];
-      const p = prices.get(starId);
-      if (p) {
-        upgrades.push({
-          label: `${ordinal(item.masterStars + 1)} Master Star on ${name}`,
-          cost: p.price, source: p.source,
-          apply: (l) => replaceItem(l, item, { ...item, masterStars: item.masterStars + 1 }),
-        });
-      }
+    // Master stars: next star only, dungeon gear with 5 regular stars.
+    if (!isAccessory && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
+      push(`${ordinal(item.masterStars + 1)} Master Star on ${name}`, [{ id: MASTER_STAR_IDS[item.masterStars] }],
+        (l) => replaceItem(l, item, { ...item, masterStars: item.masterStars + 1 }));
     }
 
     // Enchants: any level above the current one.
-    for (const [key, ench] of Object.entries(ENCHANTS)) {
-      if (!ench.categories.includes(item.category)) continue;
-      const current = item.enchants?.[key] ?? 0;
-      for (let level = current + 1; level <= ench.values.length; level++) {
-        const p = prices.get(`ENCHANTMENT_${key.toUpperCase()}_${level}`);
-        if (!p) continue;
-        upgrades.push({
-          label: `${titleCase(key)} ${roman(level)} on ${name}`,
-          cost: p.price, source: p.source,
-          apply: (l) => {
+    if (!isAccessory) {
+      for (const [key, ench] of Object.entries(ENCHANTS)) {
+        if (!ench.categories.includes(item.category)) continue;
+        if (ench.items && !ench.items.includes(item.id)) continue;
+        if (ench.classes && !ench.classes.includes(cls)) continue;
+        const current = item.enchants?.[key] ?? 0;
+        for (let level = current + 1; level <= enchantMaxLevel(ench); level++) {
+          push(`${titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });
-          },
-        });
+          }, { group: `${slot}:enchant:${key}` });
+        }
       }
     }
 
-    // Hot potato books, then fuming potato books.
-    if (ctx.isWeapon(item) && item === loadout.weapon) {
+    // Hot potato books (all remaining), then fuming potato books, and The Art of War (weapons and Ragnarock).
+    if (weaponLike) {
       const hpb = item.hpb ?? 0;
-      const book = hpb < HOT_POTATO.max ? HOT_POTATO : hpb < HOT_POTATO.max + FUMING_POTATO.max ? FUMING_POTATO : null;
-      const p = book && prices.get(book.id);
-      if (p) {
-        upgrades.push({
-          label: `${book === HOT_POTATO ? 'Hot' : 'Fuming'} Potato Book #${hpb + 1} on ${name}`,
-          cost: p.price, source: p.source,
-          apply: (l) => replaceItem(l, item, { ...item, hpb: hpb + 1 }),
-        });
+      if (hpb < HOT_POTATO.max) {
+        const n = HOT_POTATO.max - hpb;
+        push(`${n} Hot Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: HOT_POTATO.id, qty: n }],
+          (l) => replaceItem(l, item, { ...item, hpb: HOT_POTATO.max }));
+      } else if (hpb < HOT_POTATO.max + FUMING_POTATO.max) {
+        const n = HOT_POTATO.max + FUMING_POTATO.max - hpb;
+        push(`${n} Fuming Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: FUMING_POTATO.id, qty: n }],
+          (l) => replaceItem(l, item, { ...item, hpb: HOT_POTATO.max + FUMING_POTATO.max }));
+      }
+      if (!item.artOfWar) push(`The Art of War on ${name}`, [{ id: ART_OF_WAR.id }], (l) => replaceItem(l, item, { ...item, artOfWar: true }));
+    }
+
+    // Recombobulator.
+    if (canRecomb(item)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
+
+    // Reforge stones.
+    if (!isAccessory) {
+      const rarity = itemRarity(item);
+      for (const [key, reforge] of Object.entries(allReforges())) {
+        if (!reforge.stone || !reforgeAppliesTo(reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
+        if (getReforge(item.reforge) === reforge) continue;
+        push(`${reforge.name} reforge on ${name}`, [{ id: reforge.stone }], (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
+      }
+    }
+
+    // Gemstones.
+    for (const up of gemUpgrades(item, ctx)) {
+      push(`${titleCase(up.quality.toLowerCase())} ${titleCase(up.gem.toLowerCase())} in ${name}${up.unlock ? ' (unlock slot)' : ''}`,
+        up.parts, (l) => replaceItem(l, item, up.apply(item)), { group: `${slot}:gem:${up.slotKey}` });
+    }
+
+    // Enrichments on Legendary+ accessories.
+    if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
+      const best = BEST_ENRICHMENT[cls];
+      if (item.enrichment !== best) {
+        push(`${titleCase(best)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[best].key}` }],
+          (l) => replaceItem(l, item, { ...item, enrichment: best }));
       }
     }
   }
 
   // New items from the auction house / bazaar.
-  const weaponCats = CLASS_WEAPON_CATEGORIES[ctx.cls];
+  const weaponCats = CLASS_WEAPON_CATEGORIES[cls];
+  const accIds = new Set(loadout.accessories.keys());
   for (const [id, info] of resource) {
     if (loadout.owned.has(id)) continue;
     const cat = info.category;
+    const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
     const isArmor = ARMOR_SLOTS.includes(cat);
     const isEquip = EQUIPMENT_SLOTS.includes(cat);
     const isAcc = cat === ACCESSORY_CATEGORY;
-    if (!isWeapon && !isArmor && !isEquip && !isAcc) continue;
-    if (!hasUsefulStats(id, resource)) continue;
-    const p = prices.get(id);
-    if (!p) continue;
-    upgrades.push({
-      label: `Buy ${info.name ?? id}`,
-      cost: p.price, source: p.source,
-      apply: (l) => {
-        const next = cloneLoadout(l);
-        const item = newItem(id, resource);
-        next.owned.add(id);
-        if (isWeapon) next.weapon = item;
-        else if (isArmor) next.armor[cat] = item;
-        else if (isEquip) next.equipment[cat] = item;
-        else next.accessories.set(id, item);
-        return next;
-      },
-    });
+    if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
+    if (isAcc && accessorySuperseded(id, accIds)) continue;
+    if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
+    push(`Buy ${info.name ?? id}`, [{ id }], (l) => {
+      const next = cloneLoadout(l);
+      const item = newItem(id, resource);
+      next.owned.add(id);
+      if (isRag) next.rag = item;
+      if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
+      else if (isArmor) next.armor[cat] = item;
+      else if (isEquip) next.equipment[cat] = item;
+      else if (isAcc) next.accessories.set(id, item);
+      return next;
+    }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : cat}` });
   }
-  return upgrades;
+
+  // Attribute shards: straight to max level, like the sheet.
+  for (const [id, shard] of Object.entries(SHARDS)) {
+    if (shard.classes && !shard.classes.includes(cls)) continue;
+    const current = shardLevel(loadout, id);
+    if (current >= SHARD_MAX_LEVEL) continue;
+    const cum = SHARDS_CUMULATIVE[shard.rarity];
+    const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
+    push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
+      (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
+  }
+
+  // Pets, ability items and perks.
+  for (const entry of EXTRA_UPGRADES) {
+    if (loadout.extras.has(entry.key)) continue;
+    if (entry.classes && !entry.classes.includes(cls)) continue;
+    if (entry.requires && !loadout.extras.has(entry.requires)) continue;
+    push(entry.name + (entry.owned ? '' : ' (?)'), entry.cost,
+      (l) => { const next = cloneLoadout(l); next.extras.add(entry.key); return next; },
+      { unverified: !entry.owned, group: entry.group && `extra:${entry.group}` });
+  }
+  return ups;
 }
 
-function hasUsefulStats(id, resource) {
-  const b = baseItemStats(id, resource);
-  return [b.global, b.wither, b.dragon].some((s) => Object.values(s).some((v) => v !== 0));
+// Gem upgrades for one item: the best DPS gem at each upgrade quality, per slot.
+function gemUpgrades(item, ctx) {
+  const slots = ctx.resource.get(item.id)?.gemstone_slots;
+  if (!Array.isArray(slots) || !slots.length) return [];
+  const rarity = itemRarity(item);
+  const counts = {};
+  const out = [];
+  for (const slot of slots) {
+    const type = slot.slot_type;
+    const index = counts[type] = (counts[type] ?? -1) + 1;
+    const key = `${type}_${index}`;
+    const current = item.gems?.slots?.[key];
+    const unlocked = !slot.costs || item.gems?.unlocked?.includes(key);
+    const accepts = (SLOT_GEMS[type] ?? [type]).filter((g) => GEMSTONES[g]);
+    for (const gem of accepts) {
+      for (const quality of UPGRADE_QUALITIES) {
+        if (current && current.gem === gem && GEM_QUALITIES.indexOf(current.quality) >= GEM_QUALITIES.indexOf(quality)) continue;
+        const gain = gemStat(gem, quality, rarity);
+        if (!gain) continue;
+        const parts = [{ id: `${quality}_${gem}_GEM` }];
+        if (!unlocked) {
+          for (const c of slot.costs) {
+            if (c.type === 'COINS') parts.push({ coins: c.coins });
+            else if (c.type === 'ITEM') parts.push({ id: c.item_id, qty: c.amount });
+          }
+        }
+        out.push({
+          gem, quality, unlock: !unlocked, parts, slotKey: key,
+          apply: (it) => ({
+            ...it,
+            gems: {
+              slots: { ...(it.gems?.slots ?? {}), [key]: { gem, quality } },
+              unlocked: unlocked ? [...(it.gems?.unlocked ?? [])] : [...(it.gems?.unlocked ?? []), key],
+            },
+          }),
+        });
+      }
+    }
+  }
+  return out;
 }
 
 // Greedy plan: take the best weighted % DPS per million coins, apply it, repeat.
+// Upgrades that share a group (one reforge per item, one level per enchant, one gem per slot,
+// one purchase per gear slot, one pet) are picked at most once per plan, so the list never
+// tells you to buy something and then replace it.
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
   const steps = [];
+  const used = new Set();
   let loadout = startLoadout;
-  let current = evaluate(loadout, ctx);
+  let current = evaluate(loadout, ctx, weights);
   const startDamage = current;
 
   for (let i = 0; i < limit; i++) {
     let best = null;
     for (const up of availableUpgrades(loadout, ctx, prices)) {
-      if (!(up.cost > 0)) continue;
+      if (!(up.cost > 0) || (up.group && used.has(up.group))) continue;
       const next = up.apply(loadout);
-      const after = evaluate(next, ctx);
+      const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
       if (gain <= 1e-9) continue;
       const perMillion = gain / (up.cost / 1_000_000);
       if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after };
     }
     if (!best) break;
-    steps.push({ label: best.label, cost: best.cost, source: best.source, gain: best.gain, perMillion: best.perMillion, after: best.after });
+    steps.push({ label: best.label, cost: best.cost, source: best.source, estimate: best.estimate, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
+    if (best.group) used.add(best.group);
     loadout = best.next;
     current = best.after;
   }
@@ -233,5 +387,5 @@ function roman(n) {
 }
 
 function titleCase(s) {
-  return s.split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+  return s.split('_').map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "deploy": "node src/deploy-commands.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "update-data": "node scripts/update-data.mjs"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,6 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=18.17"
+    "node": ">=20.10"
   }
 }

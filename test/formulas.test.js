@@ -1,34 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  calcStrength, calcIntelligence, cataLevelFromXp, cataBoost, dungeonStat, dungeonCritChance,
-  applySoftCap, archerDamage, berserkerDamage, mageDamage,
+  calcStrength, calcCritDamage, calcCritChance, calcIntelligence, cataLevelFromXp, cataBoost,
+  dungeonMultiplier, dungeonCritMultiplier, applySoftCap, expectedHit, archerDamage, berserkerDamage,
+  mageDamage, powerMultiplier, secretDigits,
 } from '../src/calc/formulas.js';
 
-const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} != ${b}`);
+const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 
-test('strength and intelligence formulas', () => {
-  close(calcStrength(100, 0.1, 0.05, 1.2), 176 * 1.15 * 1.2 * (1.1 * 1.1 * 1.2 * 0.38));
-  close(calcIntelligence(500), 548 * (1.1 * 1.1 * 1.2 * 0.24));
+test('final stat formulas match the M7 archer sheet totals', () => {
+  // Sheet row 2: flat STR 5459.19, add STR 0.116, multi STR 1.1 -> 10544.21
+  close(calcStrength(5459.192581, 0.116, 0, 1.1), 10544.21294);
+  // flat CD 4996.49, add CD 0.066 -> 8390.80
+  close(calcCritDamage(4996.492581, 0.066), 8390.796299);
+  // flat CC 424.34 (+30 base), add CC 0.056, multi CC 0.25 (Terminator) -> 119.95
+  close(calcCritChance(424.3383228, 0.056, 0.25), 119.9453172);
+  close(calcIntelligence(500), 548 * (1 + 1.1 * 1.1 * 1.2 * 0.24));
 });
 
-test('catacombs level and boost', () => {
+test('expected hit matches the sheet output, including overload', () => {
+  const s = { damage: 2233, strength: 10544.21294, critDamage: 8390.796299, additiveDamage: 807, critChance: 119.9453172 };
+  close(expectedHit(s, 0), 201299506.7, 1e-8);
+  // Below 100% crit chance: plain expected value.
+  const low = { ...s, critChance: 50 };
+  const nonCrit = 2233 * (1 + 105.4421294) * (1 + 8.07);
+  close(expectedHit(low, 0), 0.5 * nonCrit * (1 + 83.90796299) + 0.5 * nonCrit);
+  // At 200%+ every hit overloads.
+  close(expectedHit({ ...s, critChance: 250 }, 0), 1.5 * nonCrit * (1 + 83.90796299));
+});
+
+test('catacombs level, boost and dungeon multiplier', () => {
   assert.equal(cataLevelFromXp(0), 0);
   assert.equal(cataLevelFromXp(50), 1);
   assert.equal(cataLevelFromXp(569_809_640), 50);
-  assert.equal(cataLevelFromXp(2e9), 50);
   close(cataBoost(0), 0.10);
-  close(cataBoost(4), 0.31);
-  close(cataBoost(10), 0.85);
   close(cataBoost(21), 1.95);
   close(cataBoost(60), 4.85);
-  close(cataBoost(50) + 1.5, 6.35);
+  close(dungeonMultiplier(50), 6.35);
+  close(dungeonMultiplier(50, 5, 2, 3), 6.35 + 0.1 + 0.03);
+  close(dungeonMultiplier(50, 3), 1 + 4.85 + 0.3);
+  close(dungeonCritMultiplier(5, 5, 9), 1.5 + 0.25 + 0.05);
 });
 
-test('dungeon stat scaling', () => {
-  close(dungeonStat(100, 0, 50, 0), 635);
-  close(dungeonStat(100, 2, 50, 3), 100 * (6.35 + 10 + 0.03));
-  close(dungeonCritChance(10, 5, 9), 10 * (1.5 + 0.25 + 0.05));
+test('general medallion secret digits', () => {
+  assert.equal(secretDigits(0), 0);
+  assert.equal(secretDigits(1234), 4);
+  assert.equal(secretDigits(123456), 5);
+});
+
+test('accessory power multiplier matches the wiki (Silky at 250 AP is about 220 crit damage)', () => {
+  close(powerMultiplier(250), 29.97 * Math.log(0.0019 * 250 + 1) ** 1.2);
+  assert.ok(Math.abs(22.8 * powerMultiplier(250) - 220) < 2);
+  assert.equal(powerMultiplier(0), 0);
 });
 
 test('soft cap keeps 10% above 1M', () => {
@@ -36,7 +59,7 @@ test('soft cap keeps 10% above 1M', () => {
   close(applySoftCap(3_000_000), 1_200_000);
 });
 
-test('berserker adds 1200 additive damage on top of archer formula', () => {
+test('berserker adds 1200 additive damage on top of the archer formula', () => {
   const s = { damage: 10, critDamage: 0, strength: 0, additiveDamage: 0, critChance: 100 };
   close(berserkerDamage(s, 0), archerDamage(s, 0) * 13);
 });

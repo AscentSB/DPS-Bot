@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { CLASSES, DEFAULT_SECRET_DIGIT } from '../config/constants.js';
+import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { ensurePrices, prices } from '../api/prices.js';
@@ -25,6 +25,8 @@ export function formatCoins(n) {
 export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
   const lines = plan.steps.map((s, i) =>
     `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
+  const anyUnverified = plan.steps.some((s) => s.unverified);
+  const anyEstimate = plan.steps.some((s) => s.estimate);
   const fmt = (d) => `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}`;
   const targetLabel = target === 'wither' ? 'Withers only' : target === 'dragon' ? 'Dragons only' : `Wither ${weights.wither} / Dragon ${weights.dragon}`;
   let description = lines.join('\n') || 'No priced upgrades found that raise your damage.';
@@ -34,11 +36,18 @@ export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
     .setDescription(description)
     .addFields(
       { name: 'Weights', value: targetLabel, inline: true },
-      { name: 'Catacombs', value: `Level ${cataLevel} (boost ${cataBoost(cataLevel).toFixed(2)})`, inline: true },
+      { name: 'Catacombs', value: `Level ${cataLevel} (+${Math.round(cataBoost(cataLevel) * 100)}%)`, inline: true },
+      { name: 'Accessory Power', value: `${plan.startDamage.ap} → ${plan.endDamage.ap}`, inline: true },
       { name: 'Damage now', value: fmt(plan.startDamage) },
       { name: 'Damage after all listed', value: fmt(plan.endDamage) },
     )
-    .setFooter({ text: 'Prices: bazaar instant buy (BZ) and auction lowest BIN (AH). Order is greedy: each step assumes the ones above it.' })
+    .setFooter({
+      text: [
+        'Prices: bazaar instant buy (BZ) and auction lowest BIN (AH). Each step assumes the ones above it.',
+        anyUnverified ? '(?) = not in the public API; skip it if you already have it.' : null,
+        anyEstimate ? 'est. = no market item; cost from the M7 archer sheet.' : null,
+      ].filter(Boolean).join('\n'),
+    })
     .setColor(0x8e44ad);
 }
 
@@ -55,10 +64,11 @@ export async function execute(interaction) {
     const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid), ensurePrices()]);
     if (!profile) return interaction.editReply(`**${account.name}** has no SkyBlock profiles.`);
 
-    const { items, cataLevel } = readMember(profile, account.uuid, resource);
-    const ctx = makeContext({ cls, cataLevel, secretDigit: DEFAULT_SECRET_DIGIT, resource });
+    const member = readMember(profile, account.uuid, resource);
+    const { cataLevel } = member;
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, resource });
     const weights = weightsFor(cls, target);
-    const loadout = buildLoadout(items, ctx, weights);
+    const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
 
     await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights })] });

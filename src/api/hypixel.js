@@ -2,6 +2,8 @@ import { getJson } from './http.js';
 import { ITEMS_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp } from '../calc/formulas.js';
+import { TUNING_KEYS } from '../config/accessories.js';
+import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
 
 const API = 'https://api.hypixel.net/v2';
 
@@ -40,7 +42,7 @@ function inventoryBlobs(inv) {
   return blobs.filter((b) => b?.data).map((b) => b.data);
 }
 
-// Pull the player's items and Catacombs level from one profile response.
+// Pull the player's items, Catacombs level and other DPS-relevant data from one profile response.
 export function readMember(profile, uuid, resource) {
   const member = profile?.members?.[uuid];
   if (!member) throw new Error('Player is not a member of this profile.');
@@ -55,5 +57,46 @@ export function readMember(profile, uuid, resource) {
     }
   }
   const cataXp = member.dungeons?.dungeon_types?.catacombs?.experience ?? 0;
-  return { items, cataLevel: cataLevelFromXp(cataXp), cataXp };
+  const bag = member.accessory_bag_storage ?? {};
+  return {
+    items,
+    cataLevel: cataLevelFromXp(cataXp),
+    cataXp,
+    secrets: Number(member.dungeons?.secrets ?? 0),
+    pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),
+    power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
+    tuning: readTuning(bag.tuning?.slot_0),
+    shards: readShards(member.attributes),
+  };
+}
+
+// { allocation: { strength: 40, critDamage: 30 }, split: { strength: 0.57, critDamage: 0.43 } } or null
+function readTuning(slot) {
+  if (!slot || typeof slot !== 'object') return null;
+  const allocation = {};
+  for (const [key, value] of Object.entries(slot)) {
+    const stat = TUNING_KEYS[key];
+    if (stat && value > 0) allocation[stat] = (allocation[stat] ?? 0) + Number(value);
+  }
+  const total = Object.values(allocation).reduce((a, b) => a + b, 0);
+  if (!total) return { allocation: {}, split: null };
+  const split = Object.fromEntries(Object.entries(allocation).map(([k, v]) => [k, v / total]));
+  return { allocation, split };
+}
+
+// Attribute levels from syphoned shard counts. The field layout is not documented, so this
+// accepts { stacks: { id: count } } or { id: count } with shard ids in any case.
+function readShards(attributes) {
+  const source = attributes?.stacks ?? attributes;
+  const levels = {};
+  if (!source || typeof source !== 'object') return levels;
+  for (const [key, value] of Object.entries(source)) {
+    const id = key.toUpperCase();
+    const shard = SHARDS[id];
+    const count = Number(value);
+    if (!shard || !(count > 0)) continue;
+    const cum = SHARDS_CUMULATIVE[shard.rarity];
+    levels[id] = cum.filter((need) => count >= need).length;
+  }
+  return levels;
 }
