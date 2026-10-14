@@ -1,0 +1,29 @@
+{
+  "name": "dps-bot",
+  "version": "1.0.0",
+  "description": "Hypixel SkyBlock Discord bot: ranks DPS upgrades per million coins",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy": "node src/deploy-commands.js",
+    "test": "node --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AscentSB/DPS-Bot.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AscentSB/DPS-Bot/issues"
+  },
+  "homepage": "https://github.com/AscentSB/DPS-Bot#readme",
+  "dependencies": {
+    "discord.js": "^14.27.0",
+    "dotenv": "^18.0.7",
+    "prismarine-nbt": "^2.8.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  }
+}
