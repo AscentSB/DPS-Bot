@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
@@ -26,6 +26,8 @@ import {
   dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits, blessingEffect, cataBoost,
   archerDamage, berserkerDamage, mageDamage,
 } from './formulas.js';
+
+const RAGNAROCK_WEAPON_ID = 'RAGNAROCK_AXE';
 
 export const TARGETS = ['wither', 'dragon'];
 
@@ -76,6 +78,8 @@ function addLoose(target, stats, scale = 1) {
 // Shots per second for shortbows, 1 otherwise (regular bows, mage).
 export function volleysPerSecond(weapon, attackSpeed, ctx) {
   const as = Math.min(Math.max(attackSpeed, 0), ATTACK_SPEED_CAP);
+  // Mage beam (LCM): rounds to the nearest tick like melee.
+  if (ctx?.cls === 'mage') return TICKS_PER_SECOND / Math.round(MAGE_BEAM_TICKS / (1 + as / 100));
   const shotTicks = ITEM_STATS[weapon?.id]?.shotTicks;
   if (shotTicks) return TICKS_PER_SECOND / Math.ceil(shotTicks / (1 + as / 100) - 1e-9);
   return 1;
@@ -342,7 +346,7 @@ export function totalAccessoryPower(loadout, resource) {
 }
 
 // Tuning stats that raise damage for each class.
-const CLASS_TUNING_STATS = { arch: ['strength', 'critDamage', 'critChance'], bers: ['strength', 'critDamage', 'critChance'], mage: ['intelligence'] };
+const CLASS_TUNING_STATS = { arch: ['strength', 'critDamage', 'critChance'], bers: ['strength', 'critDamage', 'critChance'], mage: ['strength', 'critDamage', 'critChance'] };
 
 // Leftover tuning points go to the DPS stats by the profile's split, or the class default.
 // Never speed or attack speed: both are already at their cap when points are left over.
@@ -521,6 +525,21 @@ function rawStats(loadout, ctx, activeExtras) {
     add(pets[t].stats, t);
     add(pets[t][t], t);
   }
+  // Chimera on the weapon (not a Ragnarock): copies the active pet's stats, which then get the weapon's
+  // dungeon boost (stars and cata; crit chance and attack speed stars only). Big for Mage: Golden Dragon's
+  // attack speed and strength.
+  const chimera = loadout.weapon?.enchants?.ultimate_chimera ?? 0;
+  if (chimera && loadout.weapon.id !== RAGNAROCK_WEAPON_ID) {
+    const dungeon = isDungeon(loadout.weapon, c.resource);
+    for (const t of TARGETS) {
+      if (!pets[t]) continue;
+      const copy = {};
+      for (const [k, v] of Object.entries(pets[t].stats)) {
+        if (typeof v === 'number' && (FLAT_STATS.has(k) || k === 'speed' || k === 'attackSpeed')) copy[k] = v * CHIMERA_PER_LEVEL * chimera;
+      }
+      add(scaleBucket(copy, loadout.weapon, c, dungeon), t);
+    }
+  }
   add(DUNGEON_POTION, null, 1 + potionBoost(loadout, c));
   add(setBonuses(loadout, c.cls));
 
@@ -560,8 +579,8 @@ function rawStats(loadout, ctx, activeExtras) {
   // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
   const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
   const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
-  // Attack speed only matters for shortbows (shots per second); otherwise no points go to it.
-  const needsAttackSpeed = Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
+  // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
+  const needsAttackSpeed = c.cls === 'mage' || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
   const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c,
     needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
   add(tuning.stats);
@@ -572,7 +591,6 @@ function rawStats(loadout, ctx, activeExtras) {
 // Class and Combat additive damage: Warrior (Combat level) for Archer and Berserker, plus the Berserk class
 // bonus. Classes are assumed solo.
 export function classAdditiveDamage(ctx) {
-  if (ctx.cls === 'mage') return 0;
   const combat = ctx.combatLevel ?? 0;
   const warrior = WARRIOR_PER_LEVEL * Math.min(combat, 50) + WARRIOR_PER_LEVEL_AFTER_50 * Math.max(0, combat - 50);
   const berserk = ctx.cls === 'bers' ? BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0) : 0;

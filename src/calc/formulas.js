@@ -159,11 +159,9 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
   return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense));
 }
 
-// Mage. hyperion = true applies the 1.5x Hyperion multiplier (use only for withers).
+// Mage, scored as LCM: one mage beam hits like a melee hit (crits and overload included), times ability damage
+// (Beacon). hyperion = true applies the 1.5x Hyperion multiplier (use only for withers).
 export function mageDamage(s, defense, hyperion = false) {
-  const melee = s.damage * (1 + s.critDamage / 100) * (1 + s.strength / 100) * (1 + s.additiveDamage / 100);
-  // abilityDamage: percent ability damage (Beacon).
-  const ability = MAGE_ABILITY_SCALING * (MAGE_ABILITY_BASE + s.intelligence / MAGE_INT_DIVISOR) * (1 + (s.abilityDamage ?? 0) / 100);
-  const raw = (melee + ability) * defenseMultiplier(defense) * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1);
-  return applySoftCap(raw);
+  const beam = expectedHit(s, defense) * (1 + (s.abilityDamage ?? 0) / 100);
+  return applySoftCap(beam * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1));
 }

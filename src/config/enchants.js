@@ -34,8 +34,9 @@ export const ENCHANTS = {
   smarty_pants: { categories: ['LEGGINGS'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
   // Legion is handled as a percent of combat stats per piece; see LEGION_* in constants.js.
   ultimate_legion: { categories: ARMOR, target: 'global', legion: true, maxLevel: 5 },
-  // Chimera copies part of your pet's stats onto a Ragnarock; see CHIMERA_PER_LEVEL in constants.js.
-  ultimate_chimera: { categories: SWORDS, target: 'global', chimera: true, maxLevel: 5, items: ['RAGNAROCK_AXE'] },
+  // Chimera copies CHIMERA_PER_LEVEL of your active pet's stats per level onto the sword (constants.js).
+  // On a Ragnarock it boosts the ability's strength; on a Mage weapon the copied stats get the dungeon boost.
+  ultimate_chimera: { categories: SWORDS, target: 'global', chimera: true, maxLevel: 5 },
 };
 
 export function enchantMaxLevel(ench) {

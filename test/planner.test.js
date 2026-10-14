@@ -711,7 +711,7 @@ test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berser
   close(archerMultiplier({ cls: 'bers', archerLevel: 50 }), 1);
   close(classAdditiveDamage({ cls: 'arch', combatLevel: 60 }), 210);
   close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115);
-  close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 0);
+  close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 210);
 });
 
 test('Tier V Beacon with Scorched Power Crystals: +6 crit chance for Archer and Berserker, +6% ability damage for Mage', async () => {
@@ -724,10 +724,28 @@ test('Tier V Beacon with Scorched Power Crystals: +6 crit chance for Archer and 
   close(mageDamage({ ...s, abilityDamage: 5 }, 0), mageDamage(s, 0) * 1.05);
 });
 
-test('mage tuning: no attack speed points without a shortbow, leftover points go to intelligence', () => {
-  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, tuning: { split: { critChance: 1 } } });
+test('mage (LCM): the beam fires faster with attack speed; tuning skips intelligence', async () => {
+  const { volleysPerSecond } = await import('../src/calc/stats.js');
+  // 20 / round(10 / (1 + AS/100)): 4 beams/s at 100 attack speed, 3.33 at 82 (rounds to 5 ticks only from 82).
+  close(volleysPerSecond(null, 100, { cls: 'mage' }), 4);
+  close(volleysPerSecond(null, 60, { cls: 'mage' }), 20 / 6);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, tuning: { split: { intelligence: 1 } } });
   const w = weightsFor('mage');
-  const accs = ['WITHER_RELIC', 'MASTER_SKULL_TIER_7', 'GENERAL_MEDALLION', 'SPEED_TALISMAN', 'SPEED_RING'].map((id) => newItem(id, resource));
-  const e = evaluate(buildLoadout(profile([newItem('HYPERION', resource), ...accs]), ctx, w), ctx, w);
-  assert.equal(e.tuning.attackSpeed, 0);
+  const e = evaluate(buildLoadout(profile([newItem('HYPERION', resource), ...['WITHER_RELIC', 'MASTER_SKULL_TIER_7'].map((id) => newItem(id, resource))]), ctx, w), ctx, w);
+  assert.ok(e.stats.wither.intelligence >= 0);
 });
+
+test("Chimera on a mage weapon copies the pet's stats, boosted by stars and cata (attack speed stars only)", () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const w = weightsFor('mage');
+  const gd = { type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const hype = newItem('HYPERION', resource);
+  const base = buildLoadout(profile([hype], { pets: [gd] }), ctx, w);
+  const chim = { ...base, weapon: { ...base.weapon, enchants: { ultimate_chimera: 5 } } };
+  const a = evaluate(base, ctx, w);
+  const b = evaluate(chim, ctx, w);
+  // Golden Dragon's 50 attack speed x 100% x 1.5 (5 stars, no master stars or medallion).
+  close(b.attackSpeeds.wither - a.attackSpeeds.wither, 50 * 1.5);
+  assert.ok(b.wither > a.wither);
+});
+

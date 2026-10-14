@@ -88,7 +88,8 @@ export const TUNING_KEYS = {
 export const DEFAULT_TUNING_SPLIT = {
   arch: { strength: 0.5, critDamage: 0.5 },
   bers: { strength: 0.5, critDamage: 0.5 },
-  mage: { intelligence: 1 },
+  // Mage is scored as LCM (mage beam), which uses melee stats.
+  mage: { strength: 0.5, critDamage: 0.5 },
 };
 
 // Hatcessories (Crab / Sloth Hats of Celebration, Balloon Hats, Cake Hats) all count as one accessory:
@@ -109,12 +110,12 @@ export const ENRICHMENTS = {
   attack_speed: { key: 'ATTACK_SPEED', stats: { attackSpeed: 0.5 } },
 };
 export const ENRICHABLE_RARITIES = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL'];
-export const BEST_ENRICHMENT = { arch: 'critical_damage', bers: 'critical_damage', mage: 'intelligence' };
+export const BEST_ENRICHMENT = { arch: 'critical_damage', bers: 'critical_damage', mage: 'critical_damage' };
 // Enrichments offered per class (each accessory can take one).
 export const CLASS_ENRICHMENTS = {
   arch: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
   bers: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
-  mage: ['intelligence', 'walk_speed'],
+  mage: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
 };
 // Dungeon accessories (and their enrichments) get the Catacombs boost: x (1 + cata boost). Stars and the
 // General's Medallion do not apply, and crit chance and attack speed are not boosted. See accessoryItemStats.

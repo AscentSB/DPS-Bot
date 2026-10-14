@@ -16,7 +16,7 @@ export const ARCHER_ARROW_DAMAGE_PER_LEVEL = 0.8;
 export const BERSERK_DAMAGE_BASE = 40;
 export const BERSERK_DAMAGE_PER_LEVEL = 0.75;
 // Combat skill Warrior bonus: +4% additive damage per level to 50, +1% per level from 51 to 60 (210 at 60).
-// Archer and Berserker only (Mage damage comes from abilities).
+// Applies to every class (Mage is scored as LCM, the mage beam).
 export const WARRIOR_PER_LEVEL = 4;
 export const WARRIOR_PER_LEVEL_AFTER_50 = 1;
 
@@ -96,7 +96,10 @@ export const SKILL_XP_PER_LEVEL = [
 // Damage formula switches at 100% and 200% crit chance (overload).
 export const OVERLOAD_MULTIPLIER = 1.5;
 
-// Mage formula: .3 * (.09 + intelligence / MAGE_INT_DIVISOR)
+// Mage is scored as LCM: the mage beam hits like a melee hit (strength, crit damage, crit chance) and fires
+// faster with attack speed: 20 / round(MAGE_BEAM_TICKS / (1 + attack speed / 100)) beams per second.
+export const MAGE_BEAM_TICKS = 10;
+// Unused by the LCM formula (kept for a later RCM option): .3 * (.09 + intelligence / MAGE_INT_DIVISOR)
 export const MAGE_INT_DIVISOR = 100;
 export const MAGE_ABILITY_SCALING = 0.3;
 export const MAGE_ABILITY_BASE = 0.09;

@@ -50,6 +50,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Dungeon accessories and their enrichments get x (1 + cata boost) on every stat except crit chance and attack speed (no stars or medallion on accessories). Every damage enrichment is offered: crit damage, crit chance, strength, attack speed and speed.
 - A buy can come bundled with its recombobulator, enrichment or reforge as one step, with the prices and gains combined before ranking.
 - Accessory Power: `29.97 × ln(0.0019 × AP + 1)^1.2` times your power's stats, plus tuning points and enrichments. Dungeon accessories count double.
+- Mage is scored as LCM (the mage beam, used in the boss): each beam hits like a melee hit (strength, crit damage, crit chance, overload), times ability damage, x1.5 vs withers with Hyperion. Beams per second = 20 / round(10 / (1 + attack speed/100)), so attack speed matters. Chimera on the Mage weapon copies the active pet's stats, which then get the weapon's dungeon boost (Golden Dragon's attack speed x1.5 or more from stars). An RCM option can come later.
 - All damage above 1,000,000 keeps 10%.
 
 The hit formula reproduces the M7 archer sheet's output exactly, and the blessing math matches the wiki's worked example (see `test/formulas.test.js`).
