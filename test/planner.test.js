@@ -495,3 +495,20 @@ test('Legion crit chance counts 4 players against dragons, 1 against withers; ot
   assert.ok(Math.abs(ratio('dragon', 'critChance') - 1) > 3.5 * Math.abs(ratio('wither', 'critChance') - 1));
   close(ratio('dragon', 'strength'), ratio('wither', 'strength'));
 });
+
+test('Duplex is read from its NBT key ultimate_reiterate: Duplex V adds 0.2 arrows', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
+  const w = weightsFor('arch');
+  const plain = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  const duplex = buildLoadout(profile([{ ...newItem('TERMINATOR', resource), enchants: { ultimate_reiterate: 5 } }]), ctx, w);
+  close(evaluate(duplex, ctx, w).arrowsPerVolley - evaluate(plain, ctx, w).arrowsPerVolley, 0.2);
+  close(evaluate(duplex, ctx, w).arrowsPerVolley, 4.7);
+});
+
+test('unobtainable items like the Raygun are never offered', () => {
+  const res = new Map([...resource, ['RAYGUN', { id: 'RAYGUN', name: 'Raygun', category: 'BOW', tier: 'UNOBTAINABLE', stats: { DAMAGE: 99999999 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
+  const p = { get: () => ({ price: 1, source: 'AH' }) };
+  assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('Raygun')));
+});

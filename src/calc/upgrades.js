@@ -18,6 +18,8 @@ import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 
+// Items nobody can buy (admin and unobtainable items like the Raygun).
+const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
@@ -214,7 +216,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (ench.classes && !ench.classes.includes(cls)) continue;
         const current = item.enchants?.[key] ?? 0;
         for (let level = current + 1; level <= enchantMaxLevel(ench); level++) {
-          push(`${titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
+          push(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });
@@ -280,7 +282,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const weaponCats = CLASS_WEAPON_CATEGORIES[cls];
   const accIds = new Set(loadout.accessories.keys());
   for (const [id, info] of resource) {
-    if (loadout.owned.has(id)) continue;
+    if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier)) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);

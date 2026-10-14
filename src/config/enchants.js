@@ -6,6 +6,7 @@
 //   stats      stat values at each level, e.g. { additiveDamage: [5, 10, ...] }. Index 0 = level 1
 //   classes    only count for these classes (optional)
 //   conflicts  enchants removed when this one is applied (optional)
+//   name       label when the NBT key differs from the in-game name (optional)
 //
 // Flat stats on dungeon items get the dungeon multiplier like every other item stat.
 // Books are priced from the bazaar id ENCHANTMENT_<KEY>_<LEVEL>, with the auction
@@ -25,8 +26,8 @@ export const ENCHANTS = {
   snipe: { categories: ['BOW'], target: 'global', stats: { additiveDamage: [1, 2, 3, 5] } },
   overload: { categories: ['BOW'], target: 'global', stats: { critDamage: [1, 2, 3, 4, 5], critChance: [1, 2, 3, 4, 5] } },
   toxophilite: { categories: ['BOW'], target: 'global', stats: { critChance: [10] } },
-  // Duplex: +0.04 arrows per shot per level (+0.2 at V). Ultimate enchant.
-  ultimate_duplex: { categories: ['BOW'], target: 'global', stats: { arrows: [0.04, 0.08, 0.12, 0.16, 0.2] } },
+  // Duplex: +0.04 arrows per shot per level (+0.2 at V). Ultimate enchant, stored as ultimate_reiterate.
+  ultimate_reiterate: { name: 'Duplex', categories: ['BOW'], target: 'global', stats: { arrows: [0.04, 0.08, 0.12, 0.16, 0.2] } },
   // Sugar Rush: +2 speed per level on boots (helps reach the 500 speed cap).
   sugar_rush: { categories: ['BOOTS'], target: 'global', stats: { speed: [2, 4, 6] } },
   big_brain: { categories: ['HELMET'], target: 'global', stats: { intelligence: [5, 10, 15, 20, 25] } },
