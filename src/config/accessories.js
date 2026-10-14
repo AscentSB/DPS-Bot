@@ -10,6 +10,11 @@ export const AP_BY_RARITY = {
 export const DUNGEON_AP_MULTIPLIER = 2;
 export const DOUBLE_AP_ITEMS = ['HEGEMONY_ARTIFACT'];
 
+// Fixed Accessory Power for items that do not follow their rarity.
+// The Rift Prism gives 11 and is usually consumed (rift.access.consumed_prism) instead of kept in the bag.
+export const RIFT_PRISM_ID = 'RIFT_PRISM';
+export const AP_OVERRIDES = { [RIFT_PRISM_ID]: 11 };
+
 // Power stats multiplier = 29.97 * ln(0.0019 * AP + 1) ^ 1.2
 export const POWER_SCALE = 29.97;
 export const POWER_LOG_FACTOR = 0.0019;

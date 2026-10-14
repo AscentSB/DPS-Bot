@@ -77,6 +77,9 @@ export function readMember(profile, uuid, resource) {
     tuning: readTuning(bag.tuning?.slot_0),
     shards: readShards(member.attributes),
     perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },
+    // Consumed Rift Prism (+11 Accessory Power). null when the profile does not say.
+    riftPrism: typeof member.rift?.access?.consumed_prism === 'boolean' ? member.rift.access.consumed_prism : null,
+    highestAp: bag.highest_magical_power ?? null,
     profileSpeed: wolfSlayerSpeed(member.slayer?.slayer_bosses?.wolf?.xp ?? 0),
     // Golden Dragon perks. Missing values count as maxed.
     petProfile: {

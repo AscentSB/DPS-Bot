@@ -531,3 +531,17 @@ test('items the resource marks can_recombobulate: false are never offered a reco
   assert.ok(!labels.includes("Recombobulate Supreme Voter's Badge"));
   assert.ok(labels.includes('Recombobulate Wither Relic'));
 });
+
+test('consumed Rift Prism adds 11 Accessory Power; without the flag, an 11 AP gap counts as one', () => {
+  const res = new Map([...resource, ['RIFT_PRISM', { id: 'RIFT_PRISM', name: 'Rift Prism', category: 'ACCESSORY', tier: 'RARE', can_recombobulate: false }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const gear = [newItem('TERMINATOR', res), newItem('WITHER_RELIC', res)];
+  const base = totalAccessoryPower(buildLoadout(profile(gear), ctx, w), res);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), res), base + 11);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: null, highestAp: base + 11 }), ctx, w), res), base + 11);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: null, highestAp: base + 10 }), ctx, w), res), base);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: false, highestAp: base + 11 }), ctx, w), res), base);
+  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
+  assert.ok(!availableUpgrades(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), ctx, p).some((u) => u.label === 'Buy Rift Prism'));
+});

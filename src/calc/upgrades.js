@@ -5,7 +5,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -87,6 +87,15 @@ export function buildLoadout(profile, ctx, weights) {
       const prev = loadout.accessories.get(item.id);
       if (!prev || accessoryRank(item) > accessoryRank(prev)) loadout.accessories.set(item.id, item);
     }
+  }
+
+  // Consumed Rift Prism. When the profile does not say, 11 Accessory Power missing against the
+  // profile's highest Accessory Power means the player consumed one.
+  const prismMissing = profile.riftPrism == null && profile.highestAp != null
+    && profile.highestAp - totalAccessoryPower(loadout, ctx.resource) === AP_OVERRIDES[RIFT_PRISM_ID];
+  if ((profile.riftPrism || prismMissing) && !loadout.accessories.has(RIFT_PRISM_ID)) {
+    loadout.accessories.set(RIFT_PRISM_ID, newItem(RIFT_PRISM_ID, ctx.resource));
+    loadout.owned.add(RIFT_PRISM_ID);
   }
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
