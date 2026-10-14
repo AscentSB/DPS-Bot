@@ -622,6 +622,24 @@ test('enchant levels never lock: Duplex I can be followed by higher levels, each
   assert.ok(duplex.at(-1).startsWith('Duplex V '), duplex.join(', '));
 });
 
+test('a piece the plan later replaces gets less than 25M spent on it', () => {
+  const res = new Map([...resource, ['OLD_LEGGINGS', { id: 'OLD_LEGGINGS', name: 'Old Leggings', category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('OLD_LEGGINGS', res)]), ctx, w);
+  const plan = (star) => {
+    const table = { FIRST_MASTER_STAR: star, POWER_WITHER_LEGGINGS: 3e9 };
+    return planUpgrades(l, ctx, { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) }, w, 5).steps.map((s) => s.label);
+  };
+  // 20M star: under the budget, kept before the Necron's Leggings buy.
+  const cheap = plan(20e6);
+  assert.ok(cheap.indexOf('1st Master Star on Old Leggings') >= 0 && cheap.indexOf('1st Master Star on Old Leggings') < cheap.indexOf("Buy Necron's Leggings"), cheap.join(', '));
+  // 30M star on leggings that get replaced: dropped.
+  const dear = plan(30e6);
+  assert.ok(dear.includes("Buy Necron's Leggings"), dear.join(', '));
+  assert.ok(!dear.includes('1st Master Star on Old Leggings'), dear.join(', '));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

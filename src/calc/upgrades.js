@@ -22,6 +22,9 @@ import { meetsRequirements } from '../lib/requirements.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
+// Most coins spent on an armor or equipment piece the plan later replaces (buy + upgrades, kept below this).
+export const REPLACED_PIECE_BUDGET = 25_000_000;
+const REPLAN_ROUNDS = 6;
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
@@ -580,31 +583,74 @@ function gemUpgrades(item, ctx) {
 // Greedy plan: take the upgrade with the best weighted % DPS per million coins, apply it, then recalculate every
 // option from the new stats and repeat. Nothing locks: Duplex I can be followed by Duplex II and later V, and a
 // later reforge or purchase can replace an earlier one, as long as each step adds damage.
-export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
+// Armor and equipment pieces a step touches: same id = an upgrade on that piece, new id = a buy that
+// replaces the old piece.
+function pieceChanges(prev, next) {
+  const changes = [];
+  const scan = (group, slots) => {
+    for (const slot of slots) {
+      const a = prev[group]?.[slot];
+      const b = next[group]?.[slot];
+      if (!b || a === b) continue;
+      changes.push({ key: `${slot}:${b.id}`, replaced: a && a.id !== b.id ? `${slot}:${a.id}` : null });
+    }
+  };
+  scan('armor', ARMOR_SLOTS);
+  scan('equipment', EQUIPMENT_SLOTS);
+  return changes;
+}
+
+// Greedy plan: each step is the best % per million coins on the current loadout, applied before the next.
+// Pieces the plan later replaces ("doomed") get at most REPLACED_PIECE_BUDGET coins (buy + upgrades), so
+// the plan does not sink money into armor or equipment it throws away.
+function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
   const steps = [];
-  ctx.weights = weights;
+  const spend = new Map();
+  const replaced = new Set();
   let loadout = startLoadout;
   let current = evaluate(loadout, ctx, weights);
   const startDamage = current;
 
   for (let i = 0; i < limit; i++) {
-    const candidates = [];
+    let best = null;
     for (const up of availableUpgrades(loadout, ctx, prices)) {
       if (!(up.cost > 0)) continue;
       const next = up.apply(loadout);
+      const changes = pieceChanges(loadout, next);
+      if (changes.some((c) => doomed.has(c.key) && (spend.get(c.key) ?? 0) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
       const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
       if (gain <= 1e-9) continue;
-      candidates.push({ ...up, gain, perMillion: gain / (up.cost / 1_000_000), next, after });
+      const perMillion = gain / (up.cost / 1_000_000);
+      if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after, changes };
     }
-    let best = null;
-    for (const c of candidates) if (!best || c.perMillion > best.perMillion) best = c;
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
+    for (const c of best.changes) {
+      spend.set(c.key, (spend.get(c.key) ?? 0) + best.cost);
+      if (c.replaced) replaced.add(c.replaced);
+    }
     loadout = selectPet(best.next, ctx, weights);
     current = evaluate(loadout, ctx, weights);
   }
-  return { steps, startDamage, endDamage: current, loadout };
+  // Pieces this plan replaces after spending the budget or more on them.
+  const overspent = [...replaced].filter((key) => (spend.get(key) ?? 0) >= REPLACED_PIECE_BUDGET);
+  return { steps, startDamage, endDamage: current, loadout, overspent };
+}
+
+export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
+  ctx.weights = weights;
+  const doomed = new Set();
+  let plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed);
+  // Re-plan with the budget on every piece found overspent and later replaced, until none is left.
+  for (let round = 0; round < REPLAN_ROUNDS; round++) {
+    const fresh = plan.overspent.filter((key) => !doomed.has(key));
+    if (!fresh.length) break;
+    for (const key of fresh) doomed.add(key);
+    plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed);
+  }
+  const { overspent, ...rest } = plan;
+  return rest;
 }
 
 function ordinal(n) {
