@@ -179,8 +179,9 @@ export function gemStat(gem, quality, rarity) {
 // ---------- One item's stats ----------
 
 // Every dungeon item is assumed to be a regular 5-starred item.
-// Crit chance, attack speed and speed get the star part only (1.5 + master stars + medallion), no Catacombs boost.
-const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'speed']);
+// Crit chance and attack speed get the star part only (1.5 + master stars + medallion), no Catacombs boost.
+// Speed gets the full dungeon multiplier like strength.
+const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed']);
 
 function scaleBucket(stats, item, ctx, dungeon) {
   if (!dungeon) return stats;
@@ -190,7 +191,7 @@ function scaleBucket(stats, item, ctx, dungeon) {
   const out = {};
   for (const [key, value] of Object.entries(stats)) {
     if (STAR_ONLY_STATS.has(key)) out[key] = value * crit;
-    else if (FLAT_STATS.has(key)) out[key] = value * flat;
+    else if (FLAT_STATS.has(key) || key === 'speed') out[key] = value * flat;
     else out[key] = value;
   }
   return out;

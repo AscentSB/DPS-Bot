@@ -370,3 +370,9 @@ test('Terminator attack speed gets the 5-star dungeon boost (x1.5) but not the C
   const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'GIANTS_SWORD' }])), ctx, w);
   assert.equal(loadout.weapon.id, 'TERMINATOR');
 });
+
+test("Maxor's boots speed gets the full dungeon multiplier, Catacombs boost included", () => {
+  const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30 } }]]);
+  const c = itemContribution(newItem('SPEED_WITHER_BOOTS', res), makeContext({ cls: 'arch', cataLevel: 50, resource: res }));
+  close(c.global.speed, 30 * (4.85 + 1.5));
+});

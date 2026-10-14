@@ -36,7 +36,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Speed counts base 100, the Dungeon VII potion, Wolf Slayer, the Rift Blessing of Time perk, gear, reforges, Sugar Rush, accessories, enrichments, Obsidian Defender and Forbidden Speed. Speed only matters in the clear, so your fastest boots (e.g. Maxor's) count for speed while your boss boots (e.g. Necron's) count for damage. The Rogue Sword is not counted; `EXTRA_SPEED` covers anything else.
 - Crit chance: `(flat + 30)(1 + additive)(multiplicative)`. Terminator's multiplier is 0.25.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
-- Dungeon gear (every dungeon item assumed 5-starred, dungeonizable items like Terminator assumed converted): `stat × (cata boost + 1.5 + 0.05 × master stars + 0.01 × secret digits)`. Crit chance, attack speed and speed skip the cata boost. Secret digits need a General's Medallion.
+- Dungeon gear (every dungeon item assumed 5-starred, dungeonizable items like Terminator assumed converted): `stat × (cata boost + 1.5 + 0.05 × master stars + 0.01 × secret digits)`. Crit chance and attack speed skip the cata boost. Speed gets the full multiplier, so Maxor's boots (30 speed) give 30 × 6.35 = 190.5 at Catacombs 50 before master stars and the medallion. Secret digits need a General's Medallion.
 - Accessory Power: `29.97 × ln(0.0019 × AP + 1)^1.2` times your power's stats, plus tuning points and enrichments. Dungeon accessories count double.
 - All damage above 1,000,000 keeps 10%.
 
