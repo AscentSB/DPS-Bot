@@ -10,6 +10,7 @@ import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '.
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
+import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
@@ -52,6 +53,12 @@ export function newItem(id, resource) {
     stars: dungeonizable ? MAX_STARS : 0, masterStars: 0, dungeon: dungeonizable ? true : undefined,
     enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null,
   };
+}
+
+// True when \`fromId\` turns into \`toId\` and keeps its upgrades (fragging, Golden -> Diamond heads,
+// Wither armor -> Necron's / Storm's / Maxor's / Goldor's).
+export function upgradesInto(fromId, toId) {
+  return FRAGGED[fromId]?.id === toId || Boolean(ITEM_UPGRADES[fromId]?.some((u) => u.id === toId));
 }
 
 function cloneLoadout(l) {
@@ -311,6 +318,14 @@ export function availableUpgrades(loadout, ctx, prices) {
         (l) => replaceItem(l, item, { ...item, id: frag.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
     }
 
+    // Golden -> Diamond heads and Wither armor -> class armor (keeps its upgrades).
+    for (const up of ITEM_UPGRADES[item.id] ?? []) {
+      const info = resource.get(up.id);
+      if (!info || loadout.owned.has(up.id) || CLASS_EXCLUDED_ITEMS[cls]?.test(up.id) || !meetsRequirements(info, ctx.player)) continue;
+      push(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, up.parts,
+        (l) => replaceItem(l, item, { ...item, id: up.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: dropBaseRarity(up.id, resource) }));
+    }
+
     // Recombobulator.
     if (canRecomb(item, resource)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
 
@@ -344,9 +359,12 @@ export function availableUpgrades(loadout, ctx, prices) {
   // New items from the auction house / bazaar.
   const weaponCats = CLASS_WEAPON_CATEGORIES[cls];
   const accIds = new Set(loadout.accessories.keys());
+  const worn = [loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment)].filter(Boolean);
   for (const [id, info] of resource) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     if (CLASS_EXCLUDED_ITEMS[cls]?.test(id)) continue;
+    // Never buy a fresh copy of what an item you wear upgrades into (the upgrade keeps its stars, gems, etc.).
+    if (worn.some((it) => upgradesInto(it.id, id))) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
@@ -583,8 +601,9 @@ function gemUpgrades(item, ctx) {
 // Greedy plan: take the upgrade with the best weighted % DPS per million coins, apply it, then recalculate every
 // option from the new stats and repeat. Nothing locks: Duplex I can be followed by Duplex II and later V, and a
 // later reforge or purchase can replace an earlier one, as long as each step adds damage.
-// Armor and equipment pieces a step touches: same id = an upgrade on that piece, new id = a buy that
-// replaces the old piece.
+// Armor and equipment pieces a step touches. Same id = an upgrade on that piece; an id it upgrades into
+// (Golden -> Diamond head, Wither -> Necron's, fragging) = the same piece under a new id; any other id = a
+// buy that replaces the old piece.
 function pieceChanges(prev, next) {
   const changes = [];
   const scan = (group, slots) => {
@@ -592,7 +611,10 @@ function pieceChanges(prev, next) {
       const a = prev[group]?.[slot];
       const b = next[group]?.[slot];
       if (!b || a === b) continue;
-      changes.push({ key: `${slot}:${b.id}`, replaced: a && a.id !== b.id ? `${slot}:${a.id}` : null });
+      const key = `${slot}:${b.id}`;
+      const prevKey = a ? `${slot}:${a.id}` : null;
+      const kind = !a || a.id === b.id ? 'same' : upgradesInto(a.id, b.id) ? 'upgrade' : 'replace';
+      changes.push({ key, prevKey, kind });
     }
   };
   scan('armor', ARMOR_SLOTS);
@@ -601,12 +623,15 @@ function pieceChanges(prev, next) {
 }
 
 // Greedy plan: each step is the best % per million coins on the current loadout, applied before the next.
-// Pieces the plan later replaces ("doomed") get at most REPLACED_PIECE_BUDGET coins (buy + upgrades), so
-// the plan does not sink money into armor or equipment it throws away.
+// Pieces the plan later replaces ("doomed") get under REPLACED_PIECE_BUDGET coins in total (buy + upgrades,
+// carried through Golden -> Diamond and Wither -> Necron's upgrades), so the plan does not sink money into
+// armor or equipment it throws away.
 function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
   const steps = [];
   const spend = new Map();
+  const parent = new Map();
   const replaced = new Set();
+  const spent = (c) => spend.get(c.kind === 'upgrade' ? c.prevKey : c.key) ?? 0;
   let loadout = startLoadout;
   let current = evaluate(loadout, ctx, weights);
   const startDamage = current;
@@ -617,7 +642,7 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
       if (!(up.cost > 0)) continue;
       const next = up.apply(loadout);
       const changes = pieceChanges(loadout, next);
-      if (changes.some((c) => doomed.has(c.key) && (spend.get(c.key) ?? 0) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
+      if (changes.some((c) => doomed.has(c.kind === 'upgrade' ? c.prevKey : c.key) && spent(c) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
       const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
       if (gain <= 1e-9) continue;
@@ -627,14 +652,20 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
     for (const c of best.changes) {
-      spend.set(c.key, (spend.get(c.key) ?? 0) + best.cost);
-      if (c.replaced) replaced.add(c.replaced);
+      spend.set(c.key, spent(c) + best.cost);
+      if (c.kind === 'upgrade') parent.set(c.key, c.prevKey);
+      if (c.kind === 'replace') replaced.add(c.prevKey);
     }
     loadout = selectPet(best.next, ctx, weights);
     current = evaluate(loadout, ctx, weights);
   }
-  // Pieces this plan replaces after spending the budget or more on them.
-  const overspent = [...replaced].filter((key) => (spend.get(key) ?? 0) >= REPLACED_PIECE_BUDGET);
+  // Pieces this plan replaces after spending the budget or more on them, with the ids they had before
+  // being upgraded (so the budget also covers spending before the upgrade).
+  const overspent = [];
+  for (const key of replaced) {
+    if ((spend.get(key) ?? 0) < REPLACED_PIECE_BUDGET) continue;
+    for (let k = key; k; k = parent.get(k)) overspent.push(k);
+  }
   return { steps, startDamage, endDamage: current, loadout, overspent };
 }
 

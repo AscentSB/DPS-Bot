@@ -640,6 +640,48 @@ test('a piece the plan later replaces gets less than 25M spent on it', () => {
   assert.ok(!dear.includes('1st Master Star on Old Leggings'), dear.join(', '));
 });
 
+test('Golden heads upgrade into Diamond heads and keep their upgrades; that is not a replacement', () => {
+  const res = new Map([...resource,
+    ['GOLD_NECRON_HEAD', { id: 'GOLD_NECRON_HEAD', name: 'Golden Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }],
+    ['DIAMOND_NECRON_HEAD', { id: 'DIAMOND_NECRON_HEAD', name: 'Diamond Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 31, CRITICAL_DAMAGE: 31 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const head = { ...newItem('GOLD_NECRON_HEAD', res), reforge: 'ancient', enchants: { ultimate_legion: 5 } };
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), head]), ctx, w);
+  const table = { ENCHANTED_DIAMOND_BLOCK: 40e6, DIAMOND_NECRON_HEAD: 2e9, FIRST_MASTER_STAR: 30e6 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
+  const ups = availableUpgrades(l, ctx, p);
+  const up = ups.find((u) => u.label.startsWith('Upgrade Golden Necron Head into Diamond Necron Head'));
+  assert.equal(up.cost, 320e6);
+  assert.ok(!ups.some((u) => u.label.startsWith('Buy Diamond Necron Head')));
+  const after = up.apply(l);
+  assert.equal(after.armor.HELMET.id, 'DIAMOND_NECRON_HEAD');
+  assert.equal(after.armor.HELMET.enchants.ultimate_legion, 5);
+  assert.equal(after.armor.HELMET.reforge, 'ancient');
+  // A 30M master star on the Golden head stays: upgrading the head keeps it, so the 25M cap does not apply.
+  const labels = planUpgrades(l, ctx, p, w, 6).steps.map((s) => s.label);
+  assert.ok(labels.includes('1st Master Star on Golden Necron Head'), labels.join(', '));
+  assert.ok(labels.some((x) => x.startsWith('Upgrade Golden Necron Head')), labels.join(', '));
+});
+
+test("Wither armor upgrades into Necron's / Storm's with 8 fragments; Mage never gets Necron's", () => {
+  const res = new Map([...resource,
+    ['WITHER_LEGGINGS', { id: 'WITHER_LEGGINGS', name: 'Wither Leggings', category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 10 } }],
+    ['WISE_WITHER_LEGGINGS', { id: 'WISE_WITHER_LEGGINGS', name: "Storm's Leggings", category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250, CRITICAL_DAMAGE: 10 } }]]);
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const labels = (cls, weapon) => {
+    const ctx = makeContext({ cls, cataLevel: 50, resource: res });
+    const l = buildLoadout(profile([newItem(weapon, res), newItem('WITHER_LEGGINGS', res)]), ctx, weightsFor(cls));
+    return availableUpgrades(l, ctx, p).map((u) => u.label);
+  };
+  const arch = labels('arch', 'TERMINATOR');
+  assert.ok(arch.includes("Upgrade Wither Leggings into Necron's Leggings (8 Giant Fragment Diamond)"), arch.join(', '));
+  assert.ok(!arch.some((x) => x.startsWith("Buy Necron's Leggings")));
+  const mage = labels('mage', 'HYPERION');
+  assert.ok(mage.some((x) => x.startsWith("Upgrade Wither Leggings into Storm's Leggings")));
+  assert.ok(!mage.some((x) => x.includes("Necron's Leggings")));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };
