@@ -43,6 +43,7 @@ export const BENEDICTION_BUFF = 0.25;
 // Speed = base 100 + Dungeon VII potion (Speed III, see DUNGEON_POTION) + Wolf Slayer + every tracked gear/accessory/perk source.
 // The Rogue Sword is not counted. Put any other always-on speed in EXTRA_SPEED.
 export const BASE_SPEED = 100;
+// 500 already includes the Folf shard's Catacombs Cap (+50 at level X).
 export const SPEED_CAP = 500;
 export const EXTRA_SPEED = 0;
 
