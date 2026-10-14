@@ -7,9 +7,9 @@ export const AP_BY_RARITY = {
 };
 
 // Dungeon accessories give double Accessory Power inside dungeons. The Hegemony Artifact always gives double.
-// Dungeon accessories count double inside dungeons. The profile's Accessory Power is usually read outside a dungeon,
-// so it can come out lower than the bot's number.
+// The profile's Accessory Power is usually read outside a dungeon, so it can come out lower than the bot's number.
 export const DUNGEON_AP_MULTIPLIER = 2;
+
 export const DOUBLE_AP_ITEMS = ['HEGEMONY_ARTIFACT'];
 
 // Fixed Accessory Power for items that do not follow their rarity.
