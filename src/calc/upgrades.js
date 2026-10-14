@@ -5,7 +5,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, CLASS_ENRICHMENTS, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, CLASS_ENRICHMENTS, CLASS_TUNING_STATS, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -35,9 +35,9 @@ export function weightsFor(cls, target) {
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, combatLevel, player, upgradeMode, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -131,17 +131,21 @@ export function buildLoadout(profile, ctx, weights) {
 }
 
 function bestTuningSplit(loadout, ctx, weights) {
-  const stats = ctx.cls === 'mage' || ctx.cls === 'arch' || ctx.cls === 'bers' ? ['strength', 'critDamage', 'critChance'] : [];
+  const stats = CLASS_TUNING_STATS[ctx.cls] ?? [];
   let best = null;
   let bestScore = -Infinity;
-  for (let a = 0; a <= 10; a++) {
-    for (let b = 0; b <= 10 - a; b++) {
-      const split = { [stats[0]]: a / 10, [stats[1]]: b / 10, [stats[2]]: (10 - a - b) / 10 };
-      const r = evaluate(loadout, { ...ctx, tuning: { ...(ctx.tuning ?? {}), split } }, weights);
+  // Every split of 10 tenths over the class's tuning stats.
+  const walk = (i, left, split) => {
+    if (i === stats.length - 1) {
+      const full = { ...split, [stats[i]]: left / 10 };
+      const r = evaluate(loadout, { ...ctx, tuning: { ...(ctx.tuning ?? {}), split: full } }, weights);
       const score = r.wither * weights.wither + r.dragon * weights.dragon;
-      if (score > bestScore + 1e-9) { bestScore = score; best = split; }
+      if (score > bestScore + 1e-9) { bestScore = score; best = full; }
+      return;
     }
-  }
+    for (let n = 0; n <= left; n++) walk(i + 1, left - n, { ...split, [stats[i]]: n / 10 });
+  };
+  if (stats.length) walk(0, 10, {});
   return best;
 }
 

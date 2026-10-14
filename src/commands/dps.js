@@ -82,7 +82,7 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, resource });
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, resource });
     const weights = weightsFor(cls, target);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);

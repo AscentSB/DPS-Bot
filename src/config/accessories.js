@@ -115,7 +115,13 @@ export const BEST_ENRICHMENT = { arch: 'critical_damage', bers: 'critical_damage
 export const CLASS_ENRICHMENTS = {
   arch: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
   bers: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
-  mage: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
+  mage: ['critical_damage', 'critical_chance', 'strength', 'intelligence', 'attack_speed', 'walk_speed'],
+};
+// Tuning stats that raise damage for each class (leftover points are split between these).
+export const CLASS_TUNING_STATS = {
+  arch: ['strength', 'critDamage', 'critChance'],
+  bers: ['strength', 'critDamage', 'critChance'],
+  mage: ['strength', 'critDamage', 'critChance', 'intelligence'],
 };
 // Dungeon accessories (and their enrichments) get the Catacombs boost: x (1 + cata boost). Stars and the
 // General's Medallion do not apply, and crit chance and attack speed are not boosted. See accessoryItemStats.

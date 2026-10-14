@@ -1,7 +1,7 @@
 import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
   PAUL_BENEDICTION, BENEDICTION_BUFF,
-  BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_INT_DIVISOR, MAGE_ABILITY_SCALING, MAGE_ABILITY_BASE,
+  BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_BEAM_BASE, MAGE_BEAM_PER_INTELLIGENCE,
   HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
   CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
@@ -159,9 +159,9 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
   return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense));
 }
 
-// Mage, scored as LCM: one mage beam hits like a melee hit (crits and overload included), times ability damage
-// (Beacon). hyperion = true applies the 1.5x Hyperion multiplier (use only for withers).
+// Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits and overload
+// included). Ability damage does not apply. hyperion = true applies the 1.5x Hyperion multiplier (withers only).
 export function mageDamage(s, defense, hyperion = false) {
-  const beam = expectedHit(s, defense) * (1 + (s.abilityDamage ?? 0) / 100);
+  const beam = expectedHit(s, defense) * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
   return applySoftCap(beam * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1));
 }

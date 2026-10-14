@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
@@ -10,7 +10,7 @@ import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, CLASS_TUNING_STATS,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -346,9 +346,6 @@ export function totalAccessoryPower(loadout, resource) {
   return countedAccessories(loadout).reduce((sum, item) => sum + accessoryPower(item, resource), 0);
 }
 
-// Tuning stats that raise damage for each class.
-const CLASS_TUNING_STATS = { arch: ['strength', 'critDamage', 'critChance'], bers: ['strength', 'critDamage', 'critChance'], mage: ['strength', 'critDamage', 'critChance'] };
-
 // Leftover tuning points go to the DPS stats by the profile's split, or the class default.
 // Never speed or attack speed: both are already at their cap when points are left over.
 function distribute(stats, points, ctx) {
@@ -488,6 +485,8 @@ function rawStats(loadout, ctx, activeExtras) {
   };
   const misc = MISC_BUFFS[c.cls] ?? {};
   add(misc.stats);
+  // Mage class intelligence (solo): 250 + 2 x 5 per Mage level.
+  if (c.cls === 'mage') add({ intelligence: MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
   // Combat skill: +0.5 base crit chance per level.
   add({ critChance: (c.combatLevel ?? 0) * COMBAT_CRIT_CHANCE_PER_LEVEL });
   add(misc.wither, 'wither');

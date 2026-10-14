@@ -96,13 +96,16 @@ export const SKILL_XP_PER_LEVEL = [
 // Damage formula switches at 100% and 200% crit chance (overload).
 export const OVERLOAD_MULTIPLIER = 1.5;
 
-// Mage is scored as LCM: the mage beam hits like a melee hit (strength, crit damage, crit chance) and fires
-// faster with attack speed: 20 / round(MAGE_BEAM_TICKS / (1 + attack speed / 100)) beams per second.
+// Mage is scored as LCM (Mage Staff passive): each beam deals (0.3 + 0.0009 x intelligence) of the melee hit
+// (strength, crit damage, crit chance). Ability damage does not boost the beam (it is for RCM). Beams fire faster
+// with attack speed: 20 / round(MAGE_BEAM_TICKS / (1 + attack speed / 100)) per second.
+// Source: https://hypixelskyblock.minecraft.wiki/w/Mage
+export const MAGE_BEAM_BASE = 0.3;
+export const MAGE_BEAM_PER_INTELLIGENCE = 0.0009;
 export const MAGE_BEAM_TICKS = 10;
-// Unused by the LCM formula (kept for a later RCM option): .3 * (.09 + intelligence / MAGE_INT_DIVISOR)
-export const MAGE_INT_DIVISOR = 100;
-export const MAGE_ABILITY_SCALING = 0.3;
-export const MAGE_ABILITY_BASE = 0.09;
+// Mage class intelligence: 250 + 5 per Mage level (500 at 50), per-level part doubled when solo (750 at 50).
+export const MAGE_INT_BASE = 250;
+export const MAGE_INT_PER_LEVEL = 5;
 
 // Hyperion: damage multiplier against withers for mage.
 export const HYPERION_ID = 'HYPERION';
