@@ -26,29 +26,11 @@
    }
   ]
  },
- "SPIRIT_MASK": {
-  "id": "STARRED_SPIRIT_MASK",
-  "parts": [
-   {
-    "id": "THORN_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "SHADOW_ASSASSIN_CHESTPLATE": {
-  "id": "STARRED_SHADOW_ASSASSIN_CHESTPLATE",
+ "SHADOW_ASSASSIN_BOOTS": {
+  "id": "STARRED_SHADOW_ASSASSIN_BOOTS",
   "parts": [
    {
     "id": "LIVID_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "MIDAS_STAFF": {
-  "id": "STARRED_MIDAS_STAFF",
-  "parts": [
-   {
-    "id": "GOLDEN_FRAGMENT",
     "qty": 8
    }
   ]
@@ -71,6 +53,60 @@
    }
   ]
  },
+ "BONZO_STAFF": {
+  "id": "STARRED_BONZO_STAFF",
+  "parts": [
+   {
+    "id": "BONZO_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "SHADOW_ASSASSIN_CHESTPLATE": {
+  "id": "STARRED_SHADOW_ASSASSIN_CHESTPLATE",
+  "parts": [
+   {
+    "id": "LIVID_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "ITEM_SPIRIT_BOW": {
+  "id": "STARRED_ITEM_SPIRIT_BOW",
+  "parts": [
+   {
+    "id": "THORN_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "BONZO_MASK": {
+  "id": "STARRED_BONZO_MASK",
+  "parts": [
+   {
+    "id": "BONZO_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "SHADOW_FURY": {
+  "id": "STARRED_SHADOW_FURY",
+  "parts": [
+   {
+    "id": "LIVID_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "SHADOW_ASSASSIN_CLOAK": {
+  "id": "STARRED_SHADOW_ASSASSIN_CLOAK",
+  "parts": [
+   {
+    "id": "LIVID_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
  "FELTHORN_REAPER": {
   "id": "STARRED_FELTHORN_REAPER",
   "parts": [
@@ -80,8 +116,8 @@
    }
   ]
  },
- "SHADOW_ASSASSIN_HELMET": {
-  "id": "STARRED_SHADOW_ASSASSIN_HELMET",
+ "LAST_BREATH": {
+  "id": "STARRED_LAST_BREATH",
   "parts": [
    {
     "id": "LIVID_FRAGMENT",
@@ -107,74 +143,20 @@
    }
   ]
  },
- "SHADOW_FURY": {
-  "id": "STARRED_SHADOW_FURY",
+ "BONE_BOOMERANG": {
+  "id": "STARRED_BONE_BOOMERANG",
+  "parts": [
+   {
+    "id": "THORN_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "SHADOW_ASSASSIN_HELMET": {
+  "id": "STARRED_SHADOW_ASSASSIN_HELMET",
   "parts": [
    {
     "id": "LIVID_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "SHADOW_ASSASSIN_LEGGINGS": {
-  "id": "STARRED_SHADOW_ASSASSIN_LEGGINGS",
-  "parts": [
-   {
-    "id": "LIVID_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "BONZO_MASK": {
-  "id": "STARRED_BONZO_MASK",
-  "parts": [
-   {
-    "id": "BONZO_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "YETI_SWORD": {
-  "id": "STARRED_YETI_SWORD",
-  "parts": [
-   {
-    "id": "WINTER_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "SHADOW_ASSASSIN_CLOAK": {
-  "id": "STARRED_SHADOW_ASSASSIN_CLOAK",
-  "parts": [
-   {
-    "id": "LIVID_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "ADAPTIVE_BELT": {
-  "id": "STARRED_ADAPTIVE_BELT",
-  "parts": [
-   {
-    "id": "SCARF_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "LAST_BREATH": {
-  "id": "STARRED_LAST_BREATH",
-  "parts": [
-   {
-    "id": "LIVID_FRAGMENT",
-    "qty": 8
-   }
-  ]
- },
- "ADAPTIVE_CHESTPLATE": {
-  "id": "STARRED_ADAPTIVE_CHESTPLATE",
-  "parts": [
-   {
-    "id": "SCARF_FRAGMENT",
     "qty": 8
    }
   ]
@@ -188,26 +170,44 @@
    }
   ]
  },
- "BONZO_STAFF": {
-  "id": "STARRED_BONZO_STAFF",
+ "MIDAS_STAFF": {
+  "id": "STARRED_MIDAS_STAFF",
   "parts": [
    {
-    "id": "BONZO_FRAGMENT",
+    "id": "GOLDEN_FRAGMENT",
     "qty": 8
    }
   ]
  },
- "BONE_BOOMERANG": {
-  "id": "STARRED_BONE_BOOMERANG",
+ "STONE_BLADE": {
+  "id": "STARRED_STONE_BLADE",
   "parts": [
    {
-    "id": "THORN_FRAGMENT",
+    "id": "SCARF_FRAGMENT",
     "qty": 8
    }
   ]
  },
- "ITEM_SPIRIT_BOW": {
-  "id": "STARRED_ITEM_SPIRIT_BOW",
+ "ADAPTIVE_BELT": {
+  "id": "STARRED_ADAPTIVE_BELT",
+  "parts": [
+   {
+    "id": "SCARF_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "YETI_SWORD": {
+  "id": "STARRED_YETI_SWORD",
+  "parts": [
+   {
+    "id": "WINTER_FRAGMENT",
+    "qty": 8
+   }
+  ]
+ },
+ "SPIRIT_MASK": {
+  "id": "STARRED_SPIRIT_MASK",
   "parts": [
    {
     "id": "THORN_FRAGMENT",
@@ -224,8 +224,8 @@
    }
   ]
  },
- "STONE_BLADE": {
-  "id": "STARRED_STONE_BLADE",
+ "ADAPTIVE_CHESTPLATE": {
+  "id": "STARRED_ADAPTIVE_CHESTPLATE",
   "parts": [
    {
     "id": "SCARF_FRAGMENT",
@@ -233,8 +233,8 @@
    }
   ]
  },
- "SHADOW_ASSASSIN_BOOTS": {
-  "id": "STARRED_SHADOW_ASSASSIN_BOOTS",
+ "SHADOW_ASSASSIN_LEGGINGS": {
+  "id": "STARRED_SHADOW_ASSASSIN_LEGGINGS",
   "parts": [
    {
     "id": "LIVID_FRAGMENT",

@@ -19,14 +19,24 @@ export const TARGET_DEFENSE = {
 // damage = BASE_DAMAGE + weapon_damage
 export const BASE_DAMAGE = 5;
 
-// Dungeon blessings. Strength and crit damage use Power, intelligence uses Wisdom.
-//   stat = (flat + 4 * blessing)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * 0.02 * blessing)
-// Power 19 gives the +76 and the .38 in the original formula. Wisdom 12 gives +48 and .24.
-export const POWER_BLESSING = 19;
-export const WISDOM_BLESSING = 12;
+// Dungeon blessings (https://hypixelskyblock.minecraft.wiki/w/Blessings).
+// Each blessing adds level x 4 flat and level x 2% to its stats, both times the blessing effect E:
+//   stat = (flat + sum(4 * level * E)) (1 + additive + 2nd additive)(multiplicative) * product(1 + 0.02 * level * E)
+//   E = (1 + floor buff 20%) (1 + Forbidden Blessing 1-10%) (1 + Mimic shard 1-10%) (1 + Paul's Benediction 25%)
+// The original formula's 1.1 * 1.1 * 1.2 is E with Forbidden Blessing X and Mimic X.
+// Forbidden Blessing and Mimic come from the profile, so they also show up as upgrades.
+export const BLESSINGS = {
+  power: { level: 19, stats: ['strength', 'critDamage'] },
+  wisdom: { level: 12, stats: ['intelligence'] },
+  // Blessing of Time: from the Quiz puzzle, always 0 or 5.
+  time: { level: 5, stats: ['strength', 'intelligence'] },
+};
 export const BLESSING_FLAT_PER_LEVEL = 4;
 export const BLESSING_PERCENT_PER_LEVEL = 0.02;
-export const BLESSING_MULT = 1.1 * 1.1 * 1.2;
+export const BLESSING_FLOOR_BUFF = 0.2;
+// Set to true while Paul is mayor with Benediction.
+export const PAUL_BENEDICTION = false;
+export const BENEDICTION_BUFF = 0.25;
 
 // crit chance = (flat + BASE_CRIT_CHANCE)(1 + additive)(multiplicative). Terminator has a 0.25 multiplier.
 export const BASE_CRIT_CHANCE = 30;

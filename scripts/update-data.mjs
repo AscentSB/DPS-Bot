@@ -10,6 +10,8 @@ const STAT_KEYS = {
   crit_damage: 'critDamage',
   crit_chance: 'critChance',
   intelligence: 'intelligence',
+  speed: 'speed',
+  walk_speed: 'speed',
 };
 
 async function getJson(name) {

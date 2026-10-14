@@ -3,19 +3,29 @@ import assert from 'node:assert/strict';
 import {
   calcStrength, calcCritDamage, calcCritChance, calcIntelligence, cataLevelFromXp, cataBoost,
   dungeonMultiplier, dungeonCritMultiplier, applySoftCap, expectedHit, archerDamage, berserkerDamage,
-  mageDamage, powerMultiplier, secretDigits,
+  mageDamage, powerMultiplier, secretDigits, applyBlessings, blessingEffect,
 } from '../src/calc/formulas.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 
-test('final stat formulas match the M7 archer sheet totals', () => {
-  // Sheet row 2: flat STR 5459.19, add STR 0.116, multi STR 1.1 -> 10544.21
-  close(calcStrength(5459.192581, 0.116, 0, 1.1), 10544.21294);
-  // flat CD 4996.49, add CD 0.066 -> 8390.80
-  close(calcCritDamage(4996.492581, 0.066), 8390.796299);
-  // flat CC 424.34 (+30 base), add CC 0.056, multi CC 0.25 (Terminator) -> 119.95
+test('blessings match the wiki worked example (Power 29 + Time 5, Benediction, Forbidden Blessing X)', () => {
+  const effect = 1.1 * 1.25 * 1.2;
+  close(effect, 1.65);
+  const b = applyBlessings(6000, 'strength', effect, { power: { level: 29, stats: ['strength'] }, time: { level: 5, stats: ['strength'] } });
+  close(b.flat * b.pct, 14191.04, 1e-6);
+});
+
+test('default blessing effect is the floor buff only; Forbidden Blessing and Mimic multiply it', () => {
+  close(blessingEffect(), 1.2);
+  close(blessingEffect(0.1, 0.1), 1.1 * 1.1 * 1.2);
+  // Strength: Power 19 and Time 5, flat and percent both scaled by the effect.
+  const e = blessingEffect(0.1, 0.1);
+  const expected = (1000 + 4 * 19 * e + 4 * 5 * e) * 1.1 * 1.2 * (1 + 0.02 * 19 * e) * (1 + 0.02 * 5 * e);
+  close(calcStrength(1000, 0.1, 0, 1.2, e), expected);
+  close(calcCritDamage(1000, 0, 0, 1, e), (1000 + 4 * 19 * e) * (1 + 0.02 * 19 * e));
+  close(calcIntelligence(500, 0, 0, 1, e), (500 + 4 * 12 * e + 4 * 5 * e) * (1 + 0.02 * 12 * e) * (1 + 0.02 * 5 * e));
+  // Crit chance from the sheet: flat 424.34 (+30 base), add 0.056, Terminator 0.25 -> 119.95
   close(calcCritChance(424.3383228, 0.056, 0.25), 119.9453172);
-  close(calcIntelligence(500), 548 * (1 + 1.1 * 1.1 * 1.2 * 0.24));
 });
 
 test('expected hit matches the sheet output, including overload', () => {

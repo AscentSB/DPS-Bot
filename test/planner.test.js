@@ -208,3 +208,17 @@ test('Forbidden Blessing makes the Power blessing stronger', () => {
   const ratio = evaluate(blessed, ctx, w).stats.dragon.strength / evaluate(base, ctx, w).stats.dragon.strength;
   assert.ok(ratio > 1);
 });
+
+test('extra speed frees tuning points onto DPS stats, capped by points in speed', () => {
+  const w = weightsFor('arch');
+  const make = (tuning) => makeContext({ cls: 'arch', cataLevel: 50, resource, tuning });
+  for (const [tuning, expectGain] of [[null, true], [{ allocation: { speed: 10, critDamage: 20 }, split: { speed: 0.33, critDamage: 0.67 } }, true], [{ allocation: { critDamage: 30 }, split: { critDamage: 1 } }, false]]) {
+    const ctx = make(tuning);
+    const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
+    const faster = { ...loadout, shards: { OBSIDIAN_DEFENDER: 10 } };
+    const a = evaluate(loadout, ctx, w);
+    const b = evaluate(faster, ctx, w);
+    assert.equal(b.speed - a.speed, 10);
+    assert.equal(b.dragon > a.dragon, expectGain);
+  }
+});

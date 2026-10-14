@@ -26,14 +26,16 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 
 ## Model
 
-- Strength: `(flat + 76)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 × 1.1 × 1.2 × 0.38)`. Crit damage uses the same shape. Intelligence uses 48 and 0.24.
+- Blessings: Power 19 (strength, crit damage), Wisdom 12 (intelligence) and Time 5 (strength, intelligence; from the Quiz, set it to 0 or 5). Each adds `4 × level × E` flat and multiplies by `1 + 0.02 × level × E`, where `E = 1.2 floor buff × (1 + Forbidden Blessing) × (1 + Mimic shard)`. With Forbidden Blessing X and Mimic X, E is the original 1.1 × 1.1 × 1.2.
+- Strength: `(flat + blessing flat)(1 + additive + 2nd additive)(multiplicative)(blessing %)`. Crit damage and intelligence use the same shape.
+- Speed: extra speed frees tuning points off speed onto your DPS stats (1 point per 1.5 speed), capped at the points your profile has in speed. Losing speed costs points.
 - Crit chance: `(flat + 30)(1 + additive)(multiplicative)`. Terminator's multiplier is 0.25.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
 - Dungeon gear: `stat × (1 + cata boost + 0.1 × stars + 0.05 × master stars + 0.01 × secret digits)`. Crit chance skips the cata boost. Secret digits need a General's Medallion.
 - Accessory Power: `29.97 × ln(0.0019 × AP + 1)^1.2` times your power's stats, plus tuning points and enrichments. Dungeon accessories count double.
 - All damage above 1,000,000 keeps 10%.
 
-These formulas reproduce the M7 archer sheet's totals exactly (see `test/formulas.test.js`).
+The hit formula reproduces the M7 archer sheet's output exactly, and the blessing math matches the wiki's worked example (see `test/formulas.test.js`).
 
 ## Setup
 
@@ -53,7 +55,7 @@ npm start
 - `src/config/enchants.js`: enchant stats per level and which boss they affect.
 - `src/config/accessories.js`: Accessory Power, powers, tuning, enrichments.
 - `src/config/gemstones.js`: gemstone stats.
-- `src/config/constants.js`: weights, boss defense, blessings, Catacombs table, soft cap.
+- `src/config/constants.js`: weights, boss defense, blessing levels (Time 0 or 5, Paul's Benediction), Catacombs table, soft cap.
 - `src/calc/formulas.js`: the damage and stat formulas.
 
 `npm run update-data` refreshes reforge stats, accessory families and fragged item recipes from the NotEnoughUpdates repo. `npm test` runs the tests.

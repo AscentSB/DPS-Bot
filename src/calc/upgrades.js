@@ -15,7 +15,7 @@ import {
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, shardLevel, totalAccessoryPower,
 } from './stats.js';
 
-const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence'];
+const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
 export function weightsFor(cls, target) {
@@ -96,6 +96,8 @@ export function buildLoadout(profile, ctx, weights) {
 
   // Tuning points already spent come from the profile; new ones from extra Accessory Power follow the split.
   if (ctx.tuning) ctx.tuning.basePoints = Math.floor(totalAccessoryPower(loadout, ctx.resource) / 10);
+  // Speed changes from here on are converted to tuning points.
+  ctx.baseSpeed = evaluate(loadout, ctx, weights).speed;
   return loadout;
 }
 

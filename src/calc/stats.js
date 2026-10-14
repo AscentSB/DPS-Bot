@@ -17,7 +17,7 @@ import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
   calcDamage, calcStrength, calcCritDamage, calcIntelligence, calcCritChance,
-  dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits,
+  dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits, blessingEffect,
   archerDamage, berserkerDamage, mageDamage,
 } from './formulas.js';
 
@@ -26,6 +26,7 @@ export const TARGETS = ['wither', 'dragon'];
 const STAT_ALIASES = {
   DAMAGE: 'damage', STRENGTH: 'strength', CRITICAL_DAMAGE: 'critDamage', CRIT_DAMAGE: 'critDamage',
   CRITICAL_CHANCE: 'critChance', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence',
+  WALK_SPEED: 'speed', SPEED: 'speed',
 };
 
 // Flat stats get dungeon scaling. Percent, fraction and multiplier stats do not.
@@ -43,7 +44,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0,
+    blessing: 0, blessingShard: 0, speed: 0,
   };
 }
 
@@ -244,10 +245,24 @@ function tuningStats(points, ctx) {
   return stats;
 }
 
+// New tuning points follow the profile's split over DPS stats (never speed), or the class default.
 function distribute(stats, points, ctx) {
   if (!points) return;
-  const split = ctx.tuning?.split ?? DEFAULT_TUNING_SPLIT[ctx.cls];
-  for (const [stat, share] of Object.entries(split)) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
+  const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => stat !== 'speed' && TUNING_PER_POINT[stat]);
+  const total = entries.reduce((sum, [, share]) => sum + share, 0);
+  const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(DEFAULT_TUNING_SPLIT[ctx.cls]);
+  for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
+}
+
+// Speed above (or below) the starting loadout moves tuning points off (or onto) speed.
+function speedTuning(speed, ctx) {
+  if (ctx.baseSpeed === undefined) return {};
+  let points = (speed - ctx.baseSpeed) / TUNING_PER_POINT.speed;
+  const inSpeed = ctx.tuning?.allocation ? ctx.tuning.allocation.speed ?? 0 : Infinity;
+  if (points > inSpeed) points = inSpeed;
+  const stats = {};
+  distribute(stats, points, ctx);
+  return stats;
 }
 
 // Accessory bag: own stats, Accessory Power, power stats, tuning, enrichments.
@@ -381,16 +396,19 @@ function rawStats(loadout, ctx, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
-  return { buckets, ap: acc.ap };
+  const speed = buckets.wither.speed;
+  add(speedTuning(speed, c));
+  return { buckets, ap: acc.ap, speed };
 }
 
 // Final stats after the strength / crit damage / intelligence / crit chance formulas.
 export function finalStats(bucket, cls) {
+  const effect = blessingEffect(bucket.blessing, bucket.blessingShard);
   return {
     damage: calcDamage(bucket.damage),
-    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength, 1 + bucket.blessing),
-    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, 1 + bucket.blessing),
-    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, 1 + bucket.blessing),
+    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength, effect),
+    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, effect),
+    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, effect),
     critChance: calcCritChance(bucket.critChance, bucket.additiveCritChance, bucket.multCritChance),
     // Berserker's 1200 is added inside berserkerDamage.
     additiveDamage: bucket.additiveDamage + (cls === 'bers' ? 0 : CLASSES[cls]?.baseAdditiveDamage ?? 0),
@@ -402,8 +420,8 @@ export function hasHyperion(loadout) {
 }
 
 function evaluateWith(loadout, ctx, activeExtras) {
-  const { buckets, ap } = rawStats(loadout, ctx, activeExtras);
-  const result = { stats: {}, ap };
+  const { buckets, ap, speed } = rawStats(loadout, ctx, activeExtras);
+  const result = { stats: {}, ap, speed };
   for (const target of TARGETS) {
     const s = finalStats(buckets[target], ctx.cls);
     const defense = TARGET_DEFENSE[target];

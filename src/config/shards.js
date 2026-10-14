@@ -33,6 +33,12 @@ export const SHARDS = {
   // Echo of Echoes: boosts every echo shard above by +5% per level.
   TIAMAT: { name: 'Tiamat', rarity: 'LEGENDARY', echo: 'echo', perLevel: { echo: 0.05 } },
 
+  // Speed: frees tuning points (see TUNING_PER_POINT).
+  OBSIDIAN_DEFENDER: { name: 'Obsidian Defender', rarity: 'UNCOMMON', perLevel: { speed: 1 } },
+
+  // Faker: dungeon blessings +1% stronger per level.
+  MIMIC: { name: 'Mimic', rarity: 'EPIC', perLevel: { blessingShard: 0.01 } },
+
   // Plain damage attributes.
   POWER_DRAGON: { name: 'Power Dragon', rarity: 'LEGENDARY', perLevel: { additiveDamage: 3 } },
   SKELETOR: { name: 'Skeletor', rarity: 'RARE', classes: ['arch'], perLevel: { additiveDamage: 2.5 } },

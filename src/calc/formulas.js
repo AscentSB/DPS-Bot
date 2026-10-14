@@ -1,5 +1,6 @@
 import {
-  BASE_DAMAGE, POWER_BLESSING, WISDOM_BLESSING, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_MULT,
+  BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
+  PAUL_BENEDICTION, BENEDICTION_BUFF,
   BASE_CRIT_CHANCE, OVERLOAD_MULTIPLIER, MAGE_INT_DIVISOR, MAGE_ABILITY_SCALING, MAGE_ABILITY_BASE,
   HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
@@ -13,27 +14,41 @@ export function calcDamage(weaponDamage) {
   return BASE_DAMAGE + weaponDamage;
 }
 
-// blessingScale: Forbidden Blessing makes blessings up to 10% more effective (1.1).
-function blessed(flat, blessing, additive, additive2, multiplicative) {
-  return (flat + BLESSING_FLAT_PER_LEVEL * blessing)
-    * (1 + additive + additive2)
-    * multiplicative
-    * (1 + BLESSING_MULT * BLESSING_PERCENT_PER_LEVEL * blessing);
+// Blessing effect E = (1 + floor buff)(1 + Forbidden Blessing)(1 + Mimic shard)(1 + Benediction).
+export function blessingEffect(forbiddenBlessing = 0, mimic = 0) {
+  return (1 + BLESSING_FLOOR_BUFF) * (1 + forbiddenBlessing) * (1 + mimic) * (PAUL_BENEDICTION ? 1 + BENEDICTION_BUFF : 1);
 }
 
-// (Strength + 76)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .38)
-export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
-  return blessed(strength, POWER_BLESSING * blessingScale, additive, additive2, multiplicative);
+// Apply every blessing that boosts `stat`: flat first, then each blessing's percent multiplies.
+export function applyBlessings(value, stat, effect, blessings = BLESSINGS) {
+  let flat = value;
+  let pct = 1;
+  for (const b of Object.values(blessings)) {
+    if (!b.level || !b.stats.includes(stat)) continue;
+    flat += BLESSING_FLAT_PER_LEVEL * b.level * effect;
+    pct *= 1 + BLESSING_PERCENT_PER_LEVEL * b.level * effect;
+  }
+  return { flat, pct };
 }
 
-// (CritDamage + 76)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .38)
-export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
-  return blessed(critDamage, POWER_BLESSING * blessingScale, additive, additive2, multiplicative);
+function blessed(stat, flat, additive, additive2, multiplicative, effect) {
+  const b = applyBlessings(flat, stat, effect);
+  return b.flat * (1 + additive + additive2) * multiplicative * b.pct;
 }
 
-// (Intelligence + 48)(1 + additive + 2nd additive)(multiplicative)(1 + 1.1 * 1.1 * 1.2 * .24)
-export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1, blessingScale = 1) {
-  return blessed(intelligence, WISDOM_BLESSING * blessingScale, additive, additive2, multiplicative);
+// (Strength + Power + Time flat)(1 + additive + 2nd additive)(multiplicative)(1 + Power %)(1 + Time %)
+export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
+  return blessed('strength', strength, additive, additive2, multiplicative, effect);
+}
+
+// (CritDamage + Power flat)(1 + additive + 2nd additive)(multiplicative)(1 + Power %)
+export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
+  return blessed('critDamage', critDamage, additive, additive2, multiplicative, effect);
+}
+
+// (Intelligence + Wisdom + Time flat)(1 + additive + 2nd additive)(multiplicative)(1 + Wisdom %)(1 + Time %)
+export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
+  return blessed('intelligence', intelligence, additive, additive2, multiplicative, effect);
 }
 
 // (CritChance + 30)(1 + additive)(multiplicative)
