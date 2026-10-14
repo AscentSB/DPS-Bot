@@ -89,14 +89,13 @@ export function buildLoadout(profile, ctx, weights) {
     }
   }
 
-  // Consumed Rift Prism. When the profile does not say, 11 Accessory Power missing against the
-  // profile's highest Accessory Power means the player consumed one.
-  const prismMissing = profile.riftPrism == null && profile.highestAp != null
-    && profile.highestAp - totalAccessoryPower(loadout, ctx.resource) === AP_OVERRIDES[RIFT_PRISM_ID];
-  if ((profile.riftPrism || prismMissing) && !loadout.accessories.has(RIFT_PRISM_ID)) {
-    loadout.accessories.set(RIFT_PRISM_ID, newItem(RIFT_PRISM_ID, ctx.resource));
-    loadout.owned.add(RIFT_PRISM_ID);
-  }
+  // Consumed Rift Prism. The profile's highest Accessory Power is the truth: the prism's 11 is only added
+  // when the bag comes up exactly 11 short of it (or when the profile gives no Accessory Power at all).
+  // A consumed prism is always marked owned so it is never offered.
+  const gap = profile.highestAp != null ? profile.highestAp - totalAccessoryPower(loadout, ctx.resource) : null;
+  const addPrism = gap === AP_OVERRIDES[RIFT_PRISM_ID] || (gap === null && profile.riftPrism === true);
+  if (addPrism && !loadout.accessories.has(RIFT_PRISM_ID)) loadout.accessories.set(RIFT_PRISM_ID, newItem(RIFT_PRISM_ID, ctx.resource));
+  if (addPrism || profile.riftPrism) loadout.owned.add(RIFT_PRISM_ID);
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
