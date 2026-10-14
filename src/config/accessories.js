@@ -110,3 +110,11 @@ export const ENRICHMENTS = {
 };
 export const ENRICHABLE_RARITIES = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL'];
 export const BEST_ENRICHMENT = { arch: 'critical_damage', bers: 'critical_damage', mage: 'intelligence' };
+// Enrichments offered per class (each accessory can take one).
+export const CLASS_ENRICHMENTS = {
+  arch: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
+  bers: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
+  mage: ['intelligence', 'walk_speed'],
+};
+// Dungeon accessories (and their enrichments) get the Catacombs boost: x (1 + cata boost). Stars and the
+// General's Medallion do not apply, and crit chance and attack speed are not boosted. See accessoryItemStats.

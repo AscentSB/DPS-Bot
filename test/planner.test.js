@@ -637,3 +637,24 @@ test('buys and shards respect requirements: Catacombs, floor, skills, slayers an
   assert.ok(!labels.some((x) => x.startsWith('Buy Terminator')));
   assert.ok(!labels.some((x) => x.startsWith('Inferno Demonlord Shard')));
 });
+
+test('dungeon accessories and their enrichments get x (1 + cata boost), except crit chance', async () => {
+  const { accessoryItemStats } = await import('../src/calc/stats.js');
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const skull = { ...newItem('MASTER_SKULL_TIER_7', resource), enrichment: 'critical_damage' };
+  close(accessoryItemStats(skull, ctx).critDamage, 1 * (1 + 4.85));
+  close(accessoryItemStats({ ...skull, enrichment: 'critical_chance' }, ctx).critChance, 1);
+  close(accessoryItemStats({ ...newItem('WITHER_RELIC', resource), enrichment: 'critical_damage' }, ctx).critDamage, 1);
+});
+
+test('an accessory buy can come bundled with its recombobulator and enrichment as one step', () => {
+  const res = new Map([...resource, ['ARTIFACT_OF_CONTROL', { id: 'ARTIFACT_OF_CONTROL', name: 'Artifact of Control', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
+  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
+  const bundle = availableUpgrades(l, ctx, p).find((u) => u.label === 'Buy Artifact of Control + Recombobulator + Critical Chance Enrichment');
+  assert.ok(bundle);
+  assert.equal(bundle.cost, 3e6);
+  const item = bundle.apply(l).accessories.get('ARTIFACT_OF_CONTROL');
+  assert.ok(item.recomb && item.enrichment === 'critical_chance');
+});

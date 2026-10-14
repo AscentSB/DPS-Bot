@@ -22,7 +22,7 @@ import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
   calcDamage, calcStrength, calcCritDamage, calcIntelligence, calcCritChance,
-  dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits, blessingEffect,
+  dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits, blessingEffect, cataBoost,
   archerDamage, berserkerDamage, mageDamage,
 } from './formulas.js';
 
@@ -363,15 +363,25 @@ export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_
 }
 
 // Accessory bag: own stats, Accessory Power, power stats, enrichments, and how many tuning points it gives.
+// One accessory's stats with its enrichment. Dungeon accessories get x (1 + cata boost) on every stat except
+// crit chance and attack speed (no stars or medallion on accessories).
+export function accessoryItemStats(item, ctx) {
+  const stats = { ...itemRawStats(item, ctx).global };
+  const enrich = item.enrichment && ENRICHMENTS[item.enrichment];
+  if (enrich) addLoose(stats, enrich.stats);
+  if (!ctx.resource?.get(item.id)?.dungeon_item) return stats;
+  const boost = 1 + cataBoost(ctx.cataLevel ?? 0);
+  for (const key of Object.keys(stats)) if ((FLAT_STATS.has(key) || key === 'speed') && !STAR_ONLY_STATS.has(key)) stats[key] *= boost;
+  return stats;
+}
+
 export function accessoryStats(loadout, ctx, extraTuningPoints = 0) {
   const counted = countedAccessories(loadout);
   const stats = {};
   let ap = 0;
   for (const item of counted) {
     ap += accessoryPower(item, ctx.resource);
-    addLoose(stats, itemRawStats(item, ctx).global);
-    const enrich = item.enrichment && ENRICHMENTS[item.enrichment];
-    if (enrich) addLoose(stats, enrich.stats);
+    addLoose(stats, accessoryItemStats(item, ctx));
   }
   const power = POWERS[ctx.power] ?? POWERS[DEFAULT_POWER[ctx.cls]];
   const mult = powerMultiplier(ap);

@@ -5,7 +5,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, CLASS_ENRICHMENTS, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -287,9 +287,9 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Enrichments on Legendary+ accessories.
     if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
-      for (const kind of [BEST_ENRICHMENT[cls], 'walk_speed']) {
+      for (const kind of CLASS_ENRICHMENTS[cls]) {
         if (item.enrichment === kind) continue;
-        push(`${kind === 'walk_speed' ? 'Speed' : titleCase(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
+        push(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
       }
     }
@@ -310,10 +310,17 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
-    const buy = (reforgeKeyName, reforge) => push(`Buy ${cleanName(info.name ?? id)}${reforge ? ` + ${reforge.name} reforge` : ''}`,
-      reforge ? [{ id }, ...reforgeCost(reforge, newItem(id, resource))] : [{ id }], (l) => {
+    // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
+    // priced and scored as one step, so an expensive accessory is weighed with its recomb and enrichment.
+    const buy = (reforgeKeyName, reforge, extra = {}) => {
+      const base = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
+      const parts = [{ id }, ...(reforge ? reforgeCost(reforge, base) : [])];
+      const labels = [`Buy ${cleanName(info.name ?? id)}`, ...(reforge ? [`${reforge.name} reforge`] : [])];
+      if (extra.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); labels.push('Recombobulator'); }
+      if (extra.enrichment) { parts.push({ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[extra.enrichment].key}` }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
+      push(labels.join(' + '), parts, (l) => {
       const next = cloneLoadout(l);
-      const item = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
+      const item = { ...base, recomb: Boolean(extra.recomb), enrichment: extra.enrichment ?? null };
       next.owned.add(id);
       if (isRag) next.rag = item;
       if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
@@ -321,12 +328,25 @@ export function availableUpgrades(loadout, ctx, prices) {
       else if (isEquip) next.equipment[equipSlot] = item;
       else if (isAcc) next.accessories.set(id, item);
       return next;
-    }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
+      }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
+    };
+    const fresh = newItem(id, resource);
+    const recombable = canRecomb(fresh, resource);
     buy();
-    // Gear can come with the best reforge stone for its slot; the planner picks whichever is better per million.
-    if (!isAcc) {
-      const best = bestReforge(loadout, ctx, newItem(id, resource));
-      if (best) buy(best.key, best.reforge);
+    if (recombable) buy(null, null, { recomb: true });
+    if (isAcc) {
+      // Enrichments need Legendary or higher, so most come after the recombobulator.
+      for (const recomb of recombable ? [false, true] : [false]) {
+        if (!ENRICHABLE_RARITIES.includes(itemRarity({ ...fresh, recomb }))) continue;
+        for (const kind of CLASS_ENRICHMENTS[cls]) buy(null, null, { recomb, enrichment: kind });
+      }
+    } else {
+      // Gear can come with the best reforge for its slot (and a recombobulator).
+      const best = bestReforge(loadout, ctx, fresh);
+      if (best) {
+        buy(best.key, best.reforge);
+        if (recombable) buy(best.key, best.reforge, { recomb: true });
+      }
     }
   }
 
@@ -524,6 +544,10 @@ function ordinal(n) {
 
 function roman(n) {
   return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n - 1] ?? String(n);
+}
+
+function enrichmentName(kind) {
+  return kind === 'walk_speed' ? 'Speed' : titleCase(kind);
 }
 
 function titleCase(s) {
