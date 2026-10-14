@@ -12,6 +12,8 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 4. Tries every upgrade: master stars, enchant books, potato books, The Art of War, recombobulators, reforge stones, blacksmith reforges (Blended on equipment, Light on boots), gemstones (with slot unlock costs), fragging (8 boss fragments), enrichments, attribute shards, essence shop perks, pets and pet items, ability items, and buying any weapon, armor, equipment, accessory or Ragnarock you don't own. Gear is also offered bundled with its best reforge stone, so a piece that is only worth it reforged (Necron's armor with Ancient) still shows up.
 5. Takes the best % per million, applies it, recalculates every option from the new stats, and repeats. A master star never lands on an item you don't have, and the 5th never comes before the 4th. Nothing locks: Duplex I can be followed by Duplex II and later V, and a later reforge or purchase can replace an earlier one, as long as each step adds damage.
 
+Only gear the player can use is offered: Catacombs level, floor completion (from Catacombs level), skill and slayer requirements from the items resource are checked, and shards need the Hunting level to syphon them (Uncommon 5, Rare 10, Epic 15, Legendary 20).
+
 Prices come from bazaar instant buy and auction house lowest BIN. NPC prices are never used. Essence shop perks cost essence × the bazaar price of that essence, and only show at Catacombs 20+ (the bazaar requirement for essence). Blacksmith reforges roll at random for 500 coins, so they cost 500 × the number of basic reforges for that item type (9 for equipment, so 4,500 coins).
 
 ## Weights

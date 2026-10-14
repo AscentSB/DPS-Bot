@@ -51,6 +51,9 @@ export const SHARDS = {
 
 export const SHARD_MAX_LEVEL = 10;
 
+// Hunting level needed to syphon a shard, by rarity. Source: https://hypixelskyblock.minecraft.wiki/w/Attributes
+export const SHARD_HUNTING_REQ = { COMMON: 0, UNCOMMON: 5, RARE: 10, EPIC: 15, LEGENDARY: 20 };
+
 // Cumulative shards needed to reach each level (index 0 = level 1).
 export const SHARDS_CUMULATIVE = {
   COMMON: [1, 4, 9, 15, 22, 30, 40, 54, 72, 96],

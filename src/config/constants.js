@@ -176,6 +176,17 @@ export const RARITIES = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYT
 export const DUNGEON_FLOOR_CATA = [1, 3, 5, 9, 14, 19, 24, 32, 34, 36];
 // Floor-scaled dungeon armor is assumed to have the max 50% stat boost.
 export const DUNGEON_DROP_BOOST = 0.5;
+// Catacombs level needed for Master Mode floors 1-7 (requirement checks on items).
+export const MASTER_FLOOR_CATA = [24, 26, 28, 30, 32, 34, 36];
+// Slayer XP needed for each level, cumulative (index 0 = level 1). Source: NEU repo constants/leveling.json.
+export const SLAYER_XP = {
+  zombie: [5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+  spider: [5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000],
+  wolf: [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000],
+  enderman: [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000],
+  blaze: [10, 30, 250, 1500, 5000, 20000, 100000, 400000, 1000000],
+  vampire: [20, 75, 240, 840, 2400],
+};
 export const SPECIAL_RARITIES = ['SPECIAL', 'VERY_SPECIAL'];
 
 // Ragnarock: its ability grants RAGNAROCK_MULTIPLIER x the axe's strength.

@@ -3,7 +3,7 @@ import { ITEMS_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp, skillLevelFromXp } from '../calc/formulas.js';
 import { TUNING_KEYS } from '../config/accessories.js';
-import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS, COMBAT_MAX_LEVEL } from '../config/constants.js';
+import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS, COMBAT_MAX_LEVEL, SLAYER_XP } from '../config/constants.js';
 import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
 
 const API = 'https://api.hypixel.net/v2';
@@ -72,6 +72,11 @@ export function readMember(profile, uuid, resource) {
     archerLevel: cataLevelFromXp(member.dungeons?.player_classes?.archer?.experience ?? 0),
     cataXp,
     secrets: Number(member.dungeons?.secrets ?? 0),
+    // Skill and slayer levels for item requirements (null when the profile hides them).
+    skills: member.player_data?.experience ? Object.fromEntries(Object.entries(member.player_data.experience)
+      .filter(([k]) => k.startsWith('SKILL_')).map(([k, xp]) => [k.slice(6), skillLevelFromXp(xp, 60)])) : null,
+    slayers: member.slayer?.slayer_bosses ? Object.fromEntries(Object.entries(SLAYER_XP)
+      .map(([boss, table]) => [boss, table.filter((need) => (member.slayer.slayer_bosses[boss]?.xp ?? 0) >= need).length])) : null,
     // Combat skill (base crit chance). Skills API off: assume maxed.
     combatLevel: member.player_data?.experience?.SKILL_COMBAT == null ? COMBAT_MAX_LEVEL
       : skillLevelFromXp(member.player_data.experience.SKILL_COMBAT, COMBAT_MAX_LEVEL),

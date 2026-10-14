@@ -621,3 +621,19 @@ test('enchant levels never lock: Duplex I can be followed by higher levels, each
   assert.ok(duplex.length > 1, labels.join(', '));
   assert.ok(duplex.at(-1).startsWith('Duplex V '), duplex.join(', '));
 });
+
+test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
+  const { meetsRequirements } = await import('../src/lib/requirements.js');
+  const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };
+  assert.equal(meetsRequirements({ requirements: [{ type: 'DUNGEON_SKILL', dungeon_type: 'CATACOMBS', level: 27 }] }, player), false);
+  assert.equal(meetsRequirements({ requirements: [{ type: 'DUNGEON_TIER', dungeon_type: 'CATACOMBS', tier: 7 }] }, player), false);
+  assert.equal(meetsRequirements({ requirements: [{ type: 'DUNGEON_TIER', dungeon_type: 'CATACOMBS', tier: 6 }] }, player), true);
+  assert.equal(meetsRequirements({ requirements: [{ type: 'SKILL', skill: 'COMBAT', level: 22 }] }, player), true);
+  assert.equal(meetsRequirements({ requirements: [{ type: 'SLAYER', slayer_boss_type: 'spider', level: 6 }] }, player), false);
+  const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), requirements: [{ type: 'DUNGEON_SKILL', dungeon_type: 'CATACOMBS', level: 27 }] }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 23, skills: player.skills, slayers: player.slayers, resource: res });
+  const l = buildLoadout(profile([]), ctx, weightsFor('arch'));
+  const labels = availableUpgrades(l, ctx, { get: () => ({ price: 1e6, source: 'AH' }) }).map((u) => u.label);
+  assert.ok(!labels.some((x) => x.startsWith('Buy Terminator')));
+  assert.ok(!labels.some((x) => x.startsWith('Inferno Demonlord Shard')));
+});

@@ -6,7 +6,7 @@ import {
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
 import { ENRICHMENTS, ENRICHABLE_RARITIES, BEST_ENRICHMENT, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
-import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE } from '../config/shards.js';
+import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
@@ -18,6 +18,7 @@ import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity } from '../lib/drops.js';
+import { meetsRequirements } from '../lib/requirements.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
@@ -32,8 +33,10 @@ export function weightsFor(cls, target) {
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, resource }) {
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, resource };
+// skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, combatLevel = 0, skills, slayers, resource }) {
+  const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, combatLevel, player, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -296,7 +299,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const weaponCats = CLASS_WEAPON_CATEGORIES[cls];
   const accIds = new Set(loadout.accessories.keys());
   for (const [id, info] of resource) {
-    if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier)) continue;
+    if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
@@ -330,7 +333,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   // Clear boots: any boots faster than your current clear boots, worn only during the clear.
   const clearSpeed = bootsSpeed(loadout.clearBoots, ctx);
   for (const [id, info] of resource) {
-    if (info.category !== 'BOOTS' || loadout.owned.has(id)) continue;
+    if (info.category !== 'BOOTS' || loadout.owned.has(id) || !meetsRequirements(info, ctx.player)) continue;
     const boots = newItem(id, resource);
     if (bootsSpeed(boots, ctx) <= clearSpeed) continue;
     push(`Buy ${cleanName(info.name ?? id)} (clear boots for speed)`, [{ id }],
@@ -340,6 +343,8 @@ export function availableUpgrades(loadout, ctx, prices) {
   // Attribute shards: straight to max level, like the sheet.
   for (const [id, shard] of Object.entries(SHARDS)) {
     if (shard.classes && !shard.classes.includes(cls)) continue;
+    const hunting = ctx.player?.skills?.HUNTING;
+    if (hunting != null && hunting < (SHARD_HUNTING_REQ[shard.rarity] ?? 0)) continue;
     const current = shardLevel(loadout, id);
     if (current >= SHARD_MAX_LEVEL) continue;
     const cum = SHARDS_CUMULATIVE[shard.rarity];
@@ -396,6 +401,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (loadout.extras.has(entry.key)) continue;
     if (entry.classes && !entry.classes.includes(cls)) continue;
     if (entry.requires && !loadout.extras.has(entry.requires)) continue;
+    if (entry.cost.some((part) => !meetsRequirements(resource.get(part.id), ctx.player))) continue;
     push(entry.name + (entry.owned ? '' : ' (?)'), entry.cost,
       (l) => { const next = cloneLoadout(l); next.extras.add(entry.key); return next; },
       { unverified: !entry.owned, group: entry.group && `extra:${entry.group}` });
