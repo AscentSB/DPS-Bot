@@ -122,7 +122,26 @@ export function buildLoadout(profile, ctx, weights) {
     }
   }
 
+  loadout = selectPet(loadout, ctx, weights);
+  // Tuning is free to change, so leftover points use the best split for this loadout (10% steps over the
+  // class's damage stats), not whatever the profile has saved. Stored on ctx for the rest of the run.
+  ctx.tuning = { ...(ctx.tuning ?? {}), split: bestTuningSplit(loadout, ctx, weights) };
   return selectPet(loadout, ctx, weights);
+}
+
+function bestTuningSplit(loadout, ctx, weights) {
+  const stats = ctx.cls === 'mage' || ctx.cls === 'arch' || ctx.cls === 'bers' ? ['strength', 'critDamage', 'critChance'] : [];
+  let best = null;
+  let bestScore = -Infinity;
+  for (let a = 0; a <= 10; a++) {
+    for (let b = 0; b <= 10 - a; b++) {
+      const split = { [stats[0]]: a / 10, [stats[1]]: b / 10, [stats[2]]: (10 - a - b) / 10 };
+      const r = evaluate(loadout, { ...ctx, tuning: { ...(ctx.tuning ?? {}), split } }, weights);
+      const score = r.wither * weights.wither + r.dragon * weights.dragon;
+      if (score > bestScore + 1e-9) { bestScore = score; best = split; }
+    }
+  }
+  return best;
 }
 
 // With Maxor's boots owned, the boss boots are Maxor's or Necron's only (no swapping to other boots).

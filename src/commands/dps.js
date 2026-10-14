@@ -17,6 +17,20 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
     .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }));
 
+const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
+
+// "6 attack speed · 48 speed · 177 crit chance" from the allocation and the split leftover points use.
+function tuningText(tuning, split) {
+  const parts = [];
+  if (tuning?.attackSpeed) parts.push(`${tuning.attackSpeed} attack speed`);
+  if (tuning?.speed) parts.push(`${tuning.speed} speed`);
+  for (const [stat, share] of Object.entries(split ?? {})) {
+    const points = Math.round((tuning?.dps ?? 0) * share);
+    if (points) parts.push(`${points} ${TUNING_LABELS[stat] ?? stat}`);
+  }
+  return parts.join(' · ') || 'none';
+}
+
 export function formatCoins(n) {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
@@ -24,7 +38,7 @@ export function formatCoins(n) {
   return `${Math.round(n)}`;
 }
 
-export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
+export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit }) {
   const lines = plan.steps.map((s, i) =>
     `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
   const anyUnverified = plan.steps.some((s) => s.unverified);
@@ -39,6 +53,7 @@ export function buildEmbed({ name, cls, target, cataLevel, plan, weights }) {
       { name: 'Weights', value: targetLabel, inline: true },
       { name: 'Catacombs', value: `Level ${cataLevel} (+${Math.round(cataBoost(cataLevel) * 100)}%)`, inline: true },
       { name: 'Accessory Power', value: `${plan.startDamage.ap} → ${plan.endDamage.ap}`, inline: true },
+      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, tuningSplit) },
       { name: 'Damage now', value: fmt(plan.startDamage) },
       { name: 'Damage after all listed', value: fmt(plan.endDamage) },
     )
@@ -72,7 +87,7 @@ export async function execute(interaction) {
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
 
-    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights })] });
+    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split })] });
   } catch (err) {
     console.error(err);
     await interaction.editReply(`Error: ${err.message}`);

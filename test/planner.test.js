@@ -749,3 +749,11 @@ test("Chimera on a mage weapon copies the pet's stats, boosted by stars and cata
   assert.ok(b.wither > a.wither);
 });
 
+
+test("the bot picks the best tuning split itself instead of the profile's saved one", () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, tuning: { split: { critChance: 1 } } });
+  const w = weightsFor('mage');
+  buildLoadout(profile([newItem('HYPERION', resource), newItem('WITHER_RELIC', resource)]), ctx, w);
+  const split = ctx.tuning.split;
+  assert.ok(split && Math.abs(split.strength + split.critDamage + split.critChance - 1) < 1e-9);
+});
