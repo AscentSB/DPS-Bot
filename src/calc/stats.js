@@ -3,7 +3,7 @@ import {
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
-  DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
+  DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -364,7 +364,7 @@ function distribute(stats, points, ctx) {
 export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP, asMult = 1) {
   const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / (TUNING_PER_POINT.attackSpeed * asMult) - 1e-9)));
   const left = points - asPoints;
-  const speedPoints = Math.min(left, Math.max(0, Math.ceil((SPEED_CAP - speed) / TUNING_PER_POINT.speed)));
+  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls) - speed) / TUNING_PER_POINT.speed)));
   const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
   distribute(stats, left - speedPoints, ctx);
   return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };
@@ -574,7 +574,8 @@ function rawStats(loadout, ctx, activeExtras) {
   if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
   // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
-  const clearSwap = Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS));
+  // Mage is scored in the boss only (RCM armor for the clear), so its boss boots carry the speed.
+  const clearSwap = CLEAR_BOOTS_CLASSES.includes(c.cls) ? Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS)) : 0;
   const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
   // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
   const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));

@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLASS_EXCLUDED_ITEMS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -104,9 +104,12 @@ export function buildLoadout(profile, ctx, weights) {
   if (addPrism || profile.riftPrism) loadout.owned.add(RIFT_PRISM_ID);
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
-  bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id));
+  bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id, ctx.cls));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
-  loadout.clearBoots = bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null);
+  // Mage clears in RCM armor, so it has none.
+  loadout.clearBoots = CLEAR_BOOTS_CLASSES.includes(ctx.cls)
+    ? bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null)
+    : null;
   loadout = selectPet(loadout, ctx, weights);
 
   for (let pass = 0; pass < 2; pass++) {
@@ -149,8 +152,10 @@ function bestTuningSplit(loadout, ctx, weights) {
   return best;
 }
 
-// With Maxor's boots owned, the boss boots are Maxor's or Necron's only (no swapping to other boots).
-function bossBootsAllowed(owned, id) {
+// Archer / Berserker with Maxor's boots owned: the boss boots are Maxor's or Necron's only (no swapping to
+// other boots). Mage picks its boss boots freely.
+function bossBootsAllowed(owned, id, cls) {
+  if (!CLEAR_BOOTS_CLASSES.includes(cls)) return true;
   return !owned.has(MAXOR_BOOTS_ID) || id === MAXOR_BOOTS_ID || id === NECRON_BOOTS_ID;
 }
 
@@ -349,7 +354,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
-    if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id)) continue;
+    if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id, cls)) continue;
     // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
     // priced and scored as one step, so an expensive accessory is weighed with its recomb and enrichment.
     const buy = (reforgeKeyName, reforge, extra = {}) => {
@@ -392,7 +397,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
   // Clear boots: any boots faster than your current clear boots, worn only during the clear.
   const clearSpeed = bootsSpeed(loadout.clearBoots, ctx);
-  for (const [id, info] of resource) {
+  for (const [id, info] of CLEAR_BOOTS_CLASSES.includes(cls) ? resource : []) {
     if (info.category !== 'BOOTS' || loadout.owned.has(id) || !meetsRequirements(info, ctx.player)) continue;
     const boots = newItem(id, resource);
     if (bootsSpeed(boots, ctx) <= clearSpeed) continue;

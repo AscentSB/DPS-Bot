@@ -58,6 +58,12 @@ export const BENEDICTION_BUFF = 0.25;
 export const BASE_SPEED = 100;
 // 500 already includes the Folf shard's Catacombs Cap (+50 at level X).
 export const SPEED_CAP = 500;
+// Mage clears in RCM armor and is only scored in the boss, where 450 speed is enough.
+export const SPEED_CAP_BY_CLASS = { mage: 450 };
+export const speedCap = (cls) => SPEED_CAP_BY_CLASS[cls] ?? SPEED_CAP;
+// Classes that wear separate clear boots (e.g. Maxor's) and swap for the boss. Mage clears in RCM armor,
+// so its boss gear is scored on its own, with no clear boots.
+export const CLEAR_BOOTS_CLASSES = ['arch', 'bers'];
 export const EXTRA_SPEED = 0;
 
 // Dungeon VII potion (Ophelia): Strength V, Critical III, Archery III, Speed III.
@@ -222,7 +228,8 @@ export const LEGION_DRAGON_CRIT_CHANCE_PLAYERS = 4;
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;
 
-// Boots: a player with Maxor's boots only swaps them off for Necron's boots in the boss.
+// Boots: an Archer or Berserker with Maxor's boots only swaps them off for Necron's boots in the boss.
+// Mage has no such rule (Storm's boots beat Maxor's in the boss).
 export const MAXOR_BOOTS_ID = 'SPEED_WITHER_BOOTS';
 export const NECRON_BOOTS_ID = 'POWER_WITHER_BOOTS';
 

@@ -672,6 +672,21 @@ test("with Maxor's boots, the boss boots are Maxor's or Necron's only", () => {
   assert.ok(!availableUpgrades(owned, ctx, p).some((u) => u.label.startsWith('Buy Skeleton Master Boots')));
 });
 
+test("mage fills speed to 450 only and picks boss boots freely, with no clear boots", async () => {
+  const { tuningAllocation } = await import('../src/calc/stats.js');
+  assert.equal(tuningAllocation(100, 420, { cls: 'mage', tuning: { split: { critDamage: 1 } } }).speedPoints, 20);
+  assert.equal(tuningAllocation(100, 420, { cls: 'arch', tuning: { split: { critDamage: 1 } } }).speedPoints, 54);
+  const res = new Map([...resource,
+    ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 10 } }],
+    ['WISE_WITHER_BOOTS', { id: 'WISE_WITHER_BOOTS', name: "Storm's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250, CRITICAL_DAMAGE: 10 } }]]);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('HYPERION', res), newItem('SPEED_WITHER_BOOTS', res), newItem('WISE_WITHER_BOOTS', res)]), ctx, weightsFor('mage'));
+  assert.equal(l.armor.BOOTS.id, 'WISE_WITHER_BOOTS');
+  assert.equal(l.clearBoots, null);
+  const p = { get: () => ({ price: 1e5, source: 'AH' }) };
+  assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('clear boots')));
+});
+
 test("upgrade mode 'max' jumps straight to the max level at its own cost", () => {
   const w = weightsFor('arch');
   const labels = (mode) => {
