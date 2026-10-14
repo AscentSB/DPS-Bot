@@ -482,16 +482,11 @@ function gemUpgrades(item, ctx) {
   return out;
 }
 
-// Greedy plan: take the best weighted % DPS per million coins, apply it, repeat.
-// Upgrades that share a group (one reforge per item, one level per enchant, one gem per slot,
-// one purchase per gear slot, one pet) are picked at most once per plan, so the list never
-// Groups for item changes (reforges, enchant levels, gems, enrichments).
-const ITEM_CHANGE_GROUP = /:(reforge|enchant:|gem:|enrich)/;
-
-// tells you to buy something and then replace it.
+// Greedy plan: take the upgrade with the best weighted % DPS per million coins, apply it, then recalculate every
+// option from the new stats and repeat. Nothing locks: Duplex I can be followed by Duplex II and later V, and a
+// later reforge or purchase can replace an earlier one, as long as each step adds damage.
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
   const steps = [];
-  const used = new Set();
   ctx.weights = weights;
   let loadout = startLoadout;
   let current = evaluate(loadout, ctx, weights);
@@ -500,7 +495,7 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
   for (let i = 0; i < limit; i++) {
     const candidates = [];
     for (const up of availableUpgrades(loadout, ctx, prices)) {
-      if (!(up.cost > 0) || (up.group && used.has(up.group))) continue;
+      if (!(up.cost > 0)) continue;
       const next = up.apply(loadout);
       const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
@@ -511,9 +506,6 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
     for (const c of candidates) if (!best || c.perMillion > best.perMillion) best = c;
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
-    // Item changes (reforges, enchant levels, gems, enrichments) never lock: Duplex I can be followed by
-    // Duplex II and later V, each ranked on its own gain per million. Buys stay one per slot.
-    if (best.group && !ITEM_CHANGE_GROUP.test(best.group)) used.add(best.group);
     loadout = selectPet(best.next, ctx, weights);
     current = evaluate(loadout, ctx, weights);
   }
