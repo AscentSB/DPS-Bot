@@ -84,6 +84,10 @@ export const DEFAULT_TUNING_SPLIT = {
   mage: { intelligence: 1 },
 };
 
+// Hatcessories (Crab / Sloth Hats of Celebration, Balloon Hats, Cake Hats) all count as one accessory:
+// only your best one gives Accessory Power and stats, the rest are duplicates.
+export const HATCESSORY = /^(PARTY_HAT_|BALLOON_HAT_|CAKE_HAT_)/;
+
 // Accessories that cannot be recombobulated (SkyCrypt SPECIAL_ACCESSORIES).
 export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX', 'RIFT_PRISM'];
 

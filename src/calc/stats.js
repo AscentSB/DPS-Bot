@@ -9,7 +9,7 @@ import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -253,18 +253,41 @@ export function itemContribution(item, ctx, opts) {
 
 // ---------- Accessories ----------
 
+export function isHatcessory(id) {
+  return HATCESSORY.test(id);
+}
+
+// True when a better accessory of the same family is owned. Hatcessories are one family:
+// owning any hat makes every other hat a duplicate.
 export function accessorySuperseded(id, accessoryIds) {
+  if (isHatcessory(id)) return [...accessoryIds].some((other) => other !== id && isHatcessory(other));
   return (ACCESSORY_DATA.upgrades[id] ?? []).some((up) => accessoryIds.has(up));
 }
 
 export function countedAccessories(loadout) {
   const ids = new Set(loadout.accessories.keys());
   const out = [];
+  let hat = null;
   for (const item of loadout.accessories.values()) {
-    if (IGNORED_ACCESSORIES.has(item.id) || accessorySuperseded(item.id, ids)) continue;
+    if (IGNORED_ACCESSORIES.has(item.id)) continue;
+    // Only the highest-rarity hat counts.
+    if (isHatcessory(item.id)) {
+      if (!hat || hatRank(item) > hatRank(hat)) hat = item;
+      continue;
+    }
+    if (accessorySuperseded(item.id, ids)) continue;
     out.push(item);
   }
+  if (hat) out.push(hat);
   return out;
+}
+
+function hatRank(item) {
+  return statRarityIndex(itemRarity(item)) * 2 + (item.recomb ? 1 : 0);
+}
+
+function statRarityIndex(rarity) {
+  return RARITIES.indexOf(statRarity(rarity));
 }
 
 export function accessoryPower(item, resource) {

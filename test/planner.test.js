@@ -512,3 +512,11 @@ test('unobtainable items like the Raygun are never offered', () => {
   const p = { get: () => ({ price: 1, source: 'AH' }) };
   assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('Raygun')));
 });
+
+test('hatcessories: only the best hat counts, the others are duplicates', async () => {
+  const { countedAccessories } = await import('../src/calc/stats.js');
+  const hat = (id, recomb = false) => ({ id, name: id, category: 'ACCESSORY', baseRarity: 'SPECIAL', recomb, enchants: {}, gems: { slots: {}, unlocked: [] } });
+  const loadout = { accessories: new Map([['PARTY_HAT_CRAB', hat('PARTY_HAT_CRAB')], ['PARTY_HAT_SLOTH', hat('PARTY_HAT_SLOTH')], ['PARTY_HAT_CRAB_ANIMATED', hat('PARTY_HAT_CRAB_ANIMATED', true)], ['WITHER_RELIC', { id: 'WITHER_RELIC', category: 'ACCESSORY', baseRarity: 'LEGENDARY' }]]) };
+  const counted = countedAccessories(loadout).map((i) => i.id);
+  assert.deepEqual(counted.sort(), ['PARTY_HAT_CRAB_ANIMATED', 'WITHER_RELIC']);
+});
