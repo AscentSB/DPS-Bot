@@ -52,13 +52,13 @@ export const EXTRA_SPEED = 0;
 export const DUNGEON_POTION = { strength: 40, critChance: 20, critDamage: 30, bowDamage: 50, speed: 15 };
 
 // Attack speed: tuning fills attack speed up to ATTACK_SPEED_CAP first (before speed and crit).
-// Shortbows fire every ceil(shotTicks / (1 + AS/100)) ticks; melee hits every round(10 / (1 + AS/100)) ticks.
+// Shortbows fire every ceil(shotTicks / (1 + AS/100)) ticks.
 export const ATTACK_SPEED_CAP = 100;
 export const TICKS_PER_SECOND = 20;
-export const MELEE_HIT_TICKS = 10;
 
-// Archer class: Doubleshot fires one extra arrow with chance 50% + 1% per Archer level (max 1 arrow).
-export const DOUBLESHOT_BASE = 0.5;
+// Archer class: Doubleshot is 50%, doubled to 100% as the only Archer in the party (assumed),
+// plus 1% per Archer level: 1.5 extra arrows at level 50.
+export const DOUBLESHOT_BASE = 1;
 export const DOUBLESHOT_PER_LEVEL = 0.01;
 
 // Wolf Slayer: +1 speed at levels 1, 3 and 8. XP needed for levels 1-9.
@@ -137,7 +137,8 @@ export const MASTER_STAR_IDS = [
 // Which item categories (from the items resource) each class may use as a weapon.
 export const CLASS_WEAPON_CATEGORIES = {
   arch: ['BOW'],
-  bers: ['SWORD', 'LONGSWORD'],
+  // Berserkers also use the Terminator in M7 and never melee.
+  bers: ['BOW'],
   mage: ['SWORD', 'WAND', 'LONGSWORD'],
 };
 

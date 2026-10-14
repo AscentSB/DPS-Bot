@@ -2,7 +2,7 @@ import {
   CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
-  MELEE_HIT_TICKS, DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
+  DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, SPEED_CAP, EXTRA_SPEED, DUNGEON_POTION,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -70,14 +70,11 @@ function addLoose(target, stats, scale = 1) {
 
 // ---------- Item helpers ----------
 
-// Shots per second for shortbows, hits per second for melee, 1 otherwise (regular bows, mage).
+// Shots per second for shortbows, 1 otherwise (regular bows, mage).
 export function volleysPerSecond(weapon, attackSpeed, ctx) {
   const as = Math.min(Math.max(attackSpeed, 0), ATTACK_SPEED_CAP);
   const shotTicks = ITEM_STATS[weapon?.id]?.shotTicks;
   if (shotTicks) return TICKS_PER_SECOND / Math.ceil(shotTicks / (1 + as / 100) - 1e-9);
-  if (ctx.cls === 'bers' && (weapon?.category === 'SWORD' || weapon?.category === 'LONGSWORD')) {
-    return TICKS_PER_SECOND / Math.max(1, Math.round(MELEE_HIT_TICKS / (1 + as / 100)));
-  }
   return 1;
 }
 
@@ -85,7 +82,7 @@ export function volleysPerSecond(weapon, attackSpeed, ctx) {
 export function arrowsPerVolley(weapon, extraArrows, ctx) {
   if (weapon?.category !== 'BOW') return 1;
   const base = ITEM_STATS[weapon.id]?.arrows ?? 1;
-  const doubleshot = ctx.cls === 'arch' ? Math.min(1, DOUBLESHOT_BASE + DOUBLESHOT_PER_LEVEL * (ctx.archerLevel ?? 0)) : 0;
+  const doubleshot = ctx.cls === 'arch' ? DOUBLESHOT_BASE + DOUBLESHOT_PER_LEVEL * (ctx.archerLevel ?? 0) : 0;
   return base + extraArrows + doubleshot;
 }
 
@@ -145,7 +142,9 @@ export function isDungeon(item, resource) {
   const override = ITEM_STATS[item.id]?.dungeon;
   if (override !== undefined) return override;
   if (item.dungeon !== undefined) return item.dungeon;
-  return Boolean(resource.get(item.id)?.dungeon_item);
+  // Dungeonizable items (e.g. Terminator) are assumed converted and starred.
+  const info = resource.get(item.id);
+  return Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost);
 }
 
 // Base stats for an item id: API stats (case-insensitive, highest tier of tiered_stats) plus itemStats.js.
@@ -179,14 +178,18 @@ export function gemStat(gem, quality, rarity) {
 
 // ---------- One item's stats ----------
 
+// Every dungeon item is assumed to be a regular 5-starred item.
+// Crit chance, attack speed and speed get the star part only (1.5 + master stars + medallion), no Catacombs boost.
+const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'speed']);
+
 function scaleBucket(stats, item, ctx, dungeon) {
   if (!dungeon) return stats;
-  const stars = item.stars ?? MAX_STARS;
+  const stars = MAX_STARS;
   const flat = dungeonMultiplier(ctx.cataLevel, stars, item.masterStars ?? 0, ctx.secretDigit ?? 0);
   const crit = dungeonCritMultiplier(stars, item.masterStars ?? 0, ctx.secretDigit ?? 0);
   const out = {};
   for (const [key, value] of Object.entries(stats)) {
-    if (key === 'critChance') out[key] = value * crit;
+    if (STAR_ONLY_STATS.has(key)) out[key] = value * crit;
     else if (FLAT_STATS.has(key)) out[key] = value * flat;
     else out[key] = value;
   }
@@ -450,7 +453,7 @@ function rawStats(loadout, ctx, activeExtras) {
   add(acc.stats);
   if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
   // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
-  const bootsSpeed = (item) => (item ? itemRawStats(item, c).global.speed ?? 0 : 0);
+  const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   const clearSwap = Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS));
   const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
   const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c, buckets.wither.attackSpeed);

@@ -12,7 +12,7 @@ import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemRawStats, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
@@ -110,7 +110,7 @@ export function buildLoadout(profile, ctx, weights) {
 }
 
 function bootsSpeed(item, ctx) {
-  return item ? itemRawStats(item, ctx).global.speed ?? 0 : 0;
+  return item ? itemContribution(item, ctx).global.speed ?? 0 : 0;
 }
 
 function accessoryRank(item) {

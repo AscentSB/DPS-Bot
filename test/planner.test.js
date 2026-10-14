@@ -98,8 +98,8 @@ test('greedy plan is in dependency order and every step gains damage', () => {
 });
 
 test('smite only helps withers, ender slayer only helps dragons', () => {
-  const ctx = makeContext({ cls: 'bers', cataLevel: 50, resource });
-  const w = weightsFor('bers');
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const w = weightsFor('mage');
   const base = buildLoadout(profile(items([{ id: 'GIANTS_SWORD' }])), ctx, w);
   const ups = availableUpgrades(base, ctx, prices);
   const before = evaluate(base, ctx, w);
@@ -316,15 +316,16 @@ test('diamond and gold heads are never recombobulated and a recomb changes nothi
   assert.deepEqual(itemContribution({ ...head, recomb: true }, ctx), itemContribution(head, ctx));
 });
 
-test('Terminator volleys: 4/s at 100 attack speed, 3.33/s at 99; arrows = 3 + Duplex + Doubleshot', async () => {
+test('Terminator volleys: 4/s at 100 attack speed, 3.33/s at 99; arrows = 3 + Duplex + solo-Archer Doubleshot', async () => {
   const { volleysPerSecond, arrowsPerVolley } = await import('../src/calc/stats.js');
   const term = { id: 'TERMINATOR', category: 'BOW' };
   const ctx = { cls: 'arch', archerLevel: 50 };
   assert.equal(volleysPerSecond(term, 100, ctx), 4);
   assert.ok(Math.abs(volleysPerSecond(term, 99, ctx) - 20 / 6) < 1e-9);
   assert.equal(volleysPerSecond(term, 150, ctx), 4);
-  assert.ok(Math.abs(arrowsPerVolley(term, 0.2, ctx) - 4.2) < 1e-9);
-  assert.ok(Math.abs(arrowsPerVolley(term, 0, { cls: 'arch', archerLevel: 20 }) - 3.7) < 1e-9);
+  // Archer 50: Doubleshot 100% (solo archer) + 50% = 1.5 extra arrows.
+  assert.ok(Math.abs(arrowsPerVolley(term, 0.2, ctx) - 4.7) < 1e-9);
+  assert.ok(Math.abs(arrowsPerVolley(term, 0, { cls: 'arch', archerLevel: 20 }) - 4.2) < 1e-9);
   assert.equal(arrowsPerVolley(term, 0, { cls: 'bers' }), 3);
 });
 
@@ -358,4 +359,14 @@ test('clear boots: faster boots count for speed while boss boots give damage', (
   const both = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('POWER_WITHER_BOOTS', res), newItem('SPEED_WITHER_BOOTS', res)]), ctx, w);
   assert.equal(both.clearBoots.id, 'SPEED_WITHER_BOOTS');
   assert.equal(evaluate(both, ctx, w).speed - evaluate(necronOnly, ctx, w).speed >= 0, true);
+});
+
+test('Terminator attack speed gets the 5-star dungeon boost (x1.5) but not the Catacombs boost', () => {
+  const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
+  const c = itemContribution(newItem('TERMINATOR', res), makeContext({ cls: 'bers', cataLevel: 50, resource: res }));
+  close(c.global.attackSpeed, 60);
+  const ctx = makeContext({ cls: 'bers', cataLevel: 50, resource });
+  const w = weightsFor('bers');
+  const loadout = buildLoadout(profile(items([{ id: 'TERMINATOR' }, { id: 'GIANTS_SWORD' }])), ctx, w);
+  assert.equal(loadout.weapon.id, 'TERMINATOR');
 });

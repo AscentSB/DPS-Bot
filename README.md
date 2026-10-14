@@ -31,12 +31,12 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Pets: one active at a time (the best one you own). All pets count as level 100 (Golden Dragon 200) and are priced from max-level auction listings. Base stats come from NEU; Golden Dragon, Ender Dragon and Jellyfish perks are modeled.
 - Dungeon VII potion: Strength V, Critical III, Archery III (+50% bow damage) and Speed III, always on. A Jellyfish makes it up to 50% stronger and keeps working after you swap pets.
 - Armor: one piece per slot. Set and piece bonuses (Skeleton Master, Maxor's, Superior Dragon, Young Dragon, Adaptive) are in `src/config/armorSets.js`. Necron heads give 2x stats on Floor VII.
-- DPS = damage per arrow × arrows per volley × volleys per second. Terminator fires 3 arrows + 0.04 per Duplex level + Archer Doubleshot (50% + 1% per Archer level, max 1 arrow), every ceil(10 / (1 + attack speed/100)) ticks, so 4 volleys/s at 100 attack speed. Melee hits use round(10 / (1 + attack speed/100)) ticks.
+- DPS = damage per arrow × arrows per volley × volleys per second. Terminator fires 3 arrows + 0.04 per Duplex level + Archer Doubleshot (100% as the only Archer + 1% per Archer level, so 1.5 at level 50), every ceil(10 / (1 + attack speed/100)) ticks, so 4 volleys/s at 100 attack speed. Berserkers use the Terminator too.
 - Tuning: points fill attack speed to 100 first (0.3 per point), then speed to 500 (1.5 per point); only the rest go to crit chance / crit damage. A Crochet Tiger or Hephaestus Plushie on your pet is the usual way to free the attack speed points.
 - Speed counts base 100, the Dungeon VII potion, Wolf Slayer, the Rift Blessing of Time perk, gear, reforges, Sugar Rush, accessories, enrichments, Obsidian Defender and Forbidden Speed. Speed only matters in the clear, so your fastest boots (e.g. Maxor's) count for speed while your boss boots (e.g. Necron's) count for damage. The Rogue Sword is not counted; `EXTRA_SPEED` covers anything else.
 - Crit chance: `(flat + 30)(1 + additive)(multiplicative)`. Terminator's multiplier is 0.25.
 - Archer and Berserker hits use the expected value of crits below 100% crit chance and overload between 100% and 200%. Berserker adds 1200 additive damage, Archer 310.
-- Dungeon gear: `stat × (1 + cata boost + 0.1 × stars + 0.05 × master stars + 0.01 × secret digits)`. Crit chance skips the cata boost. Secret digits need a General's Medallion.
+- Dungeon gear (every dungeon item assumed 5-starred, dungeonizable items like Terminator assumed converted): `stat × (cata boost + 1.5 + 0.05 × master stars + 0.01 × secret digits)`. Crit chance, attack speed and speed skip the cata boost. Secret digits need a General's Medallion.
 - Accessory Power: `29.97 × ln(0.0019 × AP + 1)^1.2` times your power's stats, plus tuning points and enrichments. Dungeon accessories count double.
 - All damage above 1,000,000 keeps 10%.
 
