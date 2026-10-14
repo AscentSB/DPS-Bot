@@ -596,3 +596,16 @@ test('mutual accessory families (Abiphone cases) count once, not zero times', as
   assert.equal(counted.filter((id) => id.startsWith('ABICASE')).length, 1);
   assert.deepEqual(counted.filter((id) => id.startsWith('PESTHUNTER')), ['PESTHUNTER_RELIC']);
 });
+
+test('fragging an item marks the fragged id owned, so the planner never buys a second copy', () => {
+  const res = new Map([...resource, ['ADAPTIVE_BELT', { id: 'ADAPTIVE_BELT', name: 'Adaptive Belt', category: 'BELT', tier: 'EPIC', dungeon_item: true, stats: { STRENGTH: 10 } }],
+    ['STARRED_ADAPTIVE_BELT', { id: 'STARRED_ADAPTIVE_BELT', name: 'Adaptive Belt', category: 'BELT', tier: 'EPIC', dungeon_item: true, stats: { STRENGTH: 20 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('ADAPTIVE_BELT', res)]), ctx, weightsFor('arch'));
+  const p = { get: () => ({ price: 1e5, source: 'BZ' }) };
+  const frag = availableUpgrades(l, ctx, p).find((u) => u.label.startsWith('Frag Adaptive Belt'));
+  if (!frag) return; // no fragged recipe for this id in the data
+  const after = frag.apply(l);
+  assert.ok(after.owned.has(after.equipment.BELT.id));
+  assert.ok(!availableUpgrades(after, ctx, p).some((u) => u.label.startsWith('Buy Adaptive Belt')));
+});

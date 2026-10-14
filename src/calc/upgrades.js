@@ -157,7 +157,12 @@ function replaceItem(loadout, oldItem, next) {
   if (l.clearBoots === oldItem) l.clearBoots = next;
   for (const slot of Object.keys(l.armor)) if (l.armor[slot] === oldItem) l.armor[slot] = next;
   for (const slot of Object.keys(l.equipment)) if (l.equipment[slot] === oldItem) l.equipment[slot] = next;
-  if (l.accessories.get(oldItem.id) === oldItem) l.accessories.set(next.id, next);
+  if (l.accessories.get(oldItem.id) === oldItem) {
+    if (next.id !== oldItem.id) l.accessories.delete(oldItem.id);
+    l.accessories.set(next.id, next);
+  }
+  // A fragged item is a new id the player now owns, so it is never offered as a buy.
+  l.owned.add(next.id);
   return l;
 }
 
@@ -480,6 +485,9 @@ function gemUpgrades(item, ctx) {
 // Greedy plan: take the best weighted % DPS per million coins, apply it, repeat.
 // Upgrades that share a group (one reforge per item, one level per enchant, one gem per slot,
 // one purchase per gear slot, one pet) are picked at most once per plan, so the list never
+// Groups for item changes that are made once per item: keep the best option, not the cheapest.
+const ONE_SHOT_GROUP = /:(reforge|enchant:|gem:|enrich)/;
+
 // tells you to buy something and then replace it.
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
   const steps = [];
@@ -490,15 +498,27 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
   const startDamage = current;
 
   for (let i = 0; i < limit; i++) {
-    let best = null;
+    const candidates = [];
     for (const up of availableUpgrades(loadout, ctx, prices)) {
       if (!(up.cost > 0) || (up.group && used.has(up.group))) continue;
       const next = up.apply(loadout);
       const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
       if (gain <= 1e-9) continue;
-      const perMillion = gain / (up.cost / 1_000_000);
-      if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after };
+      candidates.push({ ...up, gain, perMillion: gain / (up.cost / 1_000_000), next, after });
+    }
+    // Item changes made once (a reforge, an enchant level, a gem, an enrichment) offer only the option with the
+    // most damage, so a cheap pick can't lock out a better one (Blended before Bloodshot, Duplex I before V).
+    const topByGroup = new Map();
+    for (const c of candidates) {
+      if (!c.group || !ONE_SHOT_GROUP.test(c.group)) continue;
+      const prev = topByGroup.get(c.group);
+      if (!prev || c.gain > prev.gain) topByGroup.set(c.group, c);
+    }
+    let best = null;
+    for (const c of candidates) {
+      if (c.group && ONE_SHOT_GROUP.test(c.group) && topByGroup.get(c.group) !== c) continue;
+      if (!best || c.perMillion > best.perMillion) best = c;
     }
     if (!best) break;
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
