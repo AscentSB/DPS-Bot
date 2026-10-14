@@ -764,3 +764,15 @@ test('ability damage on dungeon items gets the star part only (no Catacombs boos
   const c = itemContribution({ ...newItem('WITHER_GOGGLES', res), masterStars: 5 }, ctx);
   close(c.global.abilityDamage, 45 * 1.8);
 });
+
+test("Mage never uses or buys Necron's armor; Archer still does", () => {
+  const res = new Map([...resource, ['WISE_WITHER_LEGGINGS', { id: 'WISE_WITHER_LEGGINGS', name: "Storm's Leggings", category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250, CRITICAL_DAMAGE: 10 } }]]);
+  const gear = [newItem('HYPERION', res), newItem('POWER_WITHER_LEGGINGS', res), newItem('WISE_WITHER_LEGGINGS', res)];
+  const mage = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
+  assert.equal(buildLoadout(profile(gear), mage, weightsFor('mage')).armor.LEGGINGS.id, 'WISE_WITHER_LEGGINGS');
+  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
+  const bare = buildLoadout(profile([newItem('HYPERION', res)]), mage, weightsFor('mage'));
+  assert.ok(!availableUpgrades(bare, mage, p).some((u) => u.label.startsWith("Buy Necron's Leggings")));
+  const arch = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  assert.equal(buildLoadout(profile([newItem('TERMINATOR', res), ...gear.slice(1)]), arch, weightsFor('arch')).armor.LEGGINGS.id, 'POWER_WITHER_LEGGINGS');
+});

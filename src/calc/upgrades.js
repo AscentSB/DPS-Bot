@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLASS_EXCLUDED_ITEMS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -85,6 +85,7 @@ export function buildLoadout(profile, ctx, weights) {
 
   for (const item of items) {
     loadout.owned.add(item.id);
+    if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(item.id)) continue;
     if (item.id === RAGNAROCK_ID) bySlot.rag.push(item);
     if (weaponCats.includes(item.category)) bySlot.weapon.push(item);
     else if (bySlot[equipmentSlot(item.category) ?? item.category]) bySlot[equipmentSlot(item.category) ?? item.category].push(item);
@@ -333,6 +334,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const accIds = new Set(loadout.accessories.keys());
   for (const [id, info] of resource) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
+    if (CLASS_EXCLUDED_ITEMS[cls]?.test(id)) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);

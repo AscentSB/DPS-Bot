@@ -223,6 +223,12 @@ export const MAX_UPGRADES_LISTED = 15;
 export const MAXOR_BOOTS_ID = 'SPEED_WITHER_BOOTS';
 export const NECRON_BOOTS_ID = 'POWER_WITHER_BOOTS';
 
+// Items a class never uses. Necron's armor (and Necron heads) is Archer and Berserker gear; Mage tops out at
+// Storm's armor.
+export const CLASS_EXCLUDED_ITEMS = {
+  mage: /^(POWER_WITHER_(HELMET|CHESTPLATE|LEGGINGS|BOOTS)|DIAMOND_NECRON_HEAD|GOLD_NECRON_HEAD)$/,
+};
+
 // Blacksmith reforges (no stone, e.g. Blended on equipment) cost 500 coins per roll and roll at random
 // from every basic reforge for the item type, so getting one costs 500 x that many rolls on average.
 // Source: https://hypixelskyblock.minecraft.wiki/w/Reforging#Basic_Reforging
