@@ -418,7 +418,7 @@ function rawStats(loadout, ctx, activeExtras) {
   // Legion: percent of all combat stats per piece of armor.
   let legion = 0;
   for (const item of Object.values(loadout.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL * LEGION_PLAYERS;
-  if (legion) add({ additiveStrength: legion, additiveCritDamage: legion, additiveCritChance: legion, additiveIntelligence: legion });
+  if (legion) add({ additiveStrength: legion, additiveCritDamage: legion, additiveCritChance: legion, additiveIntelligence: legion, additiveAttackSpeed: legion });
 
   const extrasBucket = { global: {}, wither: {}, dragon: {} };
   const activeKeys = new Set(activeExtras.map((e) => e.key));
