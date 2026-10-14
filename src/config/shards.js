@@ -33,6 +33,9 @@ export const SHARDS = {
   // Echo of Echoes: boosts every echo shard above by +5% per level.
   TIAMAT: { name: 'Tiamat', attribute: 'echo_of_echoes', rarity: 'LEGENDARY', echo: 'echo', perLevel: { echo: 0.05 } },
 
+  // Attack Speed: +1 attack speed per level, frees tuning points. Bazaar id kept from its old Burningsoul name.
+  BURNINGSOUL: { name: 'Inferno Demonlord', attribute: 'attack_speed', rarity: 'EPIC', perLevel: { attackSpeed: 1 } },
+
   // Speed: frees tuning points (see TUNING_PER_POINT).
   OBSIDIAN_DEFENDER: { name: 'Obsidian Defender', attribute: 'speed', rarity: 'UNCOMMON', perLevel: { speed: 1 } },
 

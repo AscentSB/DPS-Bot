@@ -462,3 +462,12 @@ test('Legion raises attack speed: 0.07% per level per player, 4 players', () => 
   // (Terminator 60 + Silky 5) x (1 + 5 x 0.0007 x 4)
   close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * 1.014);
 });
+
+test('Inferno Demonlord shard: +1 attack speed per level, read from attributes.stacks.attack_speed', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, w);
+  const a = evaluate({ ...l, activePets: {} }, ctx, w);
+  const b = evaluate({ ...l, activePets: {}, shards: { BURNINGSOUL: 10 } }, ctx, w);
+  close(b.attackSpeed - a.attackSpeed, 10);
+});
