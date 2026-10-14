@@ -1,5 +1,14 @@
 import PET_DATA from '../data/pets.json' with { type: 'json' };
-import { PET_ITEMS, PET_PERKS } from '../config/pets.js';
+import { PET_ITEMS, PET_PERKS, TIER_BOOST_ID } from '../config/pets.js';
+
+const TIER_ORDER = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
+
+// Rarity the pet plays at: one higher with a Tier Boost (never up to Mythic).
+export function effectiveTier(pet) {
+  if (pet.heldItem !== TIER_BOOST_ID) return pet.tier;
+  const next = TIER_ORDER[TIER_ORDER.indexOf(pet.tier) + 1];
+  return next && next !== 'MYTHIC' ? next : pet.tier;
+}
 
 export function maxPetLevel(type) {
   return PET_DATA.custom[type]?.maxLevel ?? 100;
@@ -50,7 +59,7 @@ function lerp(a, b, t) {
 // Stats one pet gives: { stats: {...}, dragon: {...}, petStrength, potionBoost }.
 // pet: { type, tier, level, heldItem }. profile: { bank, goldCollection }.
 export function petStats(pet, profile = {}) {
-  const data = petData(pet.type, pet.tier);
+  const data = petData(pet.type, effectiveTier(pet));
   if (!data) return { stats: {}, dragon: {}, petStrength: 0, potionBoost: 0 };
   const t = progress(data, pet.type, pet.level ?? maxPetLevel(pet.type));
   const base = {};

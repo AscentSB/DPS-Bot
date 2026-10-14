@@ -685,3 +685,22 @@ test("upgrade mode 'max' jumps straight to the max level at its own cost", () =>
   assert.deepEqual(max, ['Duplex V on Terminator']);
   assert.ok(labels('max').some((x) => x.startsWith('1st–5th Master Stars on')));
 });
+
+test('Tier Boost: an Epic Ender Dragon with a Tier Boost plays as Legendary; Kat upgrade + new item is offered', async () => {
+  const { petStats } = await import('../src/lib/pets.js');
+  const legendary = petStats({ type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null }).stats;
+  const boosted = petStats({ type: 'ENDER_DRAGON', tier: 'EPIC', heldItem: 'PET_ITEM_TIER_BOOST' }).stats;
+  assert.deepEqual(boosted, legendary);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource)], { pets: [{ type: 'ENDER_DRAGON', tier: 'EPIC', heldItem: 'PET_ITEM_TIER_BOOST' }] }), ctx, w);
+  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
+  const ups = availableUpgrades(l, ctx, p);
+  const kat = ups.find((u) => u.label === 'Kat upgrade Ender Dragon Pet to Legendary + Hephaestus Relic');
+  assert.ok(kat);
+  // 400M x 0.7 at level 100, 8 Summoning Eyes, a Kat Flower and the Relic.
+  assert.equal(kat.cost, 280e6 + 8e6 + 1e6 + 1e6);
+  assert.equal(kat.apply(l).activePets.dragon.tier, 'LEGENDARY');
+  const buy = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  assert.ok(availableUpgrades(buy, ctx, p).some((u) => u.label === 'Buy Ender Dragon Pet (Epic, level 100) + Tier Boost'));
+});

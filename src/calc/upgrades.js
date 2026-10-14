@@ -14,8 +14,8 @@ import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
-import { PET_ITEMS, BUY_RARITIES } from '../config/pets.js';
-import { allPetTypes, petTiers, petStats, maxPetLevel } from '../lib/pets.js';
+import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
+import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
@@ -396,8 +396,16 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!tier) continue;
     const pet = { type, tier, heldItem: null };
     if (!dpsPets([pet], ctx).length) continue;
-    push(`Buy ${titleCase(type.toLowerCase())} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }],
-      (l) => { const next = cloneLoadout(l); next.pets.push(pet); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls)); }, { group: 'pet' });
+    const petName = titleCase(type.toLowerCase());
+    const buyPet = (p, label, parts) => push(label, parts,
+      (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls)); }, { group: 'pet' });
+    buyPet(pet, `Buy ${petName} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }]);
+    // The rarity below plus a Tier Boost plays at the same rarity, often for less.
+    const below = petTiers(type).find((t) => effectiveTier({ type, tier: t, heldItem: TIER_BOOST_ID }) === tier && t !== tier);
+    if (below) {
+      buyPet({ type, tier: below, heldItem: TIER_BOOST_ID }, `Buy ${petName} Pet (${titleCase(below.toLowerCase())}, level ${maxPetLevel(type)}) + Tier Boost`,
+        [{ id: `PET_${type}_${below}_MAX` }, { id: TIER_BOOST_ID }]);
+    }
   }
 
   // Pet items for each active pet (the wither and dragon pets).
@@ -414,6 +422,22 @@ export function availableUpgrades(loadout, ctx, prices) {
         for (const [t, p] of Object.entries(next.activePets)) if (p === active) next.activePets[t] = pet;
         return next;
       }, { group: `petitem:${active.type}` });
+    }
+    // A Tier Boost pet loses its rarity when the Tier Boost comes off, so a new pet item can come with a
+    // Kat upgrade to that rarity (Kat's level-100 coin cost and items, plus a Kat Flower).
+    const kat = active.heldItem === TIER_BOOST_ID && KAT_UPGRADES[active.type]?.[active.tier];
+    if (kat) {
+      const level = maxPetLevel(active.type);
+      const katParts = [{ coins: Math.round(kat.coins * (1 - KAT_LEVEL_DISCOUNT * level)) }, ...kat.items, { id: KAT_FLOWER_ID }];
+      for (const [itemId, item] of Object.entries(PET_ITEMS)) {
+        push(`Kat upgrade ${titleCase(active.type.toLowerCase())} Pet to ${titleCase(kat.to.toLowerCase())} + ${item.name}`, [...katParts, { id: itemId }], (l) => {
+          const next = cloneLoadout(l);
+          const pet = { ...active, tier: kat.to, heldItem: itemId };
+          next.pets = next.pets.map((p) => (p === active ? pet : p));
+          for (const [t, p] of Object.entries(next.activePets)) if (p === active) next.activePets[t] = pet;
+          return next;
+        }, { group: `petitem:${active.type}` });
+      }
     }
   }
 

@@ -49,6 +49,17 @@ export const PHASE_PETS = {
   dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON' },
 };
 
+// Tier Boost: raises the pet one rarity (never to Mythic). Profiles store the base tier.
+export const TIER_BOOST_ID = 'PET_ITEM_TIER_BOOST';
+
+// Kat rarity upgrades: coins and items at level 1. Each pet level removes 0.3% of the coins, so 30% off at
+// level 100. A Kat Flower skips one day of the wait. Source: https://hypixelskyblock.minecraft.wiki/w/Kat
+export const KAT_LEVEL_DISCOUNT = 0.003;
+export const KAT_FLOWER_ID = 'KAT_FLOWER';
+export const KAT_UPGRADES = {
+  ENDER_DRAGON: { EPIC: { to: 'LEGENDARY', coins: 400_000_000, items: [{ id: 'SUMMONING_EYE', qty: 8 }] } },
+};
+
 // Rarity to buy when a pet comes in several (highest first).
 export const BUY_RARITIES = ['MYTHIC', 'LEGENDARY'];
 
