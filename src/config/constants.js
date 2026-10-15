@@ -135,6 +135,10 @@ export const ENCHANTING_MAX_LEVEL = 60;
 // Loving reforge (Red Scarf) on the chestplate: 1.05x ability damage (multiplicative).
 export const LOVING_ABILITY_MULTIPLIER = 1.05;
 
+// Ferocity hits land about 0.5s late, and Goldor (the only place Berserker procs it) lives about 1s, so
+// ferocity damage counts half.
+export const FEROCITY_EFFECTIVENESS = 0.5;
+
 // Swarm: enemies within 10 blocks. One boss at a time; RCM clears hit packs of mobs.
 export const BOSS_SWARM_ENEMIES = 1;
 export const RCM_SWARM_ENEMIES = 7;

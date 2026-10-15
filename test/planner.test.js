@@ -960,6 +960,8 @@ test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier)
   close(a1.r.wither, a0.r.wither);
   // Ferocity on a dungeon item gets the star multiplier only (1.5 at 5 stars, no cata).
   close(itemContribution(newItem('TERMINATOR', res), withF.ctx).global.ferocity, 20 * 1.5);
+  // Vicious V: +5 ferocity on the Terminator (star scaled like the rest).
+  close(itemContribution({ ...newItem('TERMINATOR', resource), enchants: { vicious: 5 } }, withF.ctx).global.ferocity, 5 * 1.5);
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

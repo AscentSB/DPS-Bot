@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -750,10 +750,11 @@ function evaluateWith(loadout, ctx, activeExtras) {
       continue;
     } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);
     // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
-    // Berserk melee bonus multiplies it again on top of the additive. Soft-capped as its own hit.
+    // Berserk melee bonus multiplies it again on top of the additive. Soft-capped as its own hit, and counted at
+    // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast).
     if (ctx.cls === 'bers' && target === 'wither') {
       const ferocity = buckets[target].ferocity * (1 + buckets[target].additiveFerocity);
-      if (ferocity > 0) dmg += (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
+      if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
     }
     // Thunderlord: every 3rd hit adds lightning for a % of the hit, soft-capped as its own hit.
     const thunder = thunderlordPercent(loadout.weapon);
