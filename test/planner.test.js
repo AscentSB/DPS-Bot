@@ -728,6 +728,47 @@ test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fab
   close(cast(blade({ sharpness: 7 })), cast(blade({})));
 });
 
+test('floor toggle: Master Mode counts Titan Killer and Triple-Strike, Normal Mode First Strike; Giant Killer both', () => {
+  // Low damage (no soft cap) so the additive bonuses show up one to one.
+  const res = new Map([...resource, ['WEAK_SWORD', { id: 'WEAK_SWORD', name: 'Weak Sword', category: 'SWORD', tier: 'COMMON', stats: { DAMAGE: 1 } }]]);
+  const w = weightsFor('mage');
+  const dmg = (floorMode, enchants) => {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 0, resource: res, floorMode });
+    const l = buildLoadout(profile([{ ...newItem('WEAK_SWORD', res), enchants }]), ctx, w);
+    return evaluate(l, ctx, w).wither;
+  };
+  for (const mode of ['master', 'normal']) assert.ok(dmg(mode, { giant_killer: 7 }) > dmg(mode, {}));
+  assert.ok(dmg('master', { titan_killer: 7 }) > dmg('master', { giant_killer: 7 }));
+  close(dmg('normal', { titan_killer: 7 }), dmg('normal', {}));
+  assert.ok(dmg('master', { triple_strike: 5 }) > dmg('master', {}));
+  close(dmg('master', { first_strike: 5 }), dmg('master', {}));
+  assert.ok(dmg('normal', { first_strike: 5 }) > dmg('normal', {}));
+  close(dmg('normal', { triple_strike: 5 }), dmg('normal', {}));
+  // Thunderlord VII: a 60% lightning hit every 3rd hit = +20% while under the soft cap.
+  close(dmg('master', { thunderlord: 7 }) / dmg('master', {}), 1.2);
+  assert.ok(dmg('master', { prosecute: 6 }) > dmg('master', {}));
+});
+
+test('RCM: Giant Killer, Prosecute and Swarm (5 mobs) raise Wither Impact; Crow + Hephaestus Relic boosts ability damage', async () => {
+  const { petStats } = await import('../src/lib/pets.js');
+  const crow = petStats({ type: 'CROW', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_RELIC' });
+  close(crow.stats.abilityDamage, 30);
+  close(crow.stats.intelligence, 225);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 0, resource, mode: 'rcm' });
+  const w = weightsFor('mage', null, 'rcm');
+  const blade = (enchants) => ({ ...newItem('HYPERION', resource), enchants });
+  const l = buildLoadout(profile([blade({})]), ctx, w);
+  const cast = (enchants) => evaluate({ ...l, weapon: blade(enchants) }, ctx, w).wither;
+  for (const e of [{ giant_killer: 7 }, { prosecute: 6 }, { ultimate_swarm: 5 }]) assert.ok(cast(e) > cast({}), JSON.stringify(e));
+  close(cast({ first_strike: 5 }), cast({}));
+  close(cast({ thunderlord: 7 }), cast({}));
+});
+
+test('upper-case enchant keys from the profile are read', () => {
+  const [it] = items([{ id: 'HYPERION', enchants: { PROSECUTE: 6 } }]);
+  assert.equal(it.enchants.prosecute, 6);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

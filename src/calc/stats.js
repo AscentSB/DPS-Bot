@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER,
+  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -253,9 +253,12 @@ export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
       addLoose(out.global, { strength: CHIMERA_PER_LEVEL * level * chimeraPetStrength });
       continue;
     }
-    if (ench.legion) continue;
+    if (ench.legion || ench.thunder) continue;
+    // Master Mode / Normal Mode enchants (Titan Killer, Triple-Strike vs First Strike).
+    if (ench.floorMode && ench.floorMode !== (ctx.floorMode ?? 'master')) continue;
+    const enemies = ench.swarm ? (isRcm(ctx) ? RCM_SWARM_ENEMIES : BOSS_SWARM_ENEMIES) : 1;
     for (const [stat, values] of Object.entries(ench.stats ?? {})) {
-      const value = values[Math.min(level, values.length) - 1];
+      const value = values[Math.min(level, values.length) - 1] * enemies;
       addLoose(out[ench.target], { [stat]: value });
       // Mage RCM: weapon damage enchants that are not melee-only also raise ability damage, if they hit clear mobs.
       if (stat === 'additiveDamage' && weapon && isRcm(ctx) && !ench.melee && (ench.target === 'global' || ench.clearMobs)) {
@@ -637,6 +640,13 @@ export function finalStats(bucket, ctx) {
   };
 }
 
+function thunderlordPercent(weapon) {
+  const level = weapon?.enchants?.thunderlord ?? 0;
+  const ench = ENCHANTS.thunderlord;
+  if (!level || !ench.categories.includes(weapon.category)) return 0;
+  return ench.thunder[Math.min(level, ench.thunder.length) - 1];
+}
+
 export function hasHyperion(loadout) {
   return loadout.weapon?.id === HYPERION_ID || loadout.owned.has(HYPERION_ID);
 }
@@ -656,6 +666,9 @@ function evaluateWith(loadout, ctx, activeExtras) {
     const s = finalStats(buckets[target], ctx);
     const defense = TARGET_DEFENSE[target];
     let dmg;
+    const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m)
+      : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m)
+        : mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), m));
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
     const fabled = loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1;
@@ -669,6 +682,9 @@ function evaluateWith(loadout, ctx, activeExtras) {
       result.stats[target] = s;
       continue;
     } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);
+    // Thunderlord: every 3rd hit adds lightning for a % of the hit, soft-capped as its own hit.
+    const thunder = thunderlordPercent(loadout.weapon);
+    if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;
     result.stats[target] = s;

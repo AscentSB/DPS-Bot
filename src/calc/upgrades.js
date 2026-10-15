@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -26,6 +26,10 @@ const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 // Most coins spent on an armor or equipment piece the plan later replaces (buy + upgrades, kept below this).
 export const REPLACED_PIECE_BUDGET = 25_000_000;
 const REPLAN_ROUNDS = 6;
+// Mage RCM Chimera pets (intelligence and ability damage, copied by Chimera and boosted by the blade's stars).
+const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
+const CHIMERA_MAX = 5;
+const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
@@ -40,11 +44,12 @@ export function weightsFor(cls, target, mode) {
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
+// floorMode: 'master' (Master Mode: Titan Killer, Triple-Strike) or 'normal' (Giant Killer, First Strike).
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', mode = 'lcm', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, floorMode, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -462,13 +467,34 @@ export function availableUpgrades(loadout, ctx, prices) {
     }
   }
 
+  // Mage RCM: Chimera only pays off with an intelligence / ability damage pet, so offer the set as one step:
+  // Chimera V on the blade (replaces Swarm) + the pet (bought if not owned) + a Hephaestus Relic on it.
+  const blade = loadout.weapon;
+  if (ctx.mode === 'rcm' && cls === 'mage' && blade && WITHER_IMPACT_WEAPONS.includes(blade.id) && (blade.enchants?.ultimate_chimera ?? 0) < CHIMERA_MAX) {
+    for (const type of RCM_CHIMERA_PETS) {
+      const owned = loadout.pets.find((p) => p.type === type);
+      const tier = owned?.tier ?? BUY_RARITIES.find((t) => petTiers(type).includes(t));
+      if (!tier) continue;
+      const parts = [{ id: `ENCHANTMENT_ULTIMATE_CHIMERA_${CHIMERA_MAX}` }, ...(owned ? [] : [{ id: `PET_${type}_${tier}_MAX` }]), { id: HEPH_RELIC_ID }];
+      const petName = titleCase(type.toLowerCase());
+      push(`Chimera ${roman(CHIMERA_MAX)} on ${cleanName(blade.name ?? blade.id)} + ${owned ? '' : 'Buy '}${petName} Pet + Hephaestus Relic`, parts, (l) => {
+        const enchants = { ...blade.enchants, ultimate_chimera: CHIMERA_MAX };
+        for (const c of ENCHANTS.ultimate_chimera.conflicts ?? []) delete enchants[c];
+        const next = replaceItem(l, blade, { ...blade, enchants });
+        const pet = { type, tier, heldItem: HEPH_RELIC_ID };
+        next.pets = [...next.pets.filter((p) => p !== owned), pet];
+        return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode));
+      }, { group: `rcmchimera:${type}` });
+    }
+  }
+
   // Pet items for each active pet (the wither and dragon pets).
   for (const active of new Set(Object.values(loadout.activePets ?? {}).filter(Boolean))) {
     const before = petStats(active, ctx.petProfile).stats;
     for (const [itemId, item] of Object.entries(PET_ITEMS)) {
       if (active.heldItem === itemId) continue;
       const after = petStats({ ...active, heldItem: itemId }, ctx.petProfile).stats;
-      if (!['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
+      if (!['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed', 'abilityDamage'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
       push(`${item.name} on ${titleCase(active.type.toLowerCase())} Pet`, [{ id: itemId }], (l) => {
         const next = cloneLoadout(l);
         const pet = { ...active, heldItem: itemId };

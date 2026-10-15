@@ -17,7 +17,9 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
     .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }))
   .addStringOption((o) => o.setName('mage').setDescription('Mage only: boss set (LCM beam) or clear set (RCM, 500 speed)')
-    .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }));
+    .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
+  .addStringOption((o) => o.setName('floor').setDescription('Master Mode (Titan Killer, Triple-Strike) or Normal Mode (Giant Killer, First Strike)')
+    .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }));
 
 const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
 
@@ -40,7 +42,7 @@ export function formatCoins(n) {
   return `${Math.round(n)}`;
 }
 
-export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit, mode }) {
+export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit, mode, floorMode = 'master' }) {
   const lines = plan.steps.map((s, i) =>
     `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
   const anyUnverified = plan.steps.some((s) => s.unverified);
@@ -53,7 +55,7 @@ export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuning
     .setTitle(`${name} · ${CLASSES[cls].label}${rcm ? ' RCM' : ''} upgrades`)
     .setDescription(description)
     .addFields(
-      { name: 'Weights', value: targetLabel, inline: true },
+      { name: 'Weights', value: `${targetLabel} · ${floorMode === 'normal' ? 'Normal Mode' : 'Master Mode'}`, inline: true },
       { name: 'Catacombs', value: `Level ${cataLevel} (+${Math.round(cataBoost(cataLevel) * 100)}%)`, inline: true },
       { name: 'Accessory Power', value: `${plan.startDamage.ap} → ${plan.endDamage.ap}`, inline: true },
       { name: 'Tuning', value: tuningText(plan.startDamage.tuning, tuningSplit) },
@@ -74,6 +76,7 @@ export async function execute(interaction) {
   const cls = interaction.options.getString('class', true);
   const target = interaction.options.getString('target');
   const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
+  const floorMode = interaction.options.getString('floor') ?? 'master';
   const mode = cls === 'mage' ? interaction.options.getString('mage') ?? 'lcm' : 'lcm';
   await interaction.deferReply();
 
@@ -86,12 +89,12 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, mode, resource });
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, mode, floorMode, resource });
     const weights = weightsFor(cls, target, mode);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
 
-    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split, mode })] });
+    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split, mode, floorMode })] });
   } catch (err) {
     console.error(err);
     await interaction.editReply(`Error: ${err.message}`);

@@ -6,7 +6,8 @@
 export const PET_ITEMS = {
   ANTIQUE_REMEDIES: { name: 'Antique Remedies', mult: { strength: 1.8 } },
   HEPHAESTUS_REMEDIES: { name: 'Hephaestus Remedies', mult: { strength: 2 } },
-  HEPHAESTUS_RELIC: { name: 'Hephaestus Relic', mult: { strength: 1.5, critDamage: 1.5, critChance: 1.5, intelligence: 1.5, speed: 1.5, attackSpeed: 1.5 } },
+  // +50% to every pet stat (Crow + Hephaestus Relic + Chimera is an RCM setup: intelligence and ability damage).
+  HEPHAESTUS_RELIC: { name: 'Hephaestus Relic', mult: { strength: 1.5, critDamage: 1.5, critChance: 1.5, intelligence: 1.5, speed: 1.5, attackSpeed: 1.5, abilityDamage: 1.5 } },
   GOLD_CLAWS: { name: 'Gold Claws', mult: { critDamage: 1.5, critChance: 1.5 } },
   PET_ITEM_SHARPENED_CLAWS_UNCOMMON: { name: 'Sharpened Claws', flat: { critDamage: 15 } },
   PET_ITEM_BIG_TEETH_COMMON: { name: 'Big Teeth', flat: { critChance: 5 } },

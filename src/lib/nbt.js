@@ -58,7 +58,8 @@ export function toItemState(nbtItem, resource) {
     stars: Math.min(stars, 5),
     masterStars: Math.max(0, Math.min(5, stars - 5)),
     dungeon: Number(extra.dungeon_item ?? 0) > 0 || stars > 0 ? true : undefined,
-    enchants: isBook ? {} : { ...(extra.enchantments ?? {}) },
+    // Some profiles store enchant keys in upper case (PROSECUTE).
+    enchants: isBook ? {} : Object.fromEntries(Object.entries(extra.enchantments ?? {}).map(([k, v]) => [k.toLowerCase(), v])),
     hpb: Number(extra.hot_potato_count ?? 0),
     artOfWar: Number(extra.art_of_war_count ?? 0) > 0,
     reforge: extra.modifier ?? null,
