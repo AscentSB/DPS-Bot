@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calcStrength, calcCritDamage, calcCritChance, calcIntelligence, cataLevelFromXp, cataBoost,
   dungeonMultiplier, dungeonCritMultiplier, applySoftCap, expectedHit, archerDamage, berserkerDamage,
-  mageDamage, powerMultiplier, secretDigits, applyBlessings, blessingEffect,
+  mageDamage, rcmDamage, powerMultiplier, secretDigits, applyBlessings, blessingEffect,
 } from '../src/calc/formulas.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} != ${b}`);
@@ -78,4 +78,15 @@ test('berserker adds its extra additive damage on top of the archer formula; arc
 test('hyperion multiplies mage wither damage', () => {
   const s = { damage: 10, critDamage: 0, strength: 0, additiveDamage: 0, intelligence: 100 };
   close(mageDamage(s, 0, true), mageDamage(s, 0, false) * 1.5);
+});
+
+test('RCM Wither Impact: 10,000 x cata boost x intelligence (0.3 scaling) x ability damage x magic additive, then the soft cap', () => {
+  const s = { intelligence: 1000, abilityDamage: 50 };
+  // 10000 x 1 x (1 + 3) x 1.5 = 60,000, under the soft cap.
+  close(rcmDamage(s, 0, 0), 60000);
+  close(rcmDamage(s, 0, 0, 100), 120000);
+  close(rcmDamage(s, 0, 0, 0, 1.05), 63000);
+  // Cata boost 4.85: 60,000 x 5.85 = 351,000, still under the cap.
+  close(rcmDamage(s, 0, 4.85), 351000);
+  close(rcmDamage({ intelligence: 20000, abilityDamage: 0 }, 0, 4.85), 1e6 + (10000 * 5.85 * 61 - 1e6) * 0.1);
 });

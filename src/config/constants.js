@@ -60,7 +60,8 @@ export const BASE_SPEED = 100;
 export const SPEED_CAP = 500;
 // Mage clears in RCM armor and is only scored in the boss, where 450 speed is enough.
 export const SPEED_CAP_BY_CLASS = { mage: 450 };
-export const speedCap = (cls) => SPEED_CAP_BY_CLASS[cls] ?? SPEED_CAP;
+// The Mage RCM clear set needs the full 500.
+export const speedCap = (cls, mode) => (mode === 'rcm' ? SPEED_CAP : SPEED_CAP_BY_CLASS[cls] ?? SPEED_CAP);
 // Classes that wear separate clear boots (e.g. Maxor's) and swap for the boss. Mage clears in RCM armor,
 // so its boss gear is scored on its own, with no clear boots.
 export const CLEAR_BOOTS_CLASSES = ['arch', 'bers'];
@@ -112,6 +113,22 @@ export const MAGE_BEAM_TICKS = 10;
 // Mage class intelligence: 250 + 5 per Mage level (500 at 50), per-level part doubled when solo (750 at 50).
 export const MAGE_INT_BASE = 250;
 export const MAGE_INT_PER_LEVEL = 5;
+
+// Mage RCM (clear set): Wither Impact on a Necron's Blade variant (Hyperion, Astraea, Valkyrie, Scylla).
+// One cast = 10,000 x (1 + Catacombs stat boost) x (1 + intelligence / 100 x 0.3) x (1 + ability damage / 100)
+//   x (1 + magic additive / 100), then the soft cap. No crits, no strength, no weapon enchants.
+// Source: https://hypixelskyblock.minecraft.wiki/w/Damage_Calculation#Ability_Damage
+export const WITHER_IMPACT_BASE = 10000;
+export const WITHER_IMPACT_SCALING = 0.3;
+export const WITHER_IMPACT_WEAPONS = ['HYPERION', 'ASTRAEA', 'VALKYRIE', 'SCYLLA', 'NECRON_BLADE'];
+// Mage class ability damage: +5, plus +1 per 5 Mage levels (doubled when solo, like the class intelligence).
+export const MAGE_ABILITY_DAMAGE_BASE = 5;
+export const MAGE_ABILITY_DAMAGE_PER_5_LEVELS = 1;
+// Enchanting skill: +0.5% ability damage per level (skills API off: assumed maxed).
+export const ENCHANTING_ABILITY_DAMAGE_PER_LEVEL = 0.5;
+export const ENCHANTING_MAX_LEVEL = 60;
+// Loving reforge (Red Scarf) on the chestplate: 1.05x ability damage (multiplicative).
+export const LOVING_ABILITY_MULTIPLIER = 1.05;
 
 // Hyperion: damage multiplier against withers for mage.
 export const HYPERION_ID = 'HYPERION';

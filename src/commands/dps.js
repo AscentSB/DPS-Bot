@@ -15,7 +15,9 @@ export const data = new SlashCommandBuilder()
   .addStringOption((o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
     .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' }))
   .addStringOption((o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
-    .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }));
+    .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }))
+  .addStringOption((o) => o.setName('mage').setDescription('Mage only: boss set (LCM beam) or clear set (RCM, 500 speed)')
+    .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }));
 
 const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
 
@@ -38,16 +40,17 @@ export function formatCoins(n) {
   return `${Math.round(n)}`;
 }
 
-export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit }) {
+export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit, mode }) {
   const lines = plan.steps.map((s, i) =>
     `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
   const anyUnverified = plan.steps.some((s) => s.unverified);
-  const fmt = (d) => `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}`;
-  const targetLabel = target === 'wither' ? 'Withers only' : target === 'dragon' ? 'Dragons only' : `Wither ${weights.wither} / Dragon ${weights.dragon}`;
+  const rcm = cls === 'mage' && mode === 'rcm';
+  const fmt = (d) => (rcm ? `Wither Impact ${formatCoins(d.wither)} per cast` : `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}`);
+  const targetLabel = rcm ? 'Clear set (RCM, 500 speed)' : target === 'wither' ? 'Withers only' : target === 'dragon' ? 'Dragons only' : `Wither ${weights.wither} / Dragon ${weights.dragon}`;
   let description = lines.join('\n') || 'No priced upgrades found that raise your damage.';
   if (description.length > 4000) description = `${description.slice(0, 3990)}\n...`;
   return new EmbedBuilder()
-    .setTitle(`${name} · ${CLASSES[cls].label} upgrades`)
+    .setTitle(`${name} · ${CLASSES[cls].label}${rcm ? ' RCM' : ''} upgrades`)
     .setDescription(description)
     .addFields(
       { name: 'Weights', value: targetLabel, inline: true },
@@ -71,6 +74,7 @@ export async function execute(interaction) {
   const cls = interaction.options.getString('class', true);
   const target = interaction.options.getString('target');
   const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
+  const mode = cls === 'mage' ? interaction.options.getString('mage') ?? 'lcm' : 'lcm';
   await interaction.deferReply();
 
   try {
@@ -82,12 +86,12 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, resource });
-    const weights = weightsFor(cls, target);
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, mode, resource });
+    const weights = weightsFor(cls, target, mode);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
 
-    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split })] });
+    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split, mode })] });
   } catch (err) {
     console.error(err);
     await interaction.editReply(`Error: ${err.message}`);

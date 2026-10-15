@@ -2,7 +2,7 @@ import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
   PAUL_BENEDICTION, BENEDICTION_BUFF,
   BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_BEAM_BASE, MAGE_BEAM_PER_INTELLIGENCE,
-  HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP,
+  HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP, WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
   CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
 } from '../config/constants.js';
@@ -164,4 +164,15 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
 export function mageDamage(s, defense, hyperion = false) {
   const beam = expectedHit(s, defense) * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
   return applySoftCap(beam * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1));
+}
+
+// Mage RCM: one Wither Impact cast. Base 10,000 x (1 + Catacombs stat boost), intelligence at 0.3 scaling,
+// ability damage, magic additive damage (pet perks, Combat Warrior; weapon enchants do not count) and
+// multiplicative buffs (Loving chestplate 1.05x).
+export function rcmDamage(s, defense, cataStatBoost, magicAdditive = 0, multiplier = 1) {
+  const hit = WITHER_IMPACT_BASE * (1 + cataStatBoost)
+    * (1 + ((s.intelligence ?? 0) / 100) * WITHER_IMPACT_SCALING)
+    * (1 + (s.abilityDamage ?? 0) / 100)
+    * (1 + magicAdditive / 100) * multiplier;
+  return applySoftCap(hit * (1 - defense / (defense + 100)));
 }

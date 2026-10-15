@@ -682,6 +682,34 @@ test("Wither armor upgrades into Necron's / Storm's with 8 fragments; Mage never
   assert.ok(!mage.some((x) => x.includes("Necron's Leggings")));
 });
 
+test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 500 then intelligence, any armor reforge', async () => {
+  const { tuningAllocation, isRcm } = await import('../src/calc/stats.js');
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource, mode: 'rcm' });
+  assert.ok(isRcm(ctx));
+  assert.deepEqual(weightsFor('mage', null, 'rcm'), { wither: 100, dragon: 0 });
+  // 100 points at 420 speed: 54 to speed (500), the rest to intelligence (2 each).
+  const t = tuningAllocation(100, 420, ctx);
+  assert.equal(t.speedPoints, 54);
+  close(t.stats.intelligence, 92);
+  const w = weightsFor('mage', null, 'rcm');
+  const withBlade = buildLoadout(profile([newItem('HYPERION', resource), newItem('GIANTS_SWORD', resource)]), ctx, w);
+  assert.equal(withBlade.weapon.id, 'HYPERION');
+  const r = evaluate(withBlade, ctx, w);
+  assert.ok(r.wither > 0);
+  // Intelligence raises the cast; strength does not.
+  const noBlade = buildLoadout(profile([newItem('GIANTS_SWORD', resource)]), ctx, w);
+  assert.equal(evaluate(noBlade, ctx, w).wither, 0);
+  // Armor reforges other than Ancient are offered for the RCM set.
+  const res = new Map([...resource, ['WISE_WITHER_LEGGINGS', { id: 'WISE_WITHER_LEGGINGS', name: "Storm's Leggings", category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250 } }]]);
+  const armorReforges = (mode) => {
+    const c = makeContext({ cls: 'mage', cataLevel: 50, resource: res, mode });
+    const l = buildLoadout(profile([newItem('HYPERION', res), newItem('WISE_WITHER_LEGGINGS', res)]), c, weightsFor('mage', null, mode));
+    return availableUpgrades(l, c, { get: () => ({ price: 1e5, source: 'BZ' }) }).filter((u) => /reforge on Storm's Leggings/.test(u.label)).map((u) => u.label);
+  };
+  assert.ok(armorReforges('rcm').some((x) => !x.startsWith('Ancient')), armorReforges('rcm').join(', '));
+  assert.ok(armorReforges('lcm').every((x) => x.startsWith('Ancient')));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

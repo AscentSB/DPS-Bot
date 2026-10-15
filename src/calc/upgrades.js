@@ -5,7 +5,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, CLASS_ENRICHMENTS, CLASS_TUNING_STATS, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -26,10 +26,12 @@ const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 // Most coins spent on an armor or equipment piece the plan later replaces (buy + upgrades, kept below this).
 export const REPLACED_PIECE_BUDGET = 25_000_000;
 const REPLAN_ROUNDS = 6;
-const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed'];
+const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
-export function weightsFor(cls, target) {
+// Mage RCM (mode 'rcm') is scored on clear mobs only, kept in the "wither" slot.
+export function weightsFor(cls, target, mode) {
+  if (cls === 'mage' && mode === 'rcm') return { wither: 100, dragon: 0 };
   if (target === 'wither') return { wither: 100, dragon: 0 };
   if (target === 'dragon') return { wither: 0, dragon: 100 };
   return { ...CLASSES[cls].weights };
@@ -38,10 +40,11 @@ export function weightsFor(cls, target) {
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
+// mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', mode = 'lcm', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -117,7 +120,7 @@ export function buildLoadout(profile, ctx, weights) {
   bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id, ctx.cls));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
   // Mage clears in RCM armor, so it has none.
-  loadout.clearBoots = CLEAR_BOOTS_CLASSES.includes(ctx.cls)
+  loadout.clearBoots = CLEAR_BOOTS_CLASSES.includes(ctx.cls) && ctx.mode !== 'rcm'
     ? bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null)
     : null;
   loadout = selectPet(loadout, ctx, weights);
@@ -144,7 +147,7 @@ export function buildLoadout(profile, ctx, weights) {
 }
 
 function bestTuningSplit(loadout, ctx, weights) {
-  const stats = CLASS_TUNING_STATS[ctx.cls] ?? [];
+  const stats = tuningStats(ctx);
   let best = null;
   let bestScore = -Infinity;
   // Every split of 10 tenths over the class's tuning stats.
@@ -333,7 +336,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!isAccessory) {
       const rarity = statRarity(itemRarity(item));
       for (const [key, reforge] of Object.entries(allReforges())) {
-        if (!reforgeAllowed(key, reforge, item) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
+        if (!reforgeAllowed(key, reforge, item, ctx) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
         if (getReforge(item.reforge) === reforge) continue;
         push(`${reforge.name} reforge on ${name}${reforge.stone ? '' : ' (blacksmith)'}`, reforgeCost(reforge, item),
           (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
@@ -348,7 +351,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Enrichments on Legendary+ accessories.
     if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
-      for (const kind of CLASS_ENRICHMENTS[cls]) {
+      for (const kind of enrichmentKinds(ctx)) {
         if (item.enrichment === kind) continue;
         push(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
@@ -404,7 +407,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       // Enrichments need Legendary or higher, so most come after the recombobulator.
       for (const recomb of recombable ? [false, true] : [false]) {
         if (!ENRICHABLE_RARITIES.includes(itemRarity({ ...fresh, recomb }))) continue;
-        for (const kind of CLASS_ENRICHMENTS[cls]) buy(null, null, { recomb, enrichment: kind });
+        for (const kind of enrichmentKinds(ctx)) buy(null, null, { recomb, enrichment: kind });
       }
     } else {
       // Gear can come with the best reforge for its slot (and a recombobulator).
@@ -418,7 +421,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
   // Clear boots: any boots faster than your current clear boots, worn only during the clear.
   const clearSpeed = bootsSpeed(loadout.clearBoots, ctx);
-  for (const [id, info] of CLEAR_BOOTS_CLASSES.includes(cls) ? resource : []) {
+  for (const [id, info] of CLEAR_BOOTS_CLASSES.includes(cls) && ctx.mode !== 'rcm' ? resource : []) {
     if (info.category !== 'BOOTS' || loadout.owned.has(id) || !meetsRequirements(info, ctx.player)) continue;
     const boots = newItem(id, resource);
     if (bootsSpeed(boots, ctx) <= clearSpeed) continue;
@@ -449,7 +452,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!dpsPets([pet], ctx).length) continue;
     const petName = titleCase(type.toLowerCase());
     const buyPet = (p, label, parts) => push(label, parts,
-      (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls)); }, { group: 'pet' });
+      (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode)); }, { group: 'pet' });
     buyPet(pet, `Buy ${petName} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }]);
     // The rarity below plus a Tier Boost plays at the same rarity, often for less.
     const below = petTiers(type).find((t) => effectiveTier({ type, tier: t, heldItem: TIER_BOOST_ID }) === tier && t !== tier);
@@ -519,9 +522,10 @@ export function availableUpgrades(loadout, ctx, prices) {
   return ups;
 }
 
-// Armor only takes Ancient (ARMOR_REFORGE); everything else takes any reforge that fits.
-function reforgeAllowed(key, reforge, item) {
-  if (ARMOR_SLOTS.includes(item.category) && key !== ARMOR_REFORGE) return false;
+// Armor only takes Ancient (ARMOR_REFORGE); everything else takes any reforge that fits. The Mage RCM clear set
+// is its own armor, so any armor reforge (Necrotic, Loving, ...) is allowed there.
+function reforgeAllowed(key, reforge, item, ctx) {
+  if (ARMOR_SLOTS.includes(item.category) && key !== ARMOR_REFORGE && ctx?.mode !== 'rcm') return false;
   return reforgeAppliesTo(reforge, item);
 }
 
@@ -544,7 +548,7 @@ function bestReforge(loadout, ctx, item) {
   let best = null;
   let bestScore = -Infinity;
   for (const [rKey, reforge] of Object.entries(allReforges())) {
-    if (!reforgeAllowed(rKey, reforge, dummy)) continue;
+    if (!reforgeAllowed(rKey, reforge, dummy, ctx)) continue;
     if (!hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
     const trial = cloneLoadout(loadout);
     setSlot(trial, slot, { ...dummy, reforge: rKey });

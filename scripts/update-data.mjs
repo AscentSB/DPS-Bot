@@ -91,7 +91,7 @@ await Promise.all(starred.map(async (id) => {
 }));
 
 // Pets: leveling tables and stat numbers at level 1 and max for every pet with a DPS stat.
-const PET_STATS = { STRENGTH: 'strength', CRIT_DAMAGE: 'critDamage', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence', SPEED: 'speed', BONUS_ATTACK_SPEED: 'attackSpeed' };
+const PET_STATS = { STRENGTH: 'strength', CRIT_DAMAGE: 'critDamage', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence', SPEED: 'speed', BONUS_ATTACK_SPEED: 'attackSpeed', ABILITY_DAMAGE: 'abilityDamage' };
 const petStats = {};
 for (const [type, rarities] of Object.entries(petNums)) {
   for (const [rarity, data] of Object.entries(rarities)) {

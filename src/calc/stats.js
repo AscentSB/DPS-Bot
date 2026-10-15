@@ -4,13 +4,14 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
+  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, CLASS_TUNING_STATS,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, tuningStats,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -24,8 +25,14 @@ import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
   calcDamage, calcStrength, calcCritDamage, calcIntelligence, calcCritChance,
   dungeonMultiplier, dungeonCritMultiplier, powerMultiplier, secretDigits, blessingEffect, cataBoost,
-  archerDamage, berserkerDamage, mageDamage,
+  archerDamage, berserkerDamage, mageDamage, rcmDamage,
 } from './formulas.js';
+
+// Mage RCM mode: the clear set, scored on Wither Impact damage against clear mobs (the "wither" target;
+// boss-only bonuses do not apply). See rcmDamage.
+export function isRcm(ctx) {
+  return ctx?.cls === 'mage' && ctx?.mode === 'rcm';
+}
 
 const RAGNAROCK_WEAPON_ID = 'RAGNAROCK_AXE';
 
@@ -53,7 +60,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0, abilityDamage: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0, abilityDamage: 0, magicAdditive: 0,
   };
 }
 
@@ -351,10 +358,11 @@ export function totalAccessoryPower(loadout, resource) {
 function distribute(stats, points, ctx) {
   if (!(points > 0)) return;
   // Only the profile's tuning stats that matter for this class (an Archer split doesn't carry over to Mage).
-  const useful = CLASS_TUNING_STATS[ctx.cls] ?? [];
+  const useful = tuningStats(ctx);
   const entries = Object.entries(ctx.tuning?.split ?? {}).filter(([stat]) => useful.includes(stat) && TUNING_PER_POINT[stat]);
   const total = entries.reduce((sum, [, share]) => sum + share, 0);
-  const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(DEFAULT_TUNING_SPLIT[ctx.cls]);
+  const fallback = isRcm(ctx) ? { intelligence: 1 } : DEFAULT_TUNING_SPLIT[ctx.cls];
+  const split = total ? entries.map(([stat, share]) => [stat, share / total]) : Object.entries(fallback);
   for (const [stat, share] of split) addLoose(stats, { [stat]: points * share * (TUNING_PER_POINT[stat] ?? 0) });
 }
 
@@ -364,7 +372,7 @@ function distribute(stats, points, ctx) {
 export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP, asMult = 1) {
   const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / (TUNING_PER_POINT.attackSpeed * asMult) - 1e-9)));
   const left = points - asPoints;
-  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls) - speed) / TUNING_PER_POINT.speed)));
+  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls, ctx?.mode) - speed) / TUNING_PER_POINT.speed)));
   const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
   distribute(stats, left - speedPoints, ctx);
   return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };
@@ -483,20 +491,26 @@ function rawStats(loadout, ctx, activeExtras) {
     if (!target || target === 'global') for (const t of TARGETS) addInto(buckets[t], stats, scale);
     else addInto(buckets[target], stats, scale);
   };
+  // Bonuses against a boss only (wither or dragon). RCM is scored on clear mobs, so they do not count there.
+  const rcm = isRcm(c);
+  const bossOnly = (stats, target) => { if (!rcm) add(stats, target); };
   const misc = MISC_BUFFS[c.cls] ?? {};
   add(misc.stats);
   // Mage class intelligence (solo): 250 + 2 x 5 per Mage level.
   if (c.cls === 'mage') add({ intelligence: MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
   // Combat skill: +0.5 base crit chance per level.
   add({ critChance: (c.combatLevel ?? 0) * COMBAT_CRIT_CHANCE_PER_LEVEL });
-  add(misc.wither, 'wither');
-  add(misc.dragon, 'dragon');
+  // Mage class ability damage (+5, +1 per 5 levels, doubled solo) and Enchanting (+0.5% per level). RCM only uses it.
+  if (c.cls === 'mage') add({ abilityDamage: MAGE_ABILITY_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * MAGE_ABILITY_DAMAGE_PER_5_LEVELS * Math.floor((c.mageLevel ?? 0) / 5) });
+  if (c.cls === 'mage') add({ abilityDamage: ENCHANTING_ABILITY_DAMAGE_PER_LEVEL * (c.player?.skills?.ENCHANTING ?? ENCHANTING_MAX_LEVEL) });
+  bossOnly(misc.wither, 'wither');
+  bossOnly(misc.dragon, 'dragon');
 
   for (const item of loadoutGear(loadout)) {
     const contrib = itemContribution(item, c);
     add(contrib.global);
-    add(contrib.wither, 'wither');
-    add(contrib.dragon, 'dragon');
+    bossOnly(contrib.wither, 'wither');
+    bossOnly(contrib.dragon, 'dragon');
   }
 
   // Legion: percent of combat stats per piece of armor (crit chance counts more players against dragons).
@@ -513,8 +527,8 @@ function rawStats(loadout, ctx, activeExtras) {
   const activeKeys = new Set(activeExtras.map((e) => e.key));
   extraStats(activeExtras, activeKeys, extrasBucket);
   add(extrasBucket.global);
-  add(extrasBucket.wither, 'wither');
-  add(extrasBucket.dragon, 'dragon');
+  bossOnly(extrasBucket.wither, 'wither');
+  bossOnly(extrasBucket.dragon, 'dragon');
 
   // Active pet for each boss (swapped between phases) and the Dungeon potion, buffed by your best Jellyfish.
   const pets = {};
@@ -523,7 +537,9 @@ function rawStats(loadout, ctx, activeExtras) {
     pets[t] = active ? petStats(active, c.petProfile) : null;
     if (!pets[t]) continue;
     add(pets[t].stats, t);
-    add(pets[t][t], t);
+    bossOnly(pets[t][t], t);
+    // Pet damage perks (Golden Dragon's Legendary Treasure) also raise ability damage.
+    add({ magicAdditive: pets[t].stats.additiveDamage ?? 0 }, t);
   }
   // Chimera on the weapon (not a Ragnarock): copies the active pet's stats, which then get the weapon's
   // dungeon boost (stars and cata; crit chance and attack speed stars only). Big for Mage: Golden Dragon's
@@ -535,7 +551,7 @@ function rawStats(loadout, ctx, activeExtras) {
       if (!pets[t]) continue;
       const copy = {};
       for (const [k, v] of Object.entries(pets[t].stats)) {
-        if (typeof v === 'number' && (FLAT_STATS.has(k) || k === 'speed' || k === 'attackSpeed')) copy[k] = v * CHIMERA_PER_LEVEL * chimera;
+        if (typeof v === 'number' && (FLAT_STATS.has(k) || k === 'speed' || k === 'attackSpeed' || k === 'abilityDamage')) copy[k] = v * CHIMERA_PER_LEVEL * chimera;
       }
       add(scaleBucket(copy, loadout.weapon, c, dungeon), t);
     }
@@ -566,8 +582,8 @@ function rawStats(loadout, ctx, activeExtras) {
 
   const shards = shardStats(loadout, c);
   add(shards.global);
-  add(shards.wither, 'wither');
-  add(shards.dragon, 'dragon');
+  bossOnly(shards.wither, 'wither');
+  bossOnly(shards.dragon, 'dragon');
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
@@ -575,13 +591,13 @@ function rawStats(loadout, ctx, activeExtras) {
   // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   // Mage is scored in the boss only (RCM armor for the clear), so its boss boots carry the speed.
-  const clearSwap = CLEAR_BOOTS_CLASSES.includes(c.cls) ? Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS)) : 0;
+  const clearSwap = CLEAR_BOOTS_CLASSES.includes(c.cls) && !rcm ? Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS)) : 0;
   const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
   // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
   const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
   const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
   // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
-  const needsAttackSpeed = c.cls === 'mage' || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
+  const needsAttackSpeed = (c.cls === 'mage' && !rcm) || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
   const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c,
     needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
   add(tuning.stats);
@@ -637,7 +653,14 @@ function evaluateWith(loadout, ctx, activeExtras) {
     let dmg;
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx));
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0);
-    else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout));
+    else if (isRcm(ctx)) {
+      // One Wither Impact cast against a clear mob (casts per second do not change with gear).
+      const blade = WITHER_IMPACT_WEAPONS.includes(loadout.weapon?.id);
+      const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
+      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving) : 0;
+      result.stats[target] = s;
+      continue;
+    } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout));
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;
     result.stats[target] = s;
@@ -679,7 +702,7 @@ export function dpsPets(pets, ctx) {
   const order = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
   for (const pet of pets ?? []) {
     const s = petStats(pet, ctx.petProfile);
-    const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength', 'attackSpeed'].some((k) => s.stats[k])
+    const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength', 'attackSpeed', 'abilityDamage'].some((k) => s.stats[k])
       || Object.keys(s.dragon).length || Object.keys(s.wither).length;
     if (!useful) continue;
     const key = `${pet.type}:${pet.heldItem ?? ''}`;
@@ -695,7 +718,8 @@ export function selectPet(loadout, ctx, weights) {
   const candidates = [null, ...dpsPets(loadout.pets, ctx)];
   const activePets = { ...(loadout.activePets ?? {}) };
   for (const target of TARGETS) {
-    const preferred = PHASE_PETS[target]?.[ctx.cls];
+    // RCM has no phase pet: the best clear pet wins (Sheep, Golden Dragon, ...).
+    const preferred = isRcm(ctx) ? null : PHASE_PETS[target]?.[ctx.cls];
     const pool = candidates.filter((p) => p && p.type === preferred);
     let best = null;
     let bestScore = -Infinity;
