@@ -4,7 +4,7 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 
 ## Command
 
-`/dps archer|berserker ign:<name> [target]` and `/dps mage ign:<name> [set:<Boss set (LCM)|Clear set (RCM)>] [floor:<Master Mode|Normal Mode>] [target]`. The reply shows 8 upgrades per page (40 planned) with Back / Next buttons, Coin upgrades / Profile upgrades buttons to switch lists, and a button to switch between every level (Duplex I, II, ...) and max levels only. Only the person who ran the command can press them; buttons expire after 30 minutes.
+`/dps archer|berserker ign:<name> [target]` and `/dps mage ign:<name> [set:<Boss set (LCM)|Clear set (RCM)>] [floor:<Master Mode|Normal Mode>] [target]`. The reply shows 8 upgrades per page (40 planned) with Back / Next buttons, Coin upgrades / Profile upgrades buttons to switch lists, and a button to switch between every level (Duplex I, II, ...) and max levels only. Only the person who ran the command can press them; buttons expire after 30 minutes. Each user can run /dps once every 10 seconds.
 
 `upgrades` picks how leveled upgrades are listed. All levels (default) lists Duplex I, II, III... as separate steps. Max level only jumps straight to Duplex V at the price of the Duplex V book, all remaining master stars in one step, Perfect gems, and max essence perk levels.
 

@@ -27,6 +27,9 @@ const PLAN_STEPS = 40;
 const PAGE_SIZE = 8;
 // Button sessions are kept this long after the last use.
 const SESSION_MS = 30 * 60 * 1000;
+// Per-user /dps cooldown.
+const COOLDOWN_MS = 10 * 1000;
+const lastRun = new Map();
 const sessions = new Map();
 
 const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
@@ -78,7 +81,7 @@ export function buildEmbed(s) {
   }
   const { plan } = s.coins[s.upgradeMode];
   const steps = plan.steps.slice(first, first + PAGE_SIZE);
-  const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(2) : st.perMillion.toFixed(3)}% per 1M`);
+  const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(5) : st.perMillion.toFixed(6)}% per 1M`);
   const unverified = plan.steps.some((st) => st.unverified);
   return new EmbedBuilder()
     .setTitle(`${title(s)} · Coin upgrades`)
@@ -110,6 +113,14 @@ function prune() {
 }
 
 export async function execute(interaction) {
+  const now = Date.now();
+  for (const [user, at] of lastRun) if (now - at >= COOLDOWN_MS) lastRun.delete(user);
+  const last = lastRun.get(interaction.user.id);
+  if (last) {
+    const wait = Math.ceil((COOLDOWN_MS - (now - last)) / 1000);
+    return interaction.reply({ content: `Please wait ${wait}s before using /dps again.`, ephemeral: true });
+  }
+  lastRun.set(interaction.user.id, now);
   const sub = interaction.options.getSubcommand();
   const cls = SUBCOMMAND_CLASS[sub];
   const name = interaction.options.getString('ign', true).trim();
