@@ -7,7 +7,8 @@
     "start": "node src/index.js",
     "deploy": "node src/deploy-commands.js",
     "test": "node --test test/*.test.js",
-    "update-data": "node scripts/update-data.mjs"
+    "update-data": "node scripts/update-data.mjs",
+    "check-env": "node scripts/check-env.mjs"
   },
   "repository": {
     "type": "git",
