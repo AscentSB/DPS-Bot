@@ -3,8 +3,14 @@ import fs from 'node:fs';
 import dotenv from 'dotenv';
 
 if (!fs.existsSync('.env')) {
-  const txt = fs.existsSync('.env.txt');
-  console.log(txt ? 'Found .env.txt instead of .env. Rename it: Rename-Item .env.txt .env' : 'No .env file in this folder. Create it: copy .env.example .env');
+  console.log(`No file named exactly .env in ${process.cwd()}`);
+  const near = fs.readdirSync('.').filter((f) => /env/i.test(f) && f !== '.env.example');
+  if (near.length) {
+    console.log('Files with "env" in the name here:', near.map((f) => JSON.stringify(f)).join(', '));
+    console.log(`Rename the one with your token to .env, for example: Rename-Item ${JSON.stringify(near[0])} .env`);
+  } else {
+    console.log('No other env file here either. Create it: copy .env.example .env, then: notepad .env');
+  }
   process.exit(1);
 }
 const raw = fs.readFileSync('.env');
