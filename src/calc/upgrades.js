@@ -938,7 +938,13 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
     plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, plan);
   }
   const { overspent, ...rest } = plan;
-  rest.steps = rest.steps.map(({ facts, choice, path, ...step }) => step);
+  // % change vs withers and dragons for each step (the weighted gain combines them).
+  const pct = (a, b) => (a > 0 ? (b / a - 1) * 100 : b > 0 ? 100 : 0);
+  rest.steps = rest.steps.map(({ facts, choice, path, ...step }, i) => {
+    const before = path.state.current;
+    const after = plan.steps[i + 1]?.path.state.current ?? plan.endDamage;
+    return { ...step, witherGain: pct(before.wither, after.wither), dragonGain: pct(before.dragon, after.dragon) };
+  });
   return rest;
 }
 

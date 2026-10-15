@@ -21,7 +21,7 @@ export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 
   return {
     weights, menu, floorMode: ctx.floorMode, tuningSplit: ctx.tuning?.split ?? null,
     plan: {
-      steps: plan.steps.map(({ label, cost, source, unverified, gain, perMillion }) => ({ label, cost, source, unverified, gain, perMillion })),
+      steps: plan.steps.map(({ label, cost, source, unverified, gain, perMillion, witherGain, dragonGain }) => ({ label, cost, source, unverified, gain, perMillion, witherGain, dragonGain })),
       startDamage: damage(plan.startDamage),
       endDamage: damage(plan.endDamage),
     },
