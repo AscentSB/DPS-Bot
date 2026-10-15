@@ -593,7 +593,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       else if (isAcc) (next.accessories = new Map(next.accessories)).set(id, item);
       if (set === 'wither') setDragonSlot(next, slot, mainItem(l, slot));
       return next;
-      }, { group: isAcc ? undefined : `buy:${set === 'dragon' ? 'dragon:' : ''}${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
+      }, { group: isAcc ? undefined : `buy:${set === 'dragon' ? 'dragon:' : ''}${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}`, repick: isWeapon });
     };
     const fresh = newItem(id, resource);
     const recombable = canRecomb(fresh, resource);
@@ -992,7 +992,9 @@ export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part 
   for (let index = part; index < ups.length; index += parts) {
     const up = ups[index];
     if (!(up.cost > 0) || skip.has(up.label)) continue;
-    const next = up.apply(loadout);
+    // A new weapon can change the best pet and power (both free to switch), so it is scored with them re-picked,
+    // the same way the step is applied.
+    const next = up.repick ? selectPower(selectPet(up.apply(loadout), ctx, weights), ctx, weights) : up.apply(loadout);
     const changes = pieceChanges(loadout, next);
     // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
     if (lowFloor && up.cost > LOW_FLOOR_PIECE_MAX_STEP && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
