@@ -2,7 +2,7 @@ import {
   CLASSES, TARGET_DEFENSE, NECRON_BLADE_WITHER_MULTIPLIER, DUAL_WIELD_ADDITIVE, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
-  BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
+  BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
   WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
@@ -714,13 +714,14 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
     }
     // Dual wield: Prosecute copy early, Execute copy late.
     if (g.weapon?.dualWield && !rcm) add({ additiveDamage: DUAL_WIELD_ADDITIVE }, t);
-    // Legion: percent of combat stats per piece of armor (crit chance counts more players against dragons).
+    // Legion: percent of combat stats per piece of armor, per nearby player (4 against withers, and against dragons
+    // for Mage; 1 otherwise).
     let legion = 0;
     for (const item of Object.values(g.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL;
     if (legion) {
-      const l = legion * LEGION_PLAYERS;
-      add({ additiveStrength: l, additiveCritDamage: l, additiveIntelligence: l, additiveAttackSpeed: l }, t);
-      add({ additiveCritChance: t === 'wither' ? l : legion * LEGION_DRAGON_CRIT_CHANCE_PLAYERS }, t);
+      const grouped = !rcm && (t === 'wither' || c.cls === 'mage');
+      const l = legion * (grouped ? LEGION_GROUPED_PLAYERS : LEGION_PLAYERS);
+      add({ additiveStrength: l, additiveCritDamage: l, additiveIntelligence: l, additiveAttackSpeed: l, additiveCritChance: l }, t);
     }
     add(setBonuses(g, c.cls), t);
   }

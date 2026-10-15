@@ -282,11 +282,11 @@ export const RAGNAROCK_ID = 'RAGNAROCK_AXE';
 export const RAGNAROCK_MULTIPLIER = 1.5;
 export const CHIMERA_PER_LEVEL = 0.2;
 
-// Legion: +0.07% combat stats per level per nearby player. Assume 1 nearby player in every boss phase,
-// except crit chance against dragons, which counts 4.
+// Legion: +0.07% combat stats per level per nearby player. 4 nearby players against withers (every class) and
+// against dragons for Mage. 1 everywhere else (Archer / Berserker dragons, the RCM clear).
 export const LEGION_PER_LEVEL = 0.0007;
 export const LEGION_PLAYERS = 1;
-export const LEGION_DRAGON_CRIT_CHANCE_PLAYERS = 4;
+export const LEGION_GROUPED_PLAYERS = 4;
 
 // How many upgrades the greedy planner lists.
 export const MAX_UPGRADES_LISTED = 15;

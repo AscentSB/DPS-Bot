@@ -460,14 +460,14 @@ test('armor only gets Ancient: no other reforge is offered or bundled on armor',
   assert.ok(armorReforges.every((u) => u.label.startsWith('Ancient reforge')));
 });
 
-test('Legion raises attack speed: 0.07% per level per player, 1 nearby player', () => {
+test('Legion raises attack speed: 0.07% per level per player, 4 nearby players against withers', () => {
   const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
   const legs = { ...newItem('POWER_WITHER_LEGGINGS', res), enchants: { ultimate_legion: 5 } };
   const l = { ...buildLoadout(profile([newItem('TERMINATOR', res), legs]), ctx, w), power: 'silky' };
-  // (Terminator 60 + Silky 5) x (1 + 5 x 0.0007 x 1)
-  close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * (1 + 5 * 0.0007));
+  // (Terminator 60 + Silky 5) x (1 + 5 x 0.0007 x 4)
+  close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * (1 + 5 * 0.0007 * 4));
 });
 
 test('Inferno Demonlord shard: +1 attack speed per level, read from attributes.stacks.attack_speed', () => {
@@ -491,16 +491,21 @@ test('a bracelet takes the gloves slot: never worn together with gloves', () => 
   if (buy) assert.ok(!('BRACELET' in buy.apply(owned).equipment));
 });
 
-test('Legion crit chance counts 4 players against dragons, 1 against withers; other stats 1 everywhere', () => {
-  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
-  const w = weightsFor('arch');
-  const plain = buildLoadout(profile([newItem('TERMINATOR', resource), newItem('POWER_WITHER_LEGGINGS', resource)]), ctx, w);
-  const legion = { ...plain, armor: { LEGGINGS: { ...plain.armor.LEGGINGS, enchants: { ultimate_legion: 5 } } } };
-  const a = evaluate({ ...plain, activePets: {} }, ctx, w).stats;
-  const b = evaluate({ ...legion, activePets: {} }, ctx, w).stats;
-  const ratio = (t, k) => b[t][k] / a[t][k];
-  assert.ok(Math.abs(ratio('dragon', 'critChance') - 1) > 3.5 * Math.abs(ratio('wither', 'critChance') - 1));
-  close(ratio('dragon', 'strength'), ratio('wither', 'strength'));
+test('Legion counts 4 players against withers (every class) and Mage dragons, 1 for Archer / Berserker dragons and RCM', () => {
+  const gain = (cls, mode = 'lcm') => {
+    const ctx = makeContext({ cls, cataLevel: 50, mode, resource });
+    const w = weightsFor(cls, null, mode);
+    const plain = buildLoadout(profile([newItem(cls === 'arch' ? 'TERMINATOR' : 'HYPERION', resource), newItem('POWER_WITHER_LEGGINGS', resource)]), ctx, w);
+    const legion = { ...plain, armor: { ...plain.armor, LEGGINGS: { ...plain.armor.LEGGINGS, enchants: { ultimate_legion: 5 } } } };
+    const a = evaluate({ ...plain, activePets: {} }, ctx, w).stats;
+    const b = evaluate({ ...legion, activePets: {} }, ctx, w).stats;
+    return (t) => b[t].strength / a[t].strength - 1;
+  };
+  const arch = gain('arch');
+  close(arch('wither'), 4 * arch('dragon'));
+  const mage = gain('mage');
+  close(mage('dragon'), mage('wither'));
+  close(mage('wither'), arch('wither'));
 });
 
 test('Duplex is read from its NBT key ultimate_reiterate: Duplex V adds 0.2 arrows', () => {
