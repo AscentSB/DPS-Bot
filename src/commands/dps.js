@@ -9,20 +9,18 @@ const SUBCOMMAND_CLASS = { archer: 'arch', berserker: 'bers', mage: 'mage' };
 const ign = (o) => o.setName('ign').setDescription('Your Hypixel IGN').setRequired(true);
 const target = (o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
   .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' });
-const levels = (o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
-  .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' });
 
 export const data = new SlashCommandBuilder()
   .setName('dps')
   .setDescription('Your next DPS upgrades, ranked by DPS gained per million coins')
-  .addSubcommand((c) => c.setName('archer').setDescription('Archer upgrades').addStringOption(ign).addStringOption(target).addStringOption(levels))
-  .addSubcommand((c) => c.setName('berserker').setDescription('Berserker upgrades').addStringOption(ign).addStringOption(target).addStringOption(levels))
+  .addSubcommand((c) => c.setName('archer').setDescription('Archer upgrades').addStringOption(ign).addStringOption(target))
+  .addSubcommand((c) => c.setName('berserker').setDescription('Berserker upgrades').addStringOption(ign).addStringOption(target))
   .addSubcommand((c) => c.setName('mage').setDescription('Mage upgrades').addStringOption(ign)
     .addStringOption((o) => o.setName('set').setDescription('Boss set (LCM beam) or clear set (RCM, 500 speed)')
       .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
     .addStringOption((o) => o.setName('floor').setDescription('Boss set only: Master Mode (M7) or Normal Mode (F7)')
       .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }))
-    .addStringOption(target).addStringOption(levels));
+    .addStringOption(target));
 
 // Coin plans are computed this deep and shown PAGE_SIZE at a time.
 const PLAN_STEPS = 40;
@@ -61,7 +59,7 @@ function title(s) {
 }
 
 export function pageCount(s) {
-  const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.plan.steps ?? [];
+  const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.[s.upgradeMode]?.plan.steps ?? [];
   return Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
 }
 
@@ -78,7 +76,7 @@ export function buildEmbed(s) {
       .setFooter({ text: `Page ${s.page + 1}/${pageCount(s)} · Skills, slayers, class and Catacombs levels, SkyBlock level and Harp songs. No coins.` })
       .setColor(0x2e86c1);
   }
-  const { plan } = s.coins;
+  const { plan } = s.coins[s.upgradeMode];
   const steps = plan.steps.slice(first, first + PAGE_SIZE);
   const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(2) : st.perMillion.toFixed(3)}% per 1M`);
   const unverified = plan.steps.some((st) => st.unverified);
@@ -88,9 +86,9 @@ export function buildEmbed(s) {
     .addFields(
       { name: 'Damage now', value: damageText(plan.startDamage, rcm), inline: true },
       { name: `After all ${plan.steps.length}`, value: damageText(plan.endDamage, rcm), inline: true },
-      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins.tuningSplit) },
+      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[s.upgradeMode].tuningSplit) },
     )
-    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
+    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
     .setColor(0x8e44ad);
 }
 
@@ -101,6 +99,8 @@ function buttons(id, s) {
     new ButtonBuilder().setCustomId(`dps:${id}:next`).setLabel('Next ▶').setStyle(ButtonStyle.Secondary).setDisabled(s.page >= pages - 1),
     new ButtonBuilder().setCustomId(`dps:${id}:coins`).setLabel('Coin upgrades').setStyle(s.view === 'coins' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'coins'),
     new ButtonBuilder().setCustomId(`dps:${id}:profile`).setLabel('Profile upgrades').setStyle(s.view === 'profile' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'profile'),
+    // All levels lists Duplex I, II, ... separately; max levels jumps straight to the max level at its cost.
+    new ButtonBuilder().setCustomId(`dps:${id}:levels`).setLabel(s.upgradeMode === 'all' ? 'Show max levels' : 'Show every level').setStyle(ButtonStyle.Secondary).setDisabled(s.view !== 'coins'),
   )];
 }
 
@@ -115,7 +115,7 @@ export async function execute(interaction) {
   const name = interaction.options.getString('ign', true).trim();
   const mode = cls === 'mage' ? interaction.options.getString('set') ?? 'lcm' : 'lcm';
   const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
-  const job = { cls, target: interaction.options.getString('target'), upgradeMode: interaction.options.getString('upgrades') ?? 'all', mode, floorMode };
+  const job = { cls, target: interaction.options.getString('target'), mode, floorMode };
   await interaction.deferReply();
 
   try {
@@ -126,10 +126,10 @@ export async function execute(interaction) {
     const member = readMember(profile, account.uuid, resource);
 
     // The planner runs in a worker thread so the bot stays connected while it works.
-    const coins = await runInWorker({ ...job, member, menu: 'coins', limit: PLAN_STEPS });
+    const coins = { all: await runInWorker({ ...job, upgradeMode: 'all', member, menu: 'coins', limit: PLAN_STEPS }) };
     prune();
     const id = interaction.id;
-    const s = { ...job, name: account.name, member, coins, profile: null, view: 'coins', page: 0, owner: interaction.user.id, usedAt: Date.now() };
+    const s = { ...job, upgradeMode: 'all', name: account.name, member, coins, profile: null, view: 'coins', page: 0, owner: interaction.user.id, usedAt: Date.now() };
     sessions.set(id, s);
     await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   } catch (err) {
@@ -148,13 +148,19 @@ export async function handleButton(interaction) {
   if (action === 'prev') s.page = Math.max(0, s.page - 1);
   if (action === 'next') s.page = Math.min(pageCount(s) - 1, s.page + 1);
   if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
-  if (s.view === 'profile' && !s.profile) {
+  if (action === 'levels') { s.upgradeMode = s.upgradeMode === 'all' ? 'max' : 'all'; s.page = 0; }
+  // Profile upgrades and the max-level plan are worked out the first time they are opened.
+  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, member: s.member };
+  const missing = s.view === 'profile' ? !s.profile : !s.coins[s.upgradeMode];
+  if (missing) {
     await interaction.deferUpdate();
     try {
-      s.profile = (await runInWorker({ cls: s.cls, target: s.target, upgradeMode: s.upgradeMode, mode: s.mode, floorMode: s.floorMode, member: s.member, menu: 'profile' })).profile;
+      if (s.view === 'profile') s.profile = (await runInWorker({ ...job, menu: 'profile' })).profile;
+      else s.coins[s.upgradeMode] = await runInWorker({ ...job, upgradeMode: s.upgradeMode, menu: 'coins', limit: PLAN_STEPS });
     } catch (err) {
       console.error(err);
       s.view = 'coins';
+      s.upgradeMode = 'all';
     }
     return interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   }
