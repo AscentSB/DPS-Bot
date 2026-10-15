@@ -149,6 +149,8 @@ export const ARROW_DAMAGE = { arch: 5, bers: 5 };
 // Swarm: enemies within 10 blocks. One boss at a time; RCM clears hit packs of mobs.
 export const BOSS_SWARM_ENEMIES = 1;
 export const RCM_SWARM_ENEMIES = 7;
+// The only enchants that raise Wither Impact damage on the clear set, in Master Mode and Normal Mode alike.
+export const RCM_ENCHANTS = ['titan_killer', 'prosecute', 'ultimate_swarm', 'smite'];
 // Thunderlord strikes every 3rd hit.
 export const THUNDERLORD_EVERY = 3;
 

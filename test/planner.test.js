@@ -752,7 +752,7 @@ test('floor toggle: Master Mode counts Titan Killer and Triple-Strike, Normal Mo
   assert.ok(dmg('master', { prosecute: 6 }) > dmg('master', {}));
 });
 
-test('RCM: Giant Killer, Prosecute and Swarm (7 mobs) raise Wither Impact; Crow + Hephaestus Relic boosts ability damage', async () => {
+test('RCM: only Titan Killer, Prosecute, Swarm (7 mobs) and Smite raise Wither Impact, on both floors; Crow + Hephaestus Relic boosts ability damage', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const crow = petStats({ type: 'CROW', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_RELIC' });
   close(crow.stats.abilityDamage, 30);
@@ -762,9 +762,13 @@ test('RCM: Giant Killer, Prosecute and Swarm (7 mobs) raise Wither Impact; Crow 
   const blade = (enchants) => ({ ...scrolled(newItem('HYPERION', resource)), enchants });
   const l = buildLoadout(profile([blade({})]), ctx, w);
   const cast = (enchants) => evaluate({ ...l, weapon: blade(enchants) }, ctx, w).wither;
-  for (const e of [{ giant_killer: 7 }, { prosecute: 6 }, { ultimate_swarm: 5 }]) assert.ok(cast(e) > cast({}), JSON.stringify(e));
-  close(cast({ first_strike: 5 }), cast({}));
-  close(cast({ thunderlord: 7 }), cast({}));
+  for (const e of [{ titan_killer: 7 }, { prosecute: 6 }, { ultimate_swarm: 5 }, { smite: 7 }]) assert.ok(cast(e) > cast({}), JSON.stringify(e));
+  for (const e of [{ giant_killer: 7 }, { first_strike: 5 }, { thunderlord: 7 }, { sharpness: 7 }, { ender_slayer: 7 }]) close(cast(e), cast({}));
+  // Normal Mode (F7) clear set: Titan Killer still counts, Giant Killer still does not.
+  const f7 = makeContext({ cls: 'mage', cataLevel: 0, resource, mode: 'rcm', floorMode: 'normal' });
+  const castF7 = (enchants) => evaluate({ ...l, weapon: blade(enchants) }, f7, w).wither;
+  assert.ok(castF7({ titan_killer: 7 }) > castF7({}));
+  close(castF7({ giant_killer: 7 }), castF7({}));
 });
 
 test('upper-case enchant keys from the profile are read', () => {
