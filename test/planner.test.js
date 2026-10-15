@@ -979,6 +979,18 @@ test('runDps returns plain data for the worker (coin and profile menus); bows ge
   close(evaluate(l, ctx, weightsFor('arch')).stats.wither.damage, 5 + 310 * 6.35 + 5);
 });
 
+test('stars alone do not make a dungeon item (The Primordial): no catacombs scaling, master stars or medallion', () => {
+  const res = new Map([...resource, ['THE_PRIMORDIAL', { id: 'THE_PRIMORDIAL', name: 'The Primordial', category: 'BELT', tier: 'LEGENDARY', stats: { STRENGTH: 10 },
+    upgrade_costs: [[{ type: 'ESSENCE', essence_type: 'SPIDER', amount: 10 }]] }]]);
+  const enc = encode([{ id: 'THE_PRIMORDIAL', stars: 5 }]);
+  const [belt] = decodeItems(enc).map((i) => toItemState(i, res));
+  assert.equal(belt.dungeon, undefined);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  close(itemContribution(belt, ctx).global.strength, 10);
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), belt]), ctx, weightsFor('arch'));
+  assert.ok(!availableUpgrades(l, ctx, prices).some((u) => /Master Star on The Primordial/.test(u.label)));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

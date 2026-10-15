@@ -57,7 +57,9 @@ export function toItemState(nbtItem, resource) {
     recomb: Number(extra.rarity_upgrades ?? 0) > 0,
     stars: Math.min(stars, 5),
     masterStars: Math.max(0, Math.min(5, stars - 5)),
-    dungeon: Number(extra.dungeon_item ?? 0) > 0 || stars > 0 ? true : undefined,
+    // Dungeon item (catacombs stats, master stars, medallion): flagged on the item or in the items resource.
+    // Stars alone do not make an item a dungeon item (The Primordial and Kuudra gear have their own stars).
+    dungeon: Number(extra.dungeon_item ?? 0) > 0 || Boolean(info?.dungeon_item || info?.dungeon_item_conversion_cost) ? true : undefined,
     // Some profiles store enchant keys in upper case (PROSECUTE).
     enchants: isBook ? {} : Object.fromEntries(Object.entries(extra.enchantments ?? {}).map(([k, v]) => [k.toLowerCase(), v])),
     hpb: Number(extra.hot_potato_count ?? 0),
