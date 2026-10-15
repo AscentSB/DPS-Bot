@@ -60,6 +60,13 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
   return { ...CLASSES[cls].weights };
 }
 
+// Items a class never uses. The Mage boss set also never uses Maxor's Boots: the clear is done in the RCM set, and
+// the boss only needs 450 speed (Storm's Boots win).
+function excludedItem(id, ctx) {
+  if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(id)) return true;
+  return ctx.cls === 'mage' && ctx.mode !== 'rcm' && /^(STARRED_)?SPEED_WITHER_BOOTS$/.test(id);
+}
+
 // Mage LCM (Master Mode) can swap to a second weapon, armor or equipment for the dragons. loadout.dragonGear
 // { weapon, armor, equipment } holds only the slots that differ from the main set (null when nothing does).
 export function hasDragonSet(ctx) {
@@ -169,7 +176,7 @@ export function buildLoadout(profile, ctx, weights) {
 
   for (const item of items) {
     loadout.owned.add(item.id);
-    if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(item.id)) continue;
+    if (excludedItem(item.id, ctx)) continue;
     if (item.id === RAGNAROCK_ID) bySlot.rag.push(item);
     if (weaponCats.includes(item.category)) bySlot.weapon.push(item);
     else if (bySlot[equipmentSlot(item.category) ?? item.category]) bySlot[equipmentSlot(item.category) ?? item.category].push(item);
@@ -481,7 +488,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     // Golden -> Diamond heads and Wither armor -> class armor (keeps its upgrades).
     for (const up of ITEM_UPGRADES[item.id] ?? []) {
       const info = resource.get(up.id);
-      if (!info || loadout.owned.has(up.id) || CLASS_EXCLUDED_ITEMS[cls]?.test(up.id) || !meetsRequirements(info, ctx.player)) continue;
+      if (!info || loadout.owned.has(up.id) || excludedItem(up.id, ctx) || !meetsRequirements(info, ctx.player)) continue;
       pushItem(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, up.parts,
         (l) => replaceItem(l, item, { ...item, id: up.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: dropBaseRarity(up.id, resource) }));
     }
@@ -523,7 +530,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const dragonSet = hasDragonSet(ctx);
   for (const [id, info] of resource) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
-    if (CLASS_EXCLUDED_ITEMS[cls]?.test(id)) continue;
+    if (excludedItem(id, ctx)) continue;
     // Never buy a fresh copy of what an item you wear upgrades into (the upgrade keeps its stars, gems, etc.).
     if (worn.some((it) => upgradesInto(it.id, id))) continue;
     const cat = info.category;

@@ -1303,6 +1303,12 @@ test('Mage never gets clear boots (boss set and clear set); the clear set comes 
     const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode, resource: res });
     const l = buildLoadout(profile(items([{ id: 'HYPERION' }, { id: 'SPEED_WITHER_BOOTS' }])), ctx, weightsFor('mage', null, mode));
     assert.equal(l.clearBoots ?? null, null);
-    assert.ok(!availableUpgrades(l, ctx, p).some((u) => /clear boots/.test(u.label)));
+    const ups = availableUpgrades(l, ctx, p);
+    assert.ok(!ups.some((u) => /clear boots/.test(u.label)));
+    // The boss set never wears or buys Maxor's Boots (the clear set may, when speed pays).
+    if (mode === 'lcm') {
+      assert.notEqual(l.armor.BOOTS?.id, 'SPEED_WITHER_BOOTS');
+      assert.ok(!ups.some((u) => /Maxor/.test(u.label)));
+    }
   }
 });
