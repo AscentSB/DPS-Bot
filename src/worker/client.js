@@ -10,6 +10,8 @@ const PLAN_WORKERS = Math.max(1, Number(process.env.PLAN_WORKERS ?? 2));
 export const PLAN_TIMEOUT_MS = Number(process.env.PLAN_TIMEOUT_MS ?? 3 * 60 * 1000);
 
 export class PlanTimeoutError extends Error {}
+// Thrown when a plan is cancelled through its AbortSignal (the /dps session went inactive).
+export class PlanCancelledError extends Error {}
 
 const slots = [];
 const queue = [];
@@ -23,7 +25,8 @@ function spawn(slot) {
     const job = slot.job;
     if (slot.worker !== worker || !job || job.id !== id) return;
     finish(slot);
-    if (error) job.reject(new Error(error));
+    if (job.signal?.aborted) job.reject(new PlanCancelledError('Plan cancelled.'));
+    else if (error) job.reject(new Error(error));
     else job.resolve(result);
   });
   worker.on('error', (err) => console.error('Plan worker error:', err));
@@ -78,7 +81,7 @@ async function pump() {
         replace(slot);
         job.reject(new PlanTimeoutError('Plan took too long.'));
       }, PLAN_TIMEOUT_MS);
-      slot.worker.postMessage({ id: job.id, job: job.payload, data });
+      slot.worker.postMessage({ id: job.id, job: job.payload, data, cancel: job.cancel });
     } catch (err) {
       finish(slot);
       job.reject(err);
@@ -86,10 +89,23 @@ async function pump() {
   }
 }
 
-export function runInWorker(payload) {
+// signal (optional AbortSignal): aborting drops a queued job, or sets the job's shared cancel flag, which the planner
+// checks once per step (threads cannot be stopped from outside), and the promise rejects with PlanCancelledError.
+export function runInWorker(payload, { signal } = {}) {
   startWorker();
   return new Promise((resolve, reject) => {
-    queue.push({ id: nextId++, payload, resolve, reject });
+    if (signal?.aborted) return reject(new PlanCancelledError('Plan cancelled.'));
+    const job = { id: nextId++, payload, resolve, reject, signal, cancel: new SharedArrayBuffer(4) };
+    signal?.addEventListener('abort', () => {
+      const queued = queue.indexOf(job);
+      if (queued >= 0) {
+        queue.splice(queued, 1);
+        reject(new PlanCancelledError('Plan cancelled.'));
+      } else {
+        Atomics.store(new Int32Array(job.cancel), 0, 1);
+      }
+    }, { once: true });
+    queue.push(job);
     pump();
   });
 }

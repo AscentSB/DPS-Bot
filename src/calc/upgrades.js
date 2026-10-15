@@ -1027,7 +1027,7 @@ export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part 
 // first step the rules now reject and resumes there. rules.states caches every distinct loadout's scored
 // candidates by content, so a re-plan that reaches gear it has already scored (often in a different order) reuses
 // the scores instead of evaluating ~2000 candidates again.
-async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, prev) {
+async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, prev, isCancelled) {
   const pieceKey = (c) => (c.kind === 'upgrade' ? c.prevKey : c.key);
   const allowed = (cand, spend) => !rules.banned.has(cand.label)
     && !cand.changes.some((c) => rules.doomed.has(pieceKey(c)) && (spend.get(pieceKey(c)) ?? 0) + cand.cost >= REPLACED_PIECE_BUDGET);
@@ -1059,6 +1059,8 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
   const startDamage = prev ? prev.startDamage : path.state.current;
 
   while (steps.length < limit) {
+    // Cooperative cancel: the /dps session went inactive, so stop here.
+    if (isCancelled?.()) throw new Error('Plan cancelled.');
     const { state } = path;
     state.candidates ??= await candidatesFor(state);
     let best = null;
@@ -1087,10 +1089,10 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
 }
 
 // scorer (optional): scores a state's candidates in parallel (src/worker/evalPool.js), same results as in-thread.
-export async function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED, scorer = null) {
+export async function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED, scorer = null, isCancelled = null) {
   ctx.weights = weights;
   const rules = { doomed: new Set(), banned: new Set(), states: new Map() };
-  let plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer);
+  let plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, null, isCancelled);
   // Re-plan until no piece is overspent before being replaced (25M budget) and no small step is overwritten
   // within 10M coins. Each round resumes from the first step the new rules reject.
   for (let round = 0; round < REPLAN_ROUNDS; round++) {
@@ -1099,7 +1101,7 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
     if (!freshPieces.length && !freshSteps.length) break;
     for (const key of freshPieces) rules.doomed.add(key);
     for (const label of freshSteps) rules.banned.add(label);
-    plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, plan);
+    plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, plan, isCancelled);
   }
   const { overspent, ...rest } = plan;
   // % change vs withers and dragons for each step (the weighted gain combines them).

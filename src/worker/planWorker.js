@@ -10,13 +10,15 @@ const pool = createEvalPool();
 let resource = new Map();
 let tables = { bazaar: new Map(), auctions: new Map() };
 
-parentPort.on('message', async ({ id, job, data }) => {
+parentPort.on('message', async ({ id, job, data, cancel }) => {
   try {
     if (data.resource) resource = new Map(data.resource);
     // New maps on every change, so a plan's frozen price tables never change under it.
     if (data.bazaar || data.auctions) tables = { bazaar: data.bazaar ? new Map(data.bazaar) : tables.bazaar, auctions: data.auctions ? new Map(data.auctions) : tables.auctions };
     const prices = { ...priceLookup(tables), tables };
-    parentPort.postMessage({ id, result: await runDps({ ...job, resource, prices, pool }) });
+    const flag = new Int32Array(cancel);
+    const isCancelled = () => Atomics.load(flag, 0) === 1;
+    parentPort.postMessage({ id, result: await runDps({ ...job, resource, prices, pool, isCancelled }) });
   } catch (err) {
     parentPort.postMessage({ id, error: err?.message ?? String(err) });
   }

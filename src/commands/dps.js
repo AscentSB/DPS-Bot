@@ -2,8 +2,16 @@ import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, Bu
 import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
-import { runInWorker, PlanTimeoutError } from '../worker/client.js';
+import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
 import { pricesReady } from '../api/prices.js';
+
+// A /dps message goes inactive after this long without a button press (its buttons are removed, its data freed and
+// any calculation it started is stopped). Change it here.
+export const INACTIVITY_MS = 20 * 1000;
+const INACTIVE_NOTE = 'This session is inactive. Run /dps again to start a new one.';
+const EXPIRED_REPLY = 'This /dps session expired. Run /dps again to start a new one.';
+// Interaction tokens last 15 minutes; past this the fallback edit through the token is not tried.
+const TOKEN_EDIT_MS = 14 * 60 * 1000;
 
 // One subcommand per class, so the Mage-only options only show under /dps mage.
 const SUBCOMMAND_CLASS = { archer: 'arch', berserker: 'bers', mage: 'mage' };
@@ -110,7 +118,38 @@ function buttons(id, s) {
 
 function prune() {
   const now = Date.now();
-  for (const [id, s] of sessions) if (now - s.usedAt > SESSION_MS) sessions.delete(id);
+  for (const [id, s] of sessions) if (now - s.usedAt > SESSION_MS) expire(id);
+}
+
+// (Re)start a session's inactivity timer. Each session has its own, so one user's never touches another's.
+function startTimer(id, s) {
+  clearTimeout(s.timer);
+  s.timer = setTimeout(() => expire(id), INACTIVITY_MS);
+  s.timer.unref?.();
+}
+
+// Inactive: forget the session (freeing its plans and profile data), stop a calculation it started, and edit the
+// message to drop its buttons and add a note. The edit goes to the message itself (bot permission, no 15-minute
+// token limit); if that fails (no access to the channel, e.g. a user-installed app) it falls back to the latest
+// interaction's token while still valid. A deleted message or missing permission is logged, never thrown.
+async function expire(id) {
+  const s = sessions.get(id);
+  if (!s) return;
+  sessions.delete(id);
+  clearTimeout(s.timer);
+  s.abort?.abort();
+  const edit = { content: INACTIVE_NOTE, components: [] };
+  try {
+    if (!s.message) throw new Error('No message to edit.');
+    await s.message.edit(edit);
+  } catch (err) {
+    try {
+      if (!s.interaction || Date.now() - s.interactionAt > TOKEN_EDIT_MS) throw err;
+      await s.interaction.editReply(edit);
+    } catch (err2) {
+      console.warn(`Could not mark a /dps message inactive (${err2?.code ?? err2?.message ?? err2}).`);
+    }
+  }
 }
 
 // Fixed replies for failures (never the raw error, which can hold outside text).
@@ -162,7 +201,11 @@ export async function execute(interaction) {
     const id = interaction.id;
     const s = { ...job, upgradeMode: 'all', name: account.name, member, coins, profile: null, view: 'coins', page: 0, owner: interaction.user.id, usedAt: Date.now() };
     sessions.set(id, s);
-    await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
+    // The message is kept for the inactivity edit (discord.js returns it; HTTP mode uses the token instead).
+    s.message = await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
+    Object.assign(s, { interaction, interactionAt: Date.now() });
+    // The timer starts once results are on screen (the first plan can take a while and is not inactivity).
+    startTimer(id, s);
   } catch (err) {
     console.error(err);
     // readMember explains a profile with its Inventory API turned off; that text is ours, not outside input.
@@ -172,13 +215,18 @@ export async function execute(interaction) {
   }
 }
 
+// For tests: the session store and timer start.
+export const testing = { sessions, startTimer };
+
 // Back / Next / Coin upgrades / Profile upgrades.
 export async function handleButton(interaction) {
   const [, id, action] = interaction.customId.split(':');
   const s = sessions.get(id);
-  if (!s) return interaction.reply({ content: 'These results expired. Run /dps again.', ephemeral: true });
+  if (!s) return interaction.reply({ content: EXPIRED_REPLY, ephemeral: true });
   if (interaction.user.id !== s.owner) return interaction.reply({ content: 'Only the person who ran this /dps can use these buttons.', ephemeral: true });
   s.usedAt = Date.now();
+  startTimer(id, s);
+  Object.assign(s, { interaction, interactionAt: Date.now() });
   if (action === 'prev') s.page = Math.max(0, s.page - 1);
   if (action === 'next') s.page = Math.min(pageCount(s) - 1, s.page + 1);
   if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
@@ -188,16 +236,26 @@ export async function handleButton(interaction) {
   const missing = s.view === 'profile' ? !s.profile : !s.coins[s.upgradeMode];
   if (missing) {
     await interaction.deferUpdate();
+    // A calculation started here is stopped if the session goes inactive before it finishes.
+    s.abort = new AbortController();
+    const { signal } = s.abort;
     try {
-      if (s.view === 'profile') s.profile = (await runInWorker({ ...job, menu: 'profile' })).profile;
-      else s.coins[s.upgradeMode] = await runInWorker({ ...job, upgradeMode: s.upgradeMode, menu: 'coins', limit: PLAN_STEPS });
+      if (s.view === 'profile') s.profile = (await runInWorker({ ...job, menu: 'profile' }, { signal })).profile;
+      else s.coins[s.upgradeMode] = await runInWorker({ ...job, upgradeMode: s.upgradeMode, menu: 'coins', limit: PLAN_STEPS }, { signal });
     } catch (err) {
+      // Stopped because the session went inactive: the message already says so.
+      if (err instanceof PlanCancelledError || sessions.get(id) !== s) return;
       console.error(err);
       s.view = 'coins';
       s.upgradeMode = 'all';
       await interaction.followUp({ content: err instanceof PlanTimeoutError ? PLAN_TOO_LONG : 'Could not work that list out. Try again in a minute.', ephemeral: true });
     }
-    return interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
+    // The session may have gone inactive while this ran; then its buttons stay removed.
+    if (sessions.get(id) !== s) return;
+    s.message = (await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) })) ?? s.message;
+    // New results on screen: the inactivity timer starts over.
+    startTimer(id, s);
+    return;
   }
   await interaction.update({ embeds: [buildEmbed(s)], components: buttons(id, s) });
 }
