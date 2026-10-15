@@ -1,5 +1,5 @@
 import {
-  CLASSES, TARGET_DEFENSE, HYPERION_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
+  CLASSES, TARGET_DEFENSE, NECRON_BLADE_WITHER_MULTIPLIER, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
@@ -107,7 +107,7 @@ export function loadoutKey(l) {
     contentKey(l.weapon), contentKey(l.rag), contentKey(l.clearBoots), slots(l.armor), slots(l.equipment),
     [...l.accessories.values()].map(contentKey).sort().join(';'), JSON.stringify(l.pets ?? []), JSON.stringify(l.activePets ?? {}),
     JSON.stringify(l.shards ?? {}), JSON.stringify(l.perks ?? {}), [...(l.extras ?? [])].sort().join(','), l.power ?? '', l.bopBonus ?? '',
-    Boolean(l.witherImpact), l.owned?.has(HYPERION_ID), l.owned?.has(GENERAL_MEDALLION_ID),
+    Boolean(l.witherImpact), l.owned?.has(GENERAL_MEDALLION_ID),
   ].join('\n');
 }
 
@@ -816,8 +816,9 @@ function thunderlordPercent(weapon) {
   return ench.thunder[Math.min(level, ench.thunder.length) - 1];
 }
 
-export function hasHyperion(loadout) {
-  return loadout.weapon?.id === HYPERION_ID || loadout.owned.has(HYPERION_ID);
+// Necron's Blade family: +50% vs withers, only while held.
+function witherBladeMultiplier(loadout, target) {
+  return target === 'wither' && WITHER_IMPACT_WEAPONS.includes(loadout.weapon?.id) ? NECRON_BLADE_WITHER_MULTIPLIER : 1;
 }
 
 function evaluateWith(loadout, ctx, activeExtras) {
@@ -837,12 +838,13 @@ function evaluateWith(loadout, ctx, activeExtras) {
     let dmg;
     const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m)
       : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m)
-        : mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), m));
+        : mageDamage(s, defense, m));
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
     // Shadow Assassin Cloak + a Wither Impact blade you own: every melee hit follows a teleport (LCM, 1.1x).
+    // Necron's Blade family held: +50% vs withers.
     const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && (loadout.witherImpact || hasWitherImpact(loadout.weapon)) ? SA_CLOAK_MULTIPLIER : 1;
-    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * bookMultiplier(loadout, ctx);
+    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target) * bookMultiplier(loadout, ctx);
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);
     else if (isRcm(ctx)) {
@@ -852,7 +854,7 @@ function evaluateWith(loadout, ctx, activeExtras) {
       result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * bookMultiplier(loadout, ctx)) : 0;
       result.stats[target] = s;
       continue;
-    } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);
+    } else dmg = mageDamage(s, defense, fabled);
     // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
     // Berserk melee bonus multiplies it again on top of the additive. Soft-capped as its own hit, and counted at
     // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast).

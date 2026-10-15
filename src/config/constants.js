@@ -152,9 +152,9 @@ export const THUNDERLORD_EVERY = 3;
 // Fabled reforge (swords): every hit deals 0-15% more damage, multiplicative, so 1.075x on average.
 export const FABLED_MULTIPLIER = 1.075;
 
-// Hyperion: damage multiplier against withers for mage.
-export const HYPERION_ID = 'HYPERION';
-export const HYPERION_WITHER_MULTIPLIER = 1.5;
+// Necron's Blade and its refinements (WITHER_IMPACT_WEAPONS): "Deals +50% damage to wither mobs" while held,
+// for every class.
+export const NECRON_BLADE_WITHER_MULTIPLIER = 1.5;
 
 // Soft cap: everything above SOFT_CAP keeps SOFT_CAP_KEEP of its value (90% reduction).
 export const SOFT_CAP = 1_000_000;

@@ -75,9 +75,9 @@ test('berserker adds its extra additive damage on top of the archer formula; arc
   close(archerDamage(s, 0, 1.8), archerDamage(s, 0) * 1.8);
 });
 
-test('hyperion multiplies mage wither damage', () => {
+test('mage beam multipliers scale the beam', () => {
   const s = { damage: 10, critDamage: 0, strength: 0, additiveDamage: 0, intelligence: 100 };
-  close(mageDamage(s, 0, true), mageDamage(s, 0, false) * 1.5);
+  close(mageDamage(s, 0, 1.5), mageDamage(s, 0) * 1.5);
 });
 
 test('RCM Wither Impact: 10,000 x cata boost x intelligence (0.3 scaling) x ability damage x magic additive, then the soft cap', () => {

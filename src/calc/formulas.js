@@ -1,7 +1,7 @@
 import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
   BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_BEAM_BASE, MAGE_BEAM_PER_INTELLIGENCE,
-  HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP, WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
+  SOFT_CAP, SOFT_CAP_KEEP, WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
   CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
 } from '../config/constants.js';
@@ -159,11 +159,10 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier =
 }
 
 // Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits and overload
-// included). Ability damage does not apply. hyperion = true applies the 1.5x Hyperion multiplier (withers only).
-// multiplier: multiplicative melee buffs (Fabled 1.075x).
-export function mageDamage(s, defense, hyperion = false, multiplier = 1) {
-  const beam = expectedHit(s, defense) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
-  return applySoftCap(beam * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1));
+// included). Ability damage does not apply.
+// multiplier: multiplicative melee buffs (Fabled 1.075x, Necron's Blade 1.5x vs withers).
+export function mageDamage(s, defense, multiplier = 1) {
+  return applySoftCap(expectedHit(s, defense) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0)));
 }
 
 // Mage RCM: one Wither Impact cast. Base 10,000 x (1 + Catacombs stat boost), intelligence at 0.3 scaling,
