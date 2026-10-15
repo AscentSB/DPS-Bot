@@ -7,7 +7,7 @@ import { pricesReady } from '../api/prices.js';
 
 // A /dps message goes inactive after this long without a button press (its buttons are removed, its data freed and
 // any calculation it started is stopped). Change it here.
-export const INACTIVITY_MS = 20 * 1000;
+export const INACTIVITY_MS = 30 * 1000;
 const INACTIVE_NOTE = 'This session is inactive. Run /dps again to start a new one.';
 const EXPIRED_REPLY = 'This /dps session expired. Run /dps again to start a new one.';
 // Interaction tokens last 15 minutes; past this the fallback edit through the token is not tried.

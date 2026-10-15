@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -850,6 +850,20 @@ export function bookMultiplier(loadout, ctx) {
   return 1 + BOOK_DAMAGE_PER_LEVEL * Math.min(ctx.profileStats.sbLevel ?? 0, BOOK_MAX_LEVEL);
 }
 
+function fireAspectPercent(weapon) {
+  const level = weapon?.enchants?.fire_aspect ?? 0;
+  const ench = ENCHANTS.fire_aspect;
+  if (!level || !ench.categories.includes(weapon.category)) return 0;
+  return ench.fire[Math.min(level, ench.fire.length) - 1];
+}
+
+function firstStrikeAdditive(weapon) {
+  const level = weapon?.enchants?.first_strike ?? 0;
+  const ench = ENCHANTS.first_strike;
+  if (!level || !ench.categories.includes(weapon.category)) return 0;
+  return ench.stats.additiveDamage[Math.min(level, ench.stats.additiveDamage.length) - 1];
+}
+
 function thunderlordPercent(weapon) {
   const level = weapon?.enchants?.thunderlord ?? 0;
   const ench = ENCHANTS.thunderlord;
@@ -877,12 +891,8 @@ function evaluateWith(loadout, ctx, activeExtras) {
     // The gear used against this target (Mage LCM can swap to a dragon set).
     const loadout = gearView(main, target);
     const shots = volleys[target];
-    const s = finalStats(buckets[target], ctx);
+    const base = finalStats(buckets[target], ctx);
     const defense = TARGET_DEFENSE[target];
-    let dmg;
-    const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m)
-      : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m)
-        : mageDamage(s, defense, m));
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
     // Shadow Assassin Cloak while holding a Wither Impact blade (all 3 scrolls): every hit follows a teleport (1.1x).
@@ -890,33 +900,50 @@ function evaluateWith(loadout, ctx, activeExtras) {
     // Necron's Blade family held: +50% vs withers.
     const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && hasWitherImpact(loadout.weapon) ? SA_CLOAK_MULTIPLIER : 1;
     const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target) * bookMultiplier(loadout, ctx);
-    if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
-    else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);
-    else if (isRcm(ctx)) {
+    if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
       const blade = hasWitherImpact(loadout.weapon);
       const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
       const implosion = loadout.equipment.BELT?.id === IMPLOSION_BELT_ID ? IMPLOSION_BELT_MULTIPLIER : 1;
-      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * implosion * bookMultiplier(loadout, ctx)) : 0;
-      result.stats[target] = s;
+      result[target] = blade ? rcmDamage(base, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * implosion * bookMultiplier(loadout, ctx)) : 0;
+      result.stats[target] = base;
       continue;
-    } else dmg = mageDamage(s, defense, fabled);
-    // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
-    // Berserk melee bonus multiplies it again on top of the additive. Counted at
-    // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast).
-    if (ctx.cls === 'bers' && target === 'wither') {
-      const ferocity = buckets[target].ferocity * (1 + buckets[target].additiveFerocity);
-      if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
     }
-    // Thunderlord: every 3rd hit adds lightning for a % of the hit.
-    const thunder = thunderlordPercent(loadout.weapon);
-    if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;
-    // DPS = damage per arrow x arrows per volley x volleys per second.
-    result[target] = dmg * arrows * shots;
-    // Wither Skeleton Death's Touch: one extra hit of 67% every second.
-    const pet = loadout.activePets?.[target];
-    const deathsTouch = pet ? petStats(pet, ctx.petProfile).special?.deathsTouch ?? 0 : 0;
-    if (deathsTouch) result[target] += hitWith(fabled * deathsTouch);
+    // Boss DPS for a set of final stats.
+    const bossDps = (s) => {
+      const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m)
+        : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m)
+          : mageDamage(s, defense, m));
+      let dmg = hitWith(fabled);
+      // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
+      // Berserk melee bonus multiplies it again on top of the additive. Counted at
+      // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast).
+      if (ctx.cls === 'bers' && target === 'wither') {
+        const ferocity = buckets[target].ferocity * (1 + buckets[target].additiveFerocity);
+        if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
+      }
+      // Thunderlord: every 3rd hit adds lightning for a % of the hit.
+      const thunder = thunderlordPercent(loadout.weapon);
+      if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;
+      // DPS = damage per arrow x arrows per volley x volleys per second.
+      let dps = dmg * arrows * shots;
+      // Wither Skeleton Death's Touch: one extra hit of 67% every second.
+      const pet = loadout.activePets?.[target];
+      const deathsTouch = pet ? petStats(pet, ctx.petProfile).special?.deathsTouch ?? 0 : 0;
+      if (deathsTouch) dps += hitWith(fabled * deathsTouch);
+      // Fire Aspect (withers only; dragons do not burn): a % of the hit as fire damage every second.
+      const fire = target === 'wither' ? fireAspectPercent(loadout.weapon) : 0;
+      if (fire) dps += hitWith(fabled * fire / 100);
+      return dps;
+    };
+    let s = base;
+    result[target] = bossDps(s);
+    // Mage at 1B+ DPS kills things in so few hits that First Strike counts in Master Mode too.
+    const firstStrike = ctx.cls === 'mage' && ctx.floorMode !== 'normal' ? firstStrikeAdditive(loadout.weapon) : 0;
+    if (firstStrike && result[target] >= MAGE_FIRST_STRIKE_DPS) {
+      s = { ...base, additiveDamage: base.additiveDamage + firstStrike };
+      result[target] = bossDps(s);
+    }
     result.stats[target] = s;
   }
   return result;

@@ -36,6 +36,8 @@ export const ENCHANTS = {
   first_strike: { categories: SWORDS, target: 'global', melee: true, floorMode: 'normal', stats: { additiveDamage: [25, 50, 75, 100, 125] }, conflicts: ['triple_strike'] },
   triple_strike: { categories: SWORDS, target: 'global', melee: true, floorMode: 'master', stats: { additiveDamage: [10, 20, 30, 40, 50] }, conflicts: ['first_strike'] },
   // Thunderlord beats Thunderbolt on one target (Thunderbolt splits its lightning), so only Thunderlord is counted.
+  // Fire Aspect: burns for a % of the hit every second, withers only (dragons do not burn). Source: wiki (3/6/9%).
+  fire_aspect: { categories: SWORDS, target: 'wither', fire: [3, 6, 9], maxLevel: 3 },
   thunderlord: { categories: SWORDS, target: 'global', melee: true, thunder: [8, 16, 24, 32, 40, 50, 60], maxLevel: 7, conflicts: ['thunderbolt'] },
   ultimate_swarm: { name: 'Swarm', categories: [...SWORDS, 'BOW'], target: 'global', swarm: true, stats: { additiveDamage: [2, 4, 6, 8, 10] }, conflicts: ['ultimate_chimera', 'ultimate_reiterate'] },
   // Vicious: +3 / +4 / +5 ferocity at III-V (I and II do not exist; listed as 0). Goes on bows (Terminator) too.

@@ -168,6 +168,8 @@ export const RCM_SWARM_ENEMIES = 7;
 export const RCM_ENCHANTS = ['giant_killer', 'prosecute', 'ultimate_swarm', 'smite'];
 // Thunderlord strikes every 3rd hit.
 export const THUNDERLORD_EVERY = 3;
+// Mage boss set at or above this DPS (against a boss) also counts First Strike in Master Mode.
+export const MAGE_FIRST_STRIKE_DPS = 1e9;
 
 // Fabled reforge (swords): every hit deals 0-15% more damage, multiplicative, so 1.075x on average.
 export const FABLED_MULTIPLIER = 1.075;

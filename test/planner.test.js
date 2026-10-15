@@ -1319,3 +1319,24 @@ test('a pet the bot has no data for (new or unknown type) is ignored instead of 
   const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [{ type: 'SOME_NEW_PET', tier: 'LEGENDARY', heldItem: null }] }), ctx, w);
   assert.ok(evaluate(l, ctx, w).wither > 0);
 });
+
+test('Fire Aspect burns withers only; Mage counts First Strike in Master Mode only at 1B+ DPS', () => {
+  const res = new Map([...resource, ['BIG_SWORD', { id: 'BIG_SWORD', name: 'Big Sword', category: 'SWORD', tier: 'LEGENDARY', stats: { DAMAGE: 1e9 } }]]);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, resource: res });
+  const w = weightsFor('mage', null, 'lcm');
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }])), ctx, w);
+  const withWeapon = (weapon) => evaluate({ ...l, weapon }, ctx, w);
+  const hype = (enchants) => ({ ...newItem('HYPERION', res), enchants });
+  const plain = withWeapon(hype({}));
+  const fire = withWeapon(hype({ fire_aspect: 3 }));
+  assert.ok(fire.wither > plain.wither);
+  close(fire.dragon, plain.dragon);
+  // Low DPS: First Strike does nothing in Master Mode.
+  assert.ok(plain.wither < 1e9);
+  close(withWeapon(hype({ first_strike: 5 })).wither, plain.wither);
+  // 1B+ DPS: it counts.
+  const big = (enchants) => ({ ...newItem('BIG_SWORD', res), enchants });
+  const bigPlain = withWeapon(big({}));
+  assert.ok(bigPlain.wither >= 1e9);
+  assert.ok(withWeapon(big({ first_strike: 5 })).wither > bigPlain.wither);
+});
