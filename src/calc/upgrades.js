@@ -1,6 +1,6 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
-  MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
+  MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
   MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
@@ -13,7 +13,7 @@ import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
@@ -369,6 +369,23 @@ function hasUsefulStats(id, resource, cls) {
   return [b.global, b.wither, b.dragon].some((s) => Object.values(s).some((v) => v !== 0 && v !== 1));
 }
 
+// Everything on an item that a full copy of it costs (priced parts only): enchant books, potato books, The Art
+// of War, master stars, recombobulator, reforge, gems and Wither scrolls.
+function copyParts(item, prices) {
+  const parts = [
+    ...Object.entries(item.enchants ?? {}).map(([k, level]) => ({ id: `ENCHANTMENT_${k.toUpperCase()}_${level}` })),
+    ...(item.hpb ? [{ id: HOT_POTATO.id, qty: Math.min(item.hpb, HOT_POTATO.max) }] : []),
+    ...(item.hpb > HOT_POTATO.max ? [{ id: FUMING_POTATO.id, qty: item.hpb - HOT_POTATO.max }] : []),
+    ...(item.artOfWar ? [{ id: ART_OF_WAR.id }] : []),
+    ...MASTER_STAR_IDS.slice(0, item.masterStars ?? 0).map((id) => ({ id })),
+    ...(item.recomb ? [{ id: RECOMBOBULATOR_ID }] : []),
+    ...(getReforge(item.reforge) ? reforgeCost(getReforge(item.reforge), item) : []),
+    ...Object.values(item.gems?.slots ?? {}).map((g) => ({ id: `${g.quality}_${g.gem}_GEM` })),
+    ...(item.scrolls ?? []).map((id) => ({ id })),
+  ];
+  return parts.filter((x) => x.coins || prices.get(x.id));
+}
+
 // Every upgrade available from the current loadout. Each one only depends on what the loadout
 // already has, so a master star never lands on a missing item and the 5th star never comes before the 4th.
 export function availableUpgrades(loadout, ctx, prices) {
@@ -384,15 +401,27 @@ export function availableUpgrades(loadout, ctx, prices) {
     const slot = slotName(loadout, item);
     const isAccessory = item.category === ACCESSORY_CATEGORY;
     const weaponLike = isWeaponCategory(item.category) && (item === loadout.weapon || item === loadout.rag || item === loadout.dragonGear?.weapon);
+    // A dual-wielded weapon has a second copy, so every upgrade on it is bought twice.
+    const pushItem = item.dualWield
+      ? (label, parts, apply, extra) => push(`${label} (both copies)`, parts.map((x) => (x.coins ? { coins: 2 * x.coins } : { ...x, qty: 2 * (x.qty ?? 1) })), apply, extra)
+      : push;
+
+    // Dual wield (LCM): a second copy of a Prosecute Hyperion / Dark Claymore with Execute, swapped in once the boss
+    // is low. Priced as the full first copy; counted as DUAL_WIELD_ADDITIVE more additive damage on average.
+    if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)) {
+      const parts = [{ id: item.id }, ...copyParts(item, prices)];
+      push(`Dual wield ${name}: a second copy with Execute in place of Prosecute`, parts,
+        (l) => replaceItem(l, item, { ...item, dualWield: true }), { group: `${slot}:dualwield` });
+    }
 
     // Master stars: next star only, dungeon gear with 5 regular stars.
     if (!isAccessory && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
       if (ctx.upgradeMode === 'max') {
         const parts = MASTER_STAR_IDS.slice(item.masterStars, MAX_MASTER_STARS).map((id) => ({ id }));
-        push(`${parts.length > 1 ? `${ordinal(item.masterStars + 1)}–${ordinal(MAX_MASTER_STARS)} Master Stars` : `${ordinal(MAX_MASTER_STARS)} Master Star`} on ${name}`, parts,
+        pushItem(`${parts.length > 1 ? `${ordinal(item.masterStars + 1)}–${ordinal(MAX_MASTER_STARS)} Master Stars` : `${ordinal(MAX_MASTER_STARS)} Master Star`} on ${name}`, parts,
           (l) => replaceItem(l, item, { ...item, masterStars: MAX_MASTER_STARS }));
       } else {
-        push(`${ordinal(item.masterStars + 1)} Master Star on ${name}`, [{ id: MASTER_STAR_IDS[item.masterStars] }],
+        pushItem(`${ordinal(item.masterStars + 1)} Master Star on ${name}`, [{ id: MASTER_STAR_IDS[item.masterStars] }],
           (l) => replaceItem(l, item, { ...item, masterStars: item.masterStars + 1 }));
       }
     }
@@ -406,7 +435,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         const current = item.enchants?.[key] ?? 0;
         const maxLevel = enchantMaxLevel(ench);
         for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
-          push(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
+          pushItem(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });
@@ -420,21 +449,21 @@ export function availableUpgrades(loadout, ctx, prices) {
       const hpb = item.hpb ?? 0;
       if (hpb < HOT_POTATO.max) {
         const n = HOT_POTATO.max - hpb;
-        push(`${n} Hot Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: HOT_POTATO.id, qty: n }],
+        pushItem(`${n} Hot Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: HOT_POTATO.id, qty: n }],
           (l) => replaceItem(l, item, { ...item, hpb: HOT_POTATO.max }));
       } else if (hpb < HOT_POTATO.max + FUMING_POTATO.max) {
         const n = HOT_POTATO.max + FUMING_POTATO.max - hpb;
-        push(`${n} Fuming Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: FUMING_POTATO.id, qty: n }],
+        pushItem(`${n} Fuming Potato Book${n > 1 ? 's' : ''} on ${name}`, [{ id: FUMING_POTATO.id, qty: n }],
           (l) => replaceItem(l, item, { ...item, hpb: HOT_POTATO.max + FUMING_POTATO.max }));
       }
-      if (!item.artOfWar) push(`The Art of War on ${name}`, [{ id: ART_OF_WAR.id }], (l) => replaceItem(l, item, { ...item, artOfWar: true }));
+      if (!item.artOfWar) pushItem(`The Art of War on ${name}`, [{ id: ART_OF_WAR.id }], (l) => replaceItem(l, item, { ...item, artOfWar: true }));
     }
 
     // Fragging: base dungeon item + 8 boss fragments -> STARRED_ version (keeps its upgrades).
     const frag = FRAGGED[item.id];
     if (frag && resource.has(frag.id)) {
       const info = resource.get(frag.id);
-      push(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, frag.parts,
+      pushItem(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, frag.parts,
         (l) => replaceItem(l, item, { ...item, id: frag.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
     }
 
@@ -442,12 +471,12 @@ export function availableUpgrades(loadout, ctx, prices) {
     for (const up of ITEM_UPGRADES[item.id] ?? []) {
       const info = resource.get(up.id);
       if (!info || loadout.owned.has(up.id) || CLASS_EXCLUDED_ITEMS[cls]?.test(up.id) || !meetsRequirements(info, ctx.player)) continue;
-      push(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, up.parts,
+      pushItem(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, up.parts,
         (l) => replaceItem(l, item, { ...item, id: up.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: dropBaseRarity(up.id, resource) }));
     }
 
     // Recombobulator.
-    if (canRecomb(item, resource)) push(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
+    if (canRecomb(item, resource)) pushItem(`Recombobulate ${name}`, [{ id: RECOMBOBULATOR_ID }], (l) => replaceItem(l, item, { ...item, recomb: true }));
 
     // Reforges: stones, and blacksmith reforges (random rolls, priced as the average number of rolls).
     if (!isAccessory) {
@@ -455,14 +484,14 @@ export function availableUpgrades(loadout, ctx, prices) {
       for (const [key, reforge] of Object.entries(allReforges())) {
         if (!reforgeAllowed(key, reforge, item, ctx) || !hasDpsStats(reforge.stats?.[rarity]) && !reforge.cataStat) continue;
         if (getReforge(item.reforge) === reforge) continue;
-        push(`${reforge.name} reforge on ${name}${reforge.stone ? '' : ' (blacksmith)'}`, reforgeCost(reforge, item),
+        pushItem(`${reforge.name} reforge on ${name}${reforge.stone ? '' : ' (blacksmith)'}`, reforgeCost(reforge, item),
           (l) => replaceItem(l, item, { ...item, reforge: key }), { group: `${slot}:reforge` });
       }
     }
 
     // Gemstones.
     for (const up of gemUpgrades(item, ctx)) {
-      push(`${titleCase(up.quality.toLowerCase())} ${titleCase(up.gem.toLowerCase())} in ${name}${up.unlock ? ' (unlock slot)' : ''}`,
+      pushItem(`${titleCase(up.quality.toLowerCase())} ${titleCase(up.gem.toLowerCase())} in ${name}${up.unlock ? ' (unlock slot)' : ''}`,
         up.parts, (l) => replaceItem(l, item, up.apply(item)), { group: `${slot}:gem:${up.slotKey}` });
     }
 
@@ -470,7 +499,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
       for (const kind of enrichmentKinds(ctx)) {
         if (item.enrichment === kind) continue;
-        push(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
+        pushItem(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
       }
     }

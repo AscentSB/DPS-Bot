@@ -1223,3 +1223,18 @@ test('Mage LCM: a dragon set weapon counts per target (Smite blade for withers, 
   const arch = makeContext({ cls: 'arch', cataLevel: 50, resource });
   assert.equal(buildLoadout(profile(owned), arch, weightsFor('arch', null, 'lcm')).dragonGear ?? null, null);
 });
+
+test('dual wield: a second Prosecute Hyperion with Execute costs the full first copy, adds 50% additive, doubles later upgrades', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, resource });
+  const weights = weightsFor('mage', null, 'lcm');
+  const l = buildLoadout(profile(items([{ id: 'HYPERION', hpb: 10, enchants: { prosecute: 6, sharpness: 7 } }])), ctx, weights);
+  const dual = availableUpgrades(l, ctx, prices).find((u) => u.label.startsWith('Dual wield Hyperion'));
+  // Hyperion + Sharpness VII + 10 hot potato books (Prosecute VI has no price here, so it is left out).
+  close(dual.cost, 900e6 + 60e6 + 10 * 80e3);
+  const next = dual.apply(l);
+  assert.equal(next.weapon.dualWield, true);
+  assert.ok(evaluate(next, ctx, weights).wither > evaluate(l, ctx, weights).wither);
+  const star = availableUpgrades(next, ctx, prices).find((u) => u.label === '1st Master Star on Hyperion (both copies)');
+  close(star.cost, 2 * 8e6);
+  assert.ok(!availableUpgrades(next, ctx, prices).some((u) => u.label.startsWith('Dual wield')));
+});

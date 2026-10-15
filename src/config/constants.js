@@ -156,6 +156,11 @@ export const FABLED_MULTIPLIER = 1.075;
 // for every class.
 export const NECRON_BLADE_WITHER_MULTIPLIER = 1.5;
 
+// Dual wield (LCM): a second copy of a Prosecute weapon with Execute, swapped in once the boss is low. Counted as
+// this much more additive damage on average.
+export const DUAL_WIELD_WEAPONS = ['HYPERION', 'DARK_CLAYMORE'];
+export const DUAL_WIELD_ADDITIVE = 50;
+
 // Soft cap: everything above SOFT_CAP keeps SOFT_CAP_KEEP of its value (90% reduction).
 export const SOFT_CAP = 1_000_000;
 export const SOFT_CAP_KEEP = 0.1;
