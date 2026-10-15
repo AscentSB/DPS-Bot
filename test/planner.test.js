@@ -915,7 +915,7 @@ test('pet perks: Wither Skeleton vs withers, Skeleton bow damage and Combo, Blaz
   assert.ok(b.damage > n.damage);
 });
 
-test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, Ankylosaurus, Black Cat, Death\'s Touch, Stampede', async () => {
+test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, Ankylosaurus, Black Cat, Death\'s Touch; no Horse pets', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const { tuningAllocation } = await import('../src/calc/stats.js');
   const ps = (type, heldItem = null) => petStats({ type, tier: petTierFor(type), heldItem });
@@ -939,12 +939,8 @@ test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, An
   const ws = { type: 'WITHER_SKELETON', tier: 'LEGENDARY', heldItem: null };
   const noWb = { ...l, activePets: {} };
   assert.ok(evaluate({ ...l, activePets: { wither: ws, dragon: ws } }, ctx, w).dragon > evaluate(noWb, ctx, w).dragon);
-  const horse = { type: 'SKELETON_HORSE', tier: 'LEGENDARY', heldItem: null };
-  close(evaluate({ ...l, activePets: { wither: horse, dragon: horse } }, ctx, w).stats.wither.strength, evaluate(noWb, ctx, w).stats.wither.strength);
-  const rctx = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
-  const rw = weightsFor('mage', null, 'rcm');
-  const rl = buildLoadout(profile([scrolled(newItem('HYPERION', resource))]), rctx, rw);
-  assert.ok(evaluate({ ...rl, activePets: { wither: horse } }, rctx, rw).stats.wither.strength > evaluate({ ...rl, activePets: {} }, rctx, rw).stats.wither.strength);
+  const { dpsPets } = await import('../src/calc/stats.js');
+  assert.equal(dpsPets([{ type: 'SKELETON_HORSE', tier: 'LEGENDARY', heldItem: null }], ctx).length, 0);
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

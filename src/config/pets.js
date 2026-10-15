@@ -48,14 +48,11 @@ export const PET_PERKS = {
   LION: (n) => ({ special: { weaponStats: { damage: n[0] ?? 0, strength: n[1] ?? 0 }, firstStrikeBoost: (n[2] ?? 0) / 100 } }),
   // Sacred Strength: +n[0]% strength above 85% health (assumed always).
   GRIFFIN: (n) => ({ additiveStrength: (n[0] ?? 0) / 100 }),
-  // Stampede: kill stacks (max 20), in the clear only (RCM).
-  HORSE: (n) => ({ special: { clearStats: { speed: 20 * (n[0] ?? 0), strength: 20 * (n[1] ?? 0) } } }),
-  SKELETON_HORSE: (n) => ({ special: { clearStats: { attackSpeed: 20 * (n[0] ?? 0), strength: 20 * (n[1] ?? 0) } } }),
   // Armored Tank: 50% of defense as strength, at its +500 cap. Clubbed Tail is not counted.
   ANKYLOSAURUS: () => ({ special: { perkStrength: 500 } }),
   // Hunter: +n[0] speed and speed cap (the clear speed target rises with it).
   BLACK_CAT: (n) => ({ special: { perkSpeed: n[0] ?? 0, speedCapBonus: n[0] ?? 0 } }),
-  // Not counted (by choice): Zombie Rotten Blade (no Undead targets), Megalodon, Giraffe, Golem, Snowman, Guardian,
+  // Not counted (by choice): Horse and Skeleton Horse (never used, see EXCLUDED_PETS), Zombie Rotten Blade (no Undead targets), Megalodon, Giraffe, Golem, Snowman, Guardian,
   // Parrot, Bee (no teammates), Bingo, Bat, Flying Fish, Rock, Web Battlefield, Enderman Teleport Savvy.
   // End Strike: +n[0]% damage to Ender mobs (dragons). Superior: +n[3]% all combat stats, attack speed included.
   ENDER_DRAGON: (n) => ({
@@ -78,6 +75,9 @@ export const PHASE_PETS = {
   wither: { arch: 'GOLDEN_DRAGON', bers: 'GOLDEN_DRAGON', mage: 'GOLDEN_DRAGON' },
   dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON', mage: 'GOLDEN_DRAGON' },
 };
+
+// Pets never used (Horse and Skeleton Horse: their Jump Boost gets in the way).
+export const EXCLUDED_PETS = ['HORSE', 'SKELETON_HORSE'];
 
 // Tier Boost: raises the pet one rarity (never to Mythic). Profiles store the base tier.
 export const TIER_BOOST_ID = 'PET_ITEM_TIER_BOOST';

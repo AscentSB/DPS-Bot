@@ -19,7 +19,7 @@ import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
-import { PHASE_PETS } from '../config/pets.js';
+import { PHASE_PETS, EXCLUDED_PETS } from '../config/pets.js';
 import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
@@ -589,7 +589,6 @@ function rawStats(loadout, ctx, activeExtras) {
     if (sp.comboStrength && isBow(loadout.weapon)) add({ strength: sp.comboStrength }, t);
     if (sp.perkStrength) add({ strength: sp.perkStrength }, t);
     if (sp.perkSpeed) add({ speed: sp.perkSpeed }, t);
-    if (sp.clearStats && rcm) add(sp.clearStats, t);
     // Lion Primal Force: stats on the weapon, scaled like the weapon's own.
     if (sp.weaponStats && loadout.weapon) add(scaleBucket(sp.weaponStats, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
     // Lion First Pounce: First Strike / Triple-Strike stronger (melee, so not RCM).
@@ -792,6 +791,7 @@ export function dpsPets(pets, ctx) {
   const byType = new Map();
   const order = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'];
   for (const pet of pets ?? []) {
+    if (EXCLUDED_PETS.includes(pet.type)) continue;
     const s = petStats(pet, ctx.petProfile);
     const useful = ['strength', 'critDamage', 'critChance', 'intelligence', 'additiveDamage', 'additiveStrength', 'attackSpeed', 'abilityDamage'].some((k) => s.stats[k])
       || Object.keys(s.dragon).length || Object.keys(s.wither).length;
