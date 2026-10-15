@@ -22,7 +22,9 @@ try {
   console.log(`Saved the raw profile to ${file}`);
   stage = 'reading the profile (readMember)';
   const member = readMember(profile, account.uuid, resource);
-  console.log(`Read ${member.items.length} items, Catacombs ${member.cataLevel}.`);
+  console.log(`Read ${member.items.length} items, Catacombs ${member.cataLevel}, bank ${member.petProfile?.bank ?? 'not shared (bank API off)'}.`);
+  console.log(`Profile: ${profile.cute_name ?? '?'} (selected: ${Boolean(profile.selected)})`);
+  console.log(`Pets read (${member.pets.length}): ${member.pets.map((p) => `${p.type} ${p.tier}${p.heldItem ? ` + ${p.heldItem}` : ''}`).join(', ') || 'none'}`);
   stage = 'loading prices';
   await ensurePrices();
   stage = `planning (${cls} ${mode})`;
