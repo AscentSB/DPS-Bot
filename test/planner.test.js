@@ -964,6 +964,21 @@ test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier)
   close(itemContribution({ ...newItem('TERMINATOR', res), enchants: { vicious: 5 } }, withF.ctx).global.ferocity, (20 + 5) * 1.5);
 });
 
+test('runDps returns plain data for the worker (coin and profile menus); bows get arrow damage', async () => {
+  const { runDps } = await import('../src/calc/run.js');
+  const member = { ...profile(items([{ id: 'TERMINATOR' }])), cataLevel: 50, secrets: 0, archerLevel: 50, combatLevel: 60 };
+  const coins = runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'coins' });
+  assert.ok(Array.isArray(coins.plan.steps));
+  assert.equal(typeof coins.plan.startDamage.wither, 'number');
+  assert.deepEqual(structuredClone(coins), coins);
+  const prof = runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'profile' });
+  assert.ok(Array.isArray(prof.profile.rows));
+  // Nansorb arrows: +5 bow damage.
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const l = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), ctx, weightsFor('arch'));
+  close(evaluate(l, ctx, weightsFor('arch')).stats.wither.damage, 5 + 310 * 6.35 + 5);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

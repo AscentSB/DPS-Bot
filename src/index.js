@@ -1,13 +1,13 @@
 import 'dotenv/config';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import * as dps from './commands/dps.js';
-import { startPriceRefresh } from './api/prices.js';
+import { startWorker } from './worker/client.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Logged in as ${c.user.tag}`);
-  startPriceRefresh();
+  startWorker();
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {

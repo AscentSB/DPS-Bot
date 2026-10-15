@@ -139,6 +139,10 @@ export const LOVING_ABILITY_MULTIPLIER = 1.05;
 // ferocity damage counts half.
 export const FEROCITY_EFFECTIVENESS = 0.5;
 
+// Arrows: Archer always uses Nansorb Arrows, Berserker always Bouncy Arrows. Both add 5 base damage to the bow;
+// their special effects (piercing, bouncing) do nothing against one boss.
+export const ARROW_DAMAGE = { arch: 5, bers: 5 };
+
 // Swarm: enemies within 10 blocks. One boss at a time; RCM clears hit packs of mobs.
 export const BOSS_SWARM_ENEMIES = 1;
 export const RCM_SWARM_ENEMIES = 7;

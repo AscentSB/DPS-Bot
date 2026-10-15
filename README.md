@@ -26,7 +26,7 @@ Prices come from bazaar instant buy and auction house lowest BIN. NPC prices are
 | Mage | 80 | 20 |
 | Berserker | 20 | 80 |
 
-A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
+An upgrade's gain is the weighted average of its % gain against each boss: one that only helps against dragons counts 80% for Berserker, 50% for Archer and 20% for Mage (the reverse for withers only), one that helps both equally counts 100%, and one that helps them by different amounts is weighted by the table. Picking `target` puts all 100 on that boss. The Mage clear set (RCM) and Normal Mode count withers / clear mobs only.
 
 ## Model
 
@@ -61,6 +61,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - `menu:Profile upgrades` lists the next level of each profile source (Catacombs, your class, Combat, Foraging, Enchanting, Alchemy, slayers, the next 5 SkyBlock levels, each Harp song) ranked by % damage, with no coin cost. `menu:Coin upgrades` (default) is the buy list.
 - Below floor 10 (Catacombs under 36), floor-scaled dungeon armor gets no step over 1M coins (it is replaced at floor 10).
 - Ferocity: Berserker against withers only (not dragons, never Archer or Mage). Each 100 ferocity is one extra hit per arrow, a melee hit, so it takes the normal hit (additive included) times the Berserk melee bonus as a multiplier (1 + (40 + 1.5 per level) / 100), soft-capped on its own, then halved: ferocity hits land about 0.5s late and Goldor, the only place Berserker procs it, lives about 1s (`FEROCITY_EFFECTIVENESS`). Ferocity on dungeon gear gets stars and the medallion only. Sources: gear, Vicious (+3/+4/+5 at III-V, Terminator included), reforges (Dirty), pets (Tiger, Hound, ...) and Tiger's Merciless Swipe.
+- Arrows: Archer always uses Nansorb Arrows and Berserker Bouncy Arrows: +5 bow damage each (their piercing / bouncing does nothing against one boss).
 - Fabled reforge: every melee hit deals 0-15% more, multiplicative, counted as 1.075x (LCM beam and sword hits, not RCM).
 - All damage above 1,000,000 keeps 10%.
 
@@ -71,9 +72,14 @@ The hit formula reproduces the M7 archer sheet's output exactly, and the blessin
 ```
 npm install
 cp .env.example .env   # fill in DISCORD_TOKEN, CLIENT_ID, HYPIXEL_API_KEY, optional GUILD_ID
-npm run deploy         # register /dps
+npm run deploy         # register /dps (run again whenever the command's options change)
 npm start
 ```
+
+- Node 20.10 or newer. The bot needs to stay running (a VPS, a home server or any Node host).
+- `DISCORD_TOKEN` and `CLIENT_ID` come from the Discord Developer Portal (Bot page and General Information). Invite the bot with the `applications.commands` and `bot` scopes. Without `GUILD_ID` the command registers globally and can take up to an hour to appear.
+- `HYPIXEL_API_KEY` reads profiles. A development key works for testing; a bot others use needs a production key from https://developer.hypixel.net. Bazaar and auction prices need no key.
+- The planner runs in a worker thread (`src/worker`), so long plans never block the Discord connection. The worker scans the whole auction house for prices on start and every few minutes after.
 
 ## Where to edit
 

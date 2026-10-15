@@ -2,8 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
-import { ensurePrices, prices } from '../api/prices.js';
-import { makeContext, buildLoadout, planUpgrades, weightsFor, profileUpgrades } from '../calc/upgrades.js';
+import { runInWorker } from '../worker/client.js';
 import { cataBoost } from '../calc/formulas.js';
 
 export const data = new SlashCommandBuilder()
@@ -107,21 +106,17 @@ export async function execute(interaction) {
     const account = await getMinecraftProfile(ign);
     if (!account) return interaction.editReply(`No Minecraft account named **${ign}**.`);
 
-    const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid), ensurePrices()]);
+    const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]);
     if (!profile) return interaction.editReply(`**${account.name}** has no SkyBlock profiles.`);
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, profileStats: member.profileStats, upgradeMode, mode, floorMode, resource });
-    const weights = weightsFor(cls, target, mode, floorMode);
-    const loadout = buildLoadout(member, ctx, weights);
-    if (menu === 'profile') {
-      const result = profileUpgrades(loadout, ctx, weights);
-      return interaction.editReply({ embeds: [buildProfileEmbed({ name: account.name, cls, mode, cataLevel, result, weights })] });
+    // The planner runs in a worker thread so the bot stays connected while it works.
+    const out = await runInWorker({ member, cls, target, upgradeMode, mode, floorMode, menu });
+    if (out.menu === 'profile') {
+      return interaction.editReply({ embeds: [buildProfileEmbed({ name: account.name, cls, mode, cataLevel, result: out.profile, weights: out.weights })] });
     }
-    const plan = planUpgrades(loadout, ctx, prices, weights);
-
-    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split, mode, floorMode })] });
+    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan: out.plan, weights: out.weights, tuningSplit: out.tuningSplit, mode, floorMode: out.floorMode })] });
   } catch (err) {
     console.error(err);
     await interaction.editReply(`Error: ${err.message}`);
