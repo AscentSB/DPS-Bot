@@ -1361,3 +1361,11 @@ test('an enchant that pushes another off says so (First Strike replaces Triple S
   assert.equal(banked.length, 1);
   close(banked[0].cost, 1e9);
 });
+
+test('clear set never suggests Chimera or a Crow / Sheep (Swarm + Golden Dragon is the build)', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode: 'rcm', resource });
+  const l = buildLoadout(profile([scrolled(newItem('HYPERION', resource))]), ctx, weightsFor('mage', null, 'rcm'));
+  const ups = availableUpgrades(l, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) });
+  assert.ok(!ups.some((u) => /Chimera|Crow|Sheep/.test(u.label)));
+  assert.ok(ups.some((u) => /^Swarm/.test(u.label)));
+});

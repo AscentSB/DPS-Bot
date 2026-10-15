@@ -36,11 +36,10 @@ export const REPLACED_SOON_MIN_GAIN = 5;
 // Floor-scaled dungeon armor from below floor 10: steps on it (buy included) stay at or under this.
 export const LOW_FLOOR_PIECE_MAX_STEP = 1_000_000;
 const MAX_FLOOR = 10;
-// Mage RCM Chimera pets (intelligence and ability damage, copied by Chimera and boosted by the blade's stars).
-const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
-const CHIMERA_MAX = 5;
+// The Mage clear set always goes Swarm + Golden Dragon: Chimera (which Swarm wipes) and the Crow / Sheep pets
+// it would copy are never suggested there.
+const RCM_SKIPPED_PETS = ['CROW', 'SHEEP'];
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
-const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
 // Bank deposits for Golden Dragon, 1M at a time.
 const BANK_STEP = 1_000_000;
 const BANK_LABEL = 'Put 1M coins in the bank (Golden Dragon Legendary Treasure)';
@@ -461,6 +460,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (!ench.categories.includes(item.category)) continue;
         if (ench.items && !ench.items.includes(item.id)) continue;
         if (ench.classes && !ench.classes.includes(cls)) continue;
+        if (ench.chimera && ctx.mode === 'rcm') continue;
         const current = item.enchants?.[key] ?? 0;
         const maxLevel = enchantMaxLevel(ench);
         for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
@@ -752,7 +752,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   // Pets (level 100, Golden Dragon 200) from the auction house. One active at a time.
   const ownedTypes = new Set(loadout.pets.map((p) => p.type));
   for (const type of allPetTypes()) {
-    if (ownedTypes.has(type)) continue;
+    if (ownedTypes.has(type) || (ctx.mode === 'rcm' && RCM_SKIPPED_PETS.includes(type))) continue;
     const tier = BUY_RARITIES.find((t) => petTiers(type).includes(t));
     if (!tier) continue;
     const pet = { type, tier, heldItem: null };
@@ -777,26 +777,6 @@ export function availableUpgrades(loadout, ctx, prices) {
     }
   }
 
-  // Mage RCM: Chimera only pays off with an intelligence / ability damage pet, so offer the set as one step:
-  // Chimera V on the blade (replaces Swarm) + the pet (bought if not owned) + a Hephaestus Relic on it.
-  const blade = loadout.weapon;
-  if (ctx.mode === 'rcm' && cls === 'mage' && blade && WITHER_IMPACT_WEAPONS.includes(blade.id) && (blade.enchants?.ultimate_chimera ?? 0) < CHIMERA_MAX) {
-    for (const type of RCM_CHIMERA_PETS) {
-      const owned = loadout.pets.find((p) => p.type === type);
-      const tier = owned?.tier ?? BUY_RARITIES.find((t) => petTiers(type).includes(t));
-      if (!tier) continue;
-      const parts = [{ id: `ENCHANTMENT_ULTIMATE_CHIMERA_${CHIMERA_MAX}` }, ...(owned ? [] : [{ id: `PET_${type}_${tier}_MAX` }]), { id: HEPH_RELIC_ID }];
-      const petName = titleCase(type.toLowerCase());
-      push(`Chimera ${roman(CHIMERA_MAX)} on ${cleanName(blade.name ?? blade.id)} + ${owned ? '' : 'Buy '}${petName} Pet + Hephaestus Relic`, parts, (l) => {
-        const enchants = { ...blade.enchants, ultimate_chimera: CHIMERA_MAX };
-        for (const c of ENCHANTS.ultimate_chimera.conflicts ?? []) delete enchants[c];
-        const next = replaceItem(l, blade, { ...blade, enchants });
-        const pet = { type, tier, heldItem: HEPH_RELIC_ID };
-        next.pets = [...next.pets.filter((p) => p !== owned), pet];
-        return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode, ctx.floorMode));
-      }, { group: `rcmchimera:${type}` });
-    }
-  }
 
   // Pet items for each active pet (the wither and dragon pets).
   for (const active of new Set(Object.values(loadout.activePets ?? {}).filter(Boolean))) {
