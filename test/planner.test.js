@@ -769,6 +769,22 @@ test('upper-case enchant keys from the profile are read', () => {
   assert.equal(it.enchants.prosecute, 6);
 });
 
+test('Normal Mode (Mage LCM only): no master stars, no Master Skull, withers only; other modes stay Master Mode', () => {
+  const nm = makeContext({ cls: 'mage', cataLevel: 50, resource, floorMode: 'normal' });
+  assert.equal(nm.floorMode, 'normal');
+  assert.equal(makeContext({ cls: 'arch', cataLevel: 50, resource, floorMode: 'normal' }).floorMode, 'master');
+  assert.equal(makeContext({ cls: 'mage', cataLevel: 50, resource, floorMode: 'normal', mode: 'rcm' }).floorMode, 'master');
+  assert.deepEqual(weightsFor('mage', null, 'lcm', 'normal'), { wither: 100, dragon: 0 });
+  const mm = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const starred = { ...newItem('HYPERION', resource), masterStars: 5 };
+  const plain = newItem('HYPERION', resource);
+  close(itemContribution(starred, nm).global.strength, itemContribution(plain, nm).global.strength);
+  assert.ok(itemContribution(starred, mm).global.strength > itemContribution(plain, mm).global.strength);
+  const skull = newItem('MASTER_SKULL_TIER_7', resource);
+  assert.equal(itemContribution(skull, nm).global.multStrength, undefined);
+  close(itemContribution(skull, mm).global.multStrength, 1.1);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

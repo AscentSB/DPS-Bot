@@ -18,7 +18,7 @@ export const data = new SlashCommandBuilder()
     .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }))
   .addStringOption((o) => o.setName('mage').setDescription('Mage only: boss set (LCM beam) or clear set (RCM, 500 speed)')
     .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
-  .addStringOption((o) => o.setName('floor').setDescription('Master Mode (Titan Killer, Triple-Strike) or Normal Mode (Giant Killer, First Strike)')
+  .addStringOption((o) => o.setName('floor').setDescription('Mage boss set only: Master Mode (M7) or Normal Mode (F7: no dragons, master stars or Master Skull)')
     .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }));
 
 const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
@@ -76,8 +76,9 @@ export async function execute(interaction) {
   const cls = interaction.options.getString('class', true);
   const target = interaction.options.getString('target');
   const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
-  const floorMode = interaction.options.getString('floor') ?? 'master';
   const mode = cls === 'mage' ? interaction.options.getString('mage') ?? 'lcm' : 'lcm';
+  // Normal Mode is for Mage LCM only.
+  const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
   await interaction.deferReply();
 
   try {
@@ -90,7 +91,7 @@ export async function execute(interaction) {
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
     const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, mode, floorMode, resource });
-    const weights = weightsFor(cls, target, mode);
+    const weights = weightsFor(cls, target, mode, floorMode);
     const loadout = buildLoadout(member, ctx, weights);
     const plan = planUpgrades(loadout, ctx, prices, weights);
 

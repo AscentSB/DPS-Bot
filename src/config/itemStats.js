@@ -43,14 +43,14 @@ export const ITEM_STATS = {
   DIAMOND_NECRON_HEAD: { statMultiplier: 2 },
   GOLD_NECRON_HEAD: { statMultiplier: 2 },
 
-  // Master Skulls boost strength in Master Mode. Only your highest tier counts.
-  MASTER_SKULL_TIER_1: { stats: { multStrength: 1.01 } },
-  MASTER_SKULL_TIER_2: { stats: { multStrength: 1.02 } },
-  MASTER_SKULL_TIER_3: { stats: { multStrength: 1.03 } },
-  MASTER_SKULL_TIER_4: { stats: { multStrength: 1.04 } },
-  MASTER_SKULL_TIER_5: { stats: { multStrength: 1.06 } },
-  MASTER_SKULL_TIER_6: { stats: { multStrength: 1.08 } },
-  MASTER_SKULL_TIER_7: { stats: { multStrength: 1.1 } },
+  // Master Skulls boost strength in Master Mode only (masterModeOnly: off in Normal Mode). Only your highest tier counts.
+  MASTER_SKULL_TIER_1: { stats: { multStrength: 1.01 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_2: { stats: { multStrength: 1.02 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_3: { stats: { multStrength: 1.03 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_4: { stats: { multStrength: 1.04 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_5: { stats: { multStrength: 1.06 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_6: { stats: { multStrength: 1.08 }, masterModeOnly: true },
+  MASTER_SKULL_TIER_7: { stats: { multStrength: 1.1 }, masterModeOnly: true },
 
   // Example: a sword that adds +25% damage against dragons only.
   // EXAMPLE_SWORD: { dragon: { additiveDamage: 25 } },

@@ -34,8 +34,10 @@ const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligen
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
 // Mage RCM (mode 'rcm') is scored on clear mobs only, kept in the "wither" slot.
-export function weightsFor(cls, target, mode) {
+// Normal Mode (F7, Mage LCM only) has no dragon phase, so withers get all the weight.
+export function weightsFor(cls, target, mode, floorMode = 'master') {
   if (cls === 'mage' && mode === 'rcm') return { wither: 100, dragon: 0 };
+  if (cls === 'mage' && floorMode === 'normal') return { wither: 100, dragon: 0 };
   if (target === 'wither') return { wither: 100, dragon: 0 };
   if (target === 'dragon') return { wither: 0, dragon: 100 };
   return { ...CLASSES[cls].weights };
@@ -44,12 +46,15 @@ export function weightsFor(cls, target, mode) {
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
-// floorMode: 'master' (Master Mode: Titan Killer, Triple-Strike) or 'normal' (Giant Killer, First Strike).
+// floorMode: 'master' (Master Mode: Titan Killer, Triple-Strike) or 'normal' (F7: First Strike, no master stars,
+// Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
 export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, floorMode, resource };
+  // The Normal Mode toggle is for Mage LCM only (F7 Archer / Berserker damage and the RCM clear set are scored in Master Mode).
+  const floor = cls === 'mage' && mode !== 'rcm' ? floorMode : 'master';
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, floorMode: floor, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -457,7 +462,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (!dpsPets([pet], ctx).length) continue;
     const petName = titleCase(type.toLowerCase());
     const buyPet = (p, label, parts) => push(label, parts,
-      (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode)); }, { group: 'pet' });
+      (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode, ctx.floorMode)); }, { group: 'pet' });
     buyPet(pet, `Buy ${petName} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }]);
     // The rarity below plus a Tier Boost plays at the same rarity, often for less.
     const below = petTiers(type).find((t) => effectiveTier({ type, tier: t, heldItem: TIER_BOOST_ID }) === tier && t !== tier);
@@ -483,7 +488,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         const next = replaceItem(l, blade, { ...blade, enchants });
         const pet = { type, tier, heldItem: HEPH_RELIC_ID };
         next.pets = [...next.pets.filter((p) => p !== owned), pet];
-        return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode));
+        return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode, ctx.floorMode));
       }, { group: `rcmchimera:${type}` });
     }
   }

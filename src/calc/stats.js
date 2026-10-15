@@ -172,7 +172,7 @@ export function isDungeon(item, resource) {
 
 // Base stats for an item id: API stats (case-insensitive) plus itemStats.js. tiered_stats use the highest floor
 // the player can enter (the top tier when cataLevel is unknown); floor-scaled dungeon armor gets its 50% boost.
-export function baseItemStats(id, resource, cls, cataLevel = Infinity) {
+export function baseItemStats(id, resource, cls, cataLevel = Infinity, floorMode = 'master') {
   const info = resource.get(id);
   const override = ITEM_STATS[id] ?? {};
   const classOk = !override.classes || !cls || override.classes.includes(cls);
@@ -189,7 +189,9 @@ export function baseItemStats(id, resource, cls, cataLevel = Infinity) {
     const boost = dropStatMultiplier(id, resource);
     if (boost !== 1) for (const key of Object.keys(stats)) stats[key] *= boost;
   }
-  if (classOk) for (const [key, value] of Object.entries(override.stats ?? {})) addLoose(stats, { [key]: value });
+  // Master Mode only bonuses (Master Skulls) do nothing in Normal Mode.
+  const modeOk = !(override.masterModeOnly && floorMode === 'normal');
+  if (classOk && modeOk) for (const [key, value] of Object.entries(override.stats ?? {})) addLoose(stats, { [key]: value });
   return { global: stats, wither: classOk ? override.wither ?? {} : {}, dragon: classOk ? override.dragon ?? {} : {} };
 }
 
@@ -212,8 +214,10 @@ const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'abilityDamage']);
 function scaleBucket(stats, item, ctx, dungeon) {
   if (!dungeon) return stats;
   const stars = MAX_STARS;
-  const flat = dungeonMultiplier(ctx.cataLevel, stars, item.masterStars ?? 0, ctx.secretDigit ?? 0);
-  const crit = dungeonCritMultiplier(stars, item.masterStars ?? 0, ctx.secretDigit ?? 0);
+  // Master stars only work in Master Mode.
+  const masterStars = ctx.floorMode === 'normal' ? 0 : item.masterStars ?? 0;
+  const flat = dungeonMultiplier(ctx.cataLevel, stars, masterStars, ctx.secretDigit ?? 0);
+  const crit = dungeonCritMultiplier(stars, masterStars, ctx.secretDigit ?? 0);
   const out = {};
   for (const [key, value] of Object.entries(stats)) {
     if (STAR_ONLY_STATS.has(key)) out[key] = value * crit;
@@ -225,7 +229,7 @@ function scaleBucket(stats, item, ctx, dungeon) {
 
 // Unscaled stats of one item, split by target.
 export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
-  const base = baseItemStats(item.id, ctx.resource, ctx.cls, ctx.cataLevel);
+  const base = baseItemStats(item.id, ctx.resource, ctx.cls, ctx.cataLevel, ctx.floorMode);
   const out = { global: { ...base.global }, wither: { ...base.wither }, dragon: { ...base.dragon } };
   const rarity = statRarity(itemRarity(item));
   const weapon = isWeaponCategory(item.category);
@@ -256,7 +260,7 @@ export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
     if (ench.legion || ench.thunder) continue;
     // Master Mode / Normal Mode enchants (Titan Killer, Triple-Strike vs First Strike).
     if (ench.floorMode && ench.floorMode !== (ctx.floorMode ?? 'master')) continue;
-    const enemies = ench.swarm ? (isRcm(ctx) ? RCM_SWARM_ENEMIES : BOSS_SWARM_ENEMIES) : 1;
+    const enemies = ench.swarm ? (isRcm(ctx) ? ctx.swarmEnemies ?? RCM_SWARM_ENEMIES : BOSS_SWARM_ENEMIES) : 1;
     for (const [stat, values] of Object.entries(ench.stats ?? {})) {
       const value = values[Math.min(level, values.length) - 1] * enemies;
       addLoose(out[ench.target], { [stat]: value });
