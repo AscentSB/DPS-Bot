@@ -1426,3 +1426,14 @@ test('bank deposits never show as two steps in a row', async () => {
   const total = plan.steps.filter((st) => /in the bank/.test(st.label)).reduce((a, st) => a + st.cost, 0);
   assert.ok(total <= 1e9);
 });
+
+test('LCM scroll step names the Shadow Assassin Cloak ability; RCM does not', () => {
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const label = (mode) => {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode, resource });
+    const l = buildLoadout(profile([newItem('HYPERION', resource)]), ctx, weightsFor('mage', null, mode));
+    return availableUpgrades(l, ctx, p).find((u) => /^Implosion, Shadow Warp, Wither Shield on Hyperion/.test(u.label))?.label;
+  };
+  assert.equal(label('lcm'), 'Implosion, Shadow Warp, Wither Shield on Hyperion (Shadow Assassin Cloak ability)');
+  assert.equal(label('rcm'), 'Implosion, Shadow Warp, Wither Shield on Hyperion');
+});

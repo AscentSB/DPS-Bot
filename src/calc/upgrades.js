@@ -644,7 +644,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (extra.copy === 'all' && WITHER_IMPACT_WEAPONS.includes(id) && !base.scrolls.length && SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id)) {
           base.scrolls = [...WITHER_SCROLLS];
           parts.push(...WITHER_SCROLLS.map((x) => ({ id: x })));
-          labels.push('Wither scrolls');
+          labels.push('Wither scrolls (Shadow Assassin Cloak ability)');
         }
         labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'} and potato books like ${cleanName(src.name ?? src.id)}`);
         // Replacing a dual-wielded weapon: the full copy comes as a dual-wield pair too (two copies, Execute on one),
@@ -766,7 +766,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const scrollTargets = ctx.mode === 'rcm' && cls === 'mage' ? [loadout.weapon] : [loadout.weapon, loadout.dragonGear?.weapon];
   for (const blade of scrollTargets.filter((b) => b && WITHER_IMPACT_WEAPONS.includes(b.id) && !hasWitherImpact(b))) {
     const missing = WITHER_SCROLLS.filter((x) => !(blade.scrolls ?? []).includes(x));
-    push(`${missing.map((x) => SCROLL_NAMES[x]).join(', ')} on ${cleanName(blade.name ?? blade.id)}`, missing.map((x) => ({ id: x })), (l) => {
+    push(`${missing.map((x) => SCROLL_NAMES[x]).join(', ')} on ${cleanName(blade.name ?? blade.id)}${ctx.mode === 'rcm' ? '' : ' (Shadow Assassin Cloak ability)'}`, missing.map((x) => ({ id: x })), (l) => {
       const done = { ...blade, scrolls: [...new Set([...(blade.scrolls ?? []), ...WITHER_SCROLLS])] };
       const next = replaceItem(l, blade, done);
       next.blades = (next.blades ?? []).map((b) => (b === blade ? done : b));
