@@ -1021,8 +1021,9 @@ export function selectPet(loadout, ctx, weights) {
   for (const target of TARGETS) {
     // RCM scores the clear only, so the dragon pet changes nothing (every pet ties, and ties keep none).
     if (isRcm(ctx) && target === 'dragon') { activePets.dragon = null; continue; }
-    // RCM has no phase pet: the best clear pet wins (Sheep, Golden Dragon, ...).
-    const preferred = isRcm(ctx) ? null : PHASE_PETS[target]?.[ctx.cls];
+    // RCM: an owned Golden Dragon is always the clear pet (its bank bonus grows with deposits). Without one, the
+    // best clear pet wins.
+    const preferred = isRcm(ctx) ? 'GOLDEN_DRAGON' : PHASE_PETS[target]?.[ctx.cls];
     const pool = candidates.filter((p) => p && p.type === preferred);
     let best = null;
     let bestScore = -Infinity;

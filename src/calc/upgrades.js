@@ -38,7 +38,7 @@ export const LOW_FLOOR_PIECE_MAX_STEP = 1_000_000;
 const MAX_FLOOR = 10;
 // The Mage clear set always goes Swarm + Golden Dragon: Chimera (which Swarm wipes) and the Crow / Sheep pets
 // it would copy are never suggested there.
-const RCM_SKIPPED_PETS = ['CROW', 'SHEEP'];
+const RCM_SKIPPED_PETS = ['CROW', 'SHEEP', 'PIGMAN'];
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 // Bank deposits for Golden Dragon, 1M at a time.
 const BANK_STEP = 1_000_000;
@@ -777,7 +777,9 @@ export function availableUpgrades(loadout, ctx, prices) {
 
   // Pets (level 100, Golden Dragon 200) from the auction house. One active at a time.
   const ownedTypes = new Set(loadout.pets.map((p) => p.type));
-  for (const type of allPetTypes()) {
+  // RCM: Golden Dragon is the clear pet for everyone, so an owner gets no other pet suggestions.
+  const rcmHasGdrag = ctx.mode === 'rcm' && ownedTypes.has('GOLDEN_DRAGON');
+  for (const type of rcmHasGdrag ? [] : allPetTypes()) {
     if (ownedTypes.has(type) || (ctx.mode === 'rcm' && RCM_SKIPPED_PETS.includes(type))) continue;
     const tier = BUY_RARITIES.find((t) => petTiers(type).includes(t));
     if (!tier) continue;

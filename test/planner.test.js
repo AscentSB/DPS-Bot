@@ -1383,3 +1383,15 @@ test('clear set never suggests Chimera or a Crow / Sheep (Swarm + Golden Dragon 
   assert.ok(!ups.some((u) => /Chimera|Crow|Sheep/.test(u.label)));
   assert.ok(ups.some((u) => /^Swarm/.test(u.label)));
 });
+
+test('clear set: an owned Golden Dragon stays the pet with an empty bank, and no Pigman or other pet is suggested', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode: 'rcm', resource });
+  const w = weightsFor('mage', null, 'rcm');
+  const gdrag = { type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const l = buildLoadout(profile([scrolled(newItem('HYPERION', resource))], { pets: [gdrag, { type: 'PIGMAN', tier: 'LEGENDARY', heldItem: null }] }), ctx, w);
+  assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
+  const ups = availableUpgrades(l, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) });
+  assert.ok(!ups.some((u) => /^Buy .* Pet/.test(u.label)));
+  const noGd = buildLoadout(profile([scrolled(newItem('HYPERION', resource))]), ctx, w);
+  assert.ok(!availableUpgrades(noGd, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) }).some((u) => /Pigman/.test(u.label)));
+});
