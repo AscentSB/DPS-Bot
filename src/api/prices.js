@@ -36,7 +36,8 @@ function refresh(kind) {
     pending.set(id, { resolve, reject });
     priceWorker().postMessage({ id, kind });
   }).then((entries) => {
-    tables[kind] = new Map(entries);
+    // null: the auction house has not changed, so the current table stays.
+    if (entries) tables[kind] = new Map(entries);
     loadedAt[kind] = Date.now();
   }).finally(() => { delete inFlight[kind]; });
   return inFlight[kind];

@@ -17,3 +17,15 @@ test('getMinecraftProfile rejects a malformed response', async (t) => {
   t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ id: '../x', name: 'p3wr' })));
   assert.equal(await getMinecraftProfile('p3wr'), null);
 });
+
+test('a profile is fetched once and reused within the cache window', async (t) => {
+  process.env.HYPIXEL_API_KEY ??= 'test';
+  const { getSelectedProfile } = await import('../src/api/hypixel.js');
+  const uuid = 'a'.repeat(32);
+  const fetch = t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ success: true, profiles: [{ selected: true, profile_id: 'x' }] })));
+  const [a, b] = await Promise.all([getSelectedProfile(uuid), getSelectedProfile(uuid)]);
+  const c = await getSelectedProfile(uuid);
+  assert.equal(a.profile_id, 'x');
+  assert.ok(a === b && b === c);
+  assert.equal(fetch.mock.callCount(), 1);
+});

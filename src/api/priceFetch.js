@@ -30,10 +30,12 @@ async function fetchPage(page) {
   }
 }
 
-// Lowest BIN per ITEM_ID as [id, price] entries. Pages download a few at a time with retries; if a page still fails
-// the whole refresh fails, so a partial auction house never replaces the last full one.
-export async function fetchAuctions() {
+// Lowest BIN per ITEM_ID: { lastUpdated, entries: [id, price][] }. Pages download a few at a time with retries; if a
+// page still fails the whole refresh fails, so a partial auction house never replaces the last full one.
+// Returns null without downloading the other pages when Hypixel has not updated the auction house since `since`.
+export async function fetchAuctions(since = null) {
   const first = await fetchPage(0);
+  if (since !== null && first.lastUpdated === since) return null;
   const pages = [first];
   let next = 1;
   const workers = Array.from({ length: PAGE_CONCURRENCY }, async () => {
@@ -58,5 +60,16 @@ export async function fetchAuctions() {
       for (const key of keys) if (!(lowest.get(key) <= auction.starting_bid)) lowest.set(key, auction.starting_bid);
     }
   }
-  return [...lowest];
+  return { lastUpdated: first.lastUpdated, entries: [...lowest] };
+}
+
+// Median lowest BIN per item over recent downloads (Maps, oldest first). Only items listed in the newest download
+// get a price, so an item with no listings left is never priced.
+export function smoothLowest(history) {
+  const latest = history.at(-1);
+  return [...latest.keys()].map((id) => {
+    const seen = history.filter((m) => m.has(id)).map((m) => m.get(id)).sort((a, b) => a - b);
+    const mid = seen.length >> 1;
+    return [id, seen.length % 2 ? seen[mid] : (seen[mid - 1] + seen[mid]) / 2];
+  });
 }

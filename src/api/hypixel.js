@@ -1,6 +1,6 @@
 import { getJson } from './http.js';
 import { isValidUuid } from './mojang.js';
-import { ITEMS_REFRESH_MS } from '../config/constants.js';
+import { ITEMS_REFRESH_MS, PROFILE_CACHE_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp, skillLevelFromXp } from '../calc/formulas.js';
 import { TUNING_KEYS } from '../config/accessories.js';
@@ -23,11 +23,32 @@ export async function getItemsResource() {
   return map;
 }
 
-// Fetch the player's selected SkyBlock profile. Needs HYPIXEL_API_KEY.
+// Selected profiles by UUID: { at, profile } once loaded, or { promise } while loading (callers share one request).
+const profileCache = new Map();
+
+// The player's selected SkyBlock profile, reused for PROFILE_CACHE_MS so repeat runs do not spend the API key.
 export async function getSelectedProfile(uuid) {
+  if (!isValidUuid(uuid)) throw new Error('Invalid UUID.');
+  const now = Date.now();
+  for (const [id, e] of profileCache) if (e.at && now - e.at > PROFILE_CACHE_MS) profileCache.delete(id);
+  const hit = profileCache.get(uuid);
+  if (hit) return hit.promise ?? hit.profile;
+  const promise = fetchSelectedProfile(uuid);
+  profileCache.set(uuid, { promise });
+  try {
+    const profile = await promise;
+    profileCache.set(uuid, { at: Date.now(), profile });
+    return profile;
+  } catch (err) {
+    profileCache.delete(uuid);
+    throw err;
+  }
+}
+
+// Needs HYPIXEL_API_KEY.
+async function fetchSelectedProfile(uuid) {
   const key = process.env.HYPIXEL_API_KEY;
   if (!key) throw new Error('HYPIXEL_API_KEY is not set.');
-  if (!isValidUuid(uuid)) throw new Error('Invalid UUID.');
   const data = await getJson(`${API}/skyblock/profiles?uuid=${uuid}`, { headers: { 'API-Key': key } });
   if (!data?.success) throw new Error(data?.cause ?? 'Hypixel API request failed.');
   const profiles = data.profiles ?? [];
