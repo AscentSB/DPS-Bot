@@ -21,6 +21,11 @@ export const SLAYER_BONUSES = {
 };
 export const SLAYER_MAX_LEVEL = 9;
 
+// Book of Progression (in the accessory bag, set to damage): x(1 + 0.01% per SkyBlock level), capped at level 500.
+export const BOOK_OF_PROGRESSION_ID = 'BOOK_OF_PROGRESSION';
+export const BOOK_DAMAGE_PER_LEVEL = 0.0001;
+export const BOOK_MAX_LEVEL = 500;
+
 // SkyBlock level: +1 strength every 5 levels (100 XP per level).
 export const SB_LEVEL_XP = 100;
 export const SB_STRENGTH_EVERY = 5;

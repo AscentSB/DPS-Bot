@@ -20,7 +20,7 @@ import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { PHASE_PETS, EXCLUDED_PETS } from '../config/pets.js';
-import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS } from '../config/profile.js';
+import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -707,6 +707,12 @@ export function finalStats(bucket, ctx) {
   };
 }
 
+// Book of Progression set to damage: multiplicative, +0.01% per SkyBlock level up to 500 (needs the profile).
+export function bookMultiplier(loadout, ctx) {
+  if (!loadout.accessories?.has(BOOK_OF_PROGRESSION_ID) || !ctx.profileStats) return 1;
+  return 1 + BOOK_DAMAGE_PER_LEVEL * Math.min(ctx.profileStats.sbLevel ?? 0, BOOK_MAX_LEVEL);
+}
+
 function thunderlordPercent(weapon) {
   const level = weapon?.enchants?.thunderlord ?? 0;
   const ench = ENCHANTS.thunderlord;
@@ -740,14 +746,14 @@ function evaluateWith(loadout, ctx, activeExtras) {
     // gets it and RCM does not.
     // Shadow Assassin Cloak + a Wither Impact blade you own: every melee hit follows a teleport (LCM, 1.1x).
     const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && (loadout.witherImpact || hasWitherImpact(loadout.weapon)) ? SA_CLOAK_MULTIPLIER : 1;
-    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak;
+    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * bookMultiplier(loadout, ctx);
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);
     else if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
       const blade = hasWitherImpact(loadout.weapon);
       const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
-      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving) : 0;
+      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * bookMultiplier(loadout, ctx)) : 0;
       result.stats[target] = s;
       continue;
     } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);

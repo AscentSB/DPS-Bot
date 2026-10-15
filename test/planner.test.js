@@ -991,6 +991,21 @@ test('stars alone do not make a dungeon item (The Primordial): no catacombs scal
   assert.ok(!availableUpgrades(l, ctx, prices).some((u) => /Master Star on The Primordial/.test(u.label)));
 });
 
+test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and it lifts the SkyBlock level profile row', async () => {
+  const { bookMultiplier } = await import('../src/calc/stats.js');
+  const { profileUpgrades } = await import('../src/calc/upgrades.js');
+  const res = new Map([...resource, ['BOOK_OF_PROGRESSION', { id: 'BOOK_OF_PROGRESSION', name: 'Book of Progression', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
+  const mk = (sbLevel) => makeContext({ cls: 'arch', cataLevel: 50, resource: res, profileStats: { sbLevel, harpSongs: [], cakes: [] } });
+  const w = weightsFor('arch');
+  const withBook = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(278), w);
+  const without = buildLoadout(profile([newItem('TERMINATOR', res)]), mk(278), w);
+  close(bookMultiplier(withBook, mk(278)), 1.0278);
+  close(bookMultiplier(withBook, mk(620)), 1.05);
+  close(bookMultiplier(without, mk(278)), 1);
+  const row = (l) => profileUpgrades(l, mk(278), w).rows.find((r) => r.label.startsWith('SkyBlock level')).gain;
+  assert.ok(row(withBook) > row(without));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };
