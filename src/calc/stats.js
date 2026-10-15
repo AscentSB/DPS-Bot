@@ -20,7 +20,7 @@ import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { PHASE_PETS, EXCLUDED_PETS } from '../config/pets.js';
-import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL } from '../config/profile.js';
+import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -707,9 +707,11 @@ export function finalStats(bucket, ctx) {
   };
 }
 
-// Book of Progression set to damage: multiplicative, +0.01% per SkyBlock level up to 500 (needs the profile).
+// Book of Progression set to damage (Extra Infliction, SkyBlock level 75+): multiplicative, +0.01% per SkyBlock
+// level up to 500. The option comes from the profile (loadout.bopBonus) and can be switched as an upgrade step.
 export function bookMultiplier(loadout, ctx) {
   if (!loadout.accessories?.has(BOOK_OF_PROGRESSION_ID) || !ctx.profileStats) return 1;
+  if (loadout.bopBonus !== BOOK_DAMAGE_OPTION || (ctx.profileStats.sbLevel ?? 0) < BOOK_DAMAGE_UNLOCK_LEVEL) return 1;
   return 1 + BOOK_DAMAGE_PER_LEVEL * Math.min(ctx.profileStats.sbLevel ?? 0, BOOK_MAX_LEVEL);
 }
 

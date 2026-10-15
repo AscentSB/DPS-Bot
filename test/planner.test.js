@@ -995,7 +995,7 @@ test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and i
   const { bookMultiplier } = await import('../src/calc/stats.js');
   const { profileUpgrades } = await import('../src/calc/upgrades.js');
   const res = new Map([...resource, ['BOOK_OF_PROGRESSION', { id: 'BOOK_OF_PROGRESSION', name: 'Book of Progression', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
-  const mk = (sbLevel) => makeContext({ cls: 'arch', cataLevel: 50, resource: res, profileStats: { sbLevel, harpSongs: [], cakes: [] } });
+  const mk = (sbLevel, bopBonus = 'EXTRA_INFLICTION') => makeContext({ cls: 'arch', cataLevel: 50, resource: res, profileStats: { sbLevel, bopBonus, harpSongs: [], cakes: [] } });
   const w = weightsFor('arch');
   const withBook = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(278), w);
   const without = buildLoadout(profile([newItem('TERMINATOR', res)]), mk(278), w);
@@ -1004,6 +1004,15 @@ test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and i
   close(bookMultiplier(without, mk(278)), 1);
   const row = (l) => profileUpgrades(l, mk(278), w).rows.find((r) => r.label.startsWith('SkyBlock level')).gain;
   assert.ok(row(withBook) > row(without));
+  // Set to something else: no bonus, and switching is a step costing 500 x level.
+  const off = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(278, 'STACKED_HEALING'), w);
+  close(bookMultiplier(off, mk(278, 'STACKED_HEALING')), 1);
+  const step = availableUpgrades(off, mk(278, 'STACKED_HEALING'), { get: () => null }).find((u) => u.label.startsWith('Set Book of Progression'));
+  assert.equal(step.cost, 500 * 278);
+  close(bookMultiplier(step.apply(off), mk(278, 'STACKED_HEALING')), 1.0278);
+  // Under level 75 the damage option is locked.
+  const low = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(60, null), w);
+  assert.ok(!availableUpgrades(low, mk(60, null), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

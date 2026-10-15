@@ -20,7 +20,7 @@ import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
-import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS } from '../config/profile.js';
+import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL } from '../config/profile.js';
 import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
@@ -100,6 +100,7 @@ function cloneLoadout(l) {
     pets: [...(l.pets ?? [])],
     activePets: { ...(l.activePets ?? {}) },
     power: l.power ?? null,
+    bopBonus: l.bopBonus ?? null,
     witherImpact: Boolean(l.witherImpact),
     blades: l.blades ?? [],
     unlockedPowers: new Set(l.unlockedPowers ?? []),
@@ -173,6 +174,7 @@ export function buildLoadout(profile, ctx, weights) {
   const current = ctx.power ?? DEFAULT_POWER[ctx.cls];
   loadout.unlockedPowers = new Set([...FREE_POWERS, ...(profile.unlockedPowers ?? []), current]);
   loadout.power = current;
+  loadout.bopBonus = ctx.profileStats?.bopBonus ?? null;
   loadout = selectPower(loadout, ctx, weights);
   // Tuning is free to change, so leftover points use the best split for this loadout (10% steps over the
   // class's damage stats), not whatever the profile has saved. Stored on ctx for the rest of the run.
@@ -497,6 +499,13 @@ export function availableUpgrades(loadout, ctx, prices) {
     const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
     push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
       (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
+  }
+
+  // Book of Progression not on damage (and SkyBlock level 75+): switching costs 500 coins x SkyBlock level.
+  const sbLevel = ctx.profileStats?.sbLevel ?? 0;
+  if (loadout.accessories.has(BOOK_OF_PROGRESSION_ID) && ctx.profileStats && sbLevel >= BOOK_DAMAGE_UNLOCK_LEVEL && loadout.bopBonus !== BOOK_DAMAGE_OPTION) {
+    push('Set Book of Progression to Extra Infliction (damage)', [{ coins: BOOK_SWAP_COINS_PER_LEVEL * sbLevel }],
+      (l) => ({ ...cloneLoadout(l), bopBonus: BOOK_DAMAGE_OPTION }), { group: 'bop' });
   }
 
   // Power stones: learn a new power at Maxwell and switch to it.

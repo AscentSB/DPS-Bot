@@ -25,6 +25,11 @@ export const SLAYER_MAX_LEVEL = 9;
 export const BOOK_OF_PROGRESSION_ID = 'BOOK_OF_PROGRESSION';
 export const BOOK_DAMAGE_PER_LEVEL = 0.0001;
 export const BOOK_MAX_LEVEL = 500;
+// The damage option (Extra Infliction) unlocks at SkyBlock level 75; picking an option costs 500 coins x level.
+// The choice is leveling.bop_bonus on the profile.
+export const BOOK_DAMAGE_OPTION = 'EXTRA_INFLICTION';
+export const BOOK_DAMAGE_UNLOCK_LEVEL = 75;
+export const BOOK_SWAP_COINS_PER_LEVEL = 500;
 
 // SkyBlock level: +1 strength every 5 levels (100 XP per level).
 export const SB_LEVEL_XP = 100;

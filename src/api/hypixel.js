@@ -96,6 +96,8 @@ export function readMember(profile, uuid, resource) {
     // Other profile stats: SkyBlock level, mastered Harp songs, active cake buffs (skills and slayers above).
     profileStats: {
       sbLevel: Math.floor((member.leveling?.experience ?? 0) / SB_LEVEL_XP),
+      // Book of Progression option (EXTRA_INFLICTION = damage).
+      bopBonus: member.leveling?.bop_bonus ?? null,
       harpSongs: Object.keys(HARP_SONGS).filter((k) => (member.foraging?.songs?.harp?.[`song_${k}_perfect_completions`] ?? member.quests?.harp_quest?.[`song_${k}_perfect_completions`] ?? 0) > 0),
       cakes: (member.player_data?.temp_stat_buffs ?? []).filter((b) => CAKE_STATS[b.stat_id] && (b.expire_at ?? Infinity) > Date.now())
         .map((b) => ({ stat: CAKE_STATS[b.stat_id], amount: Number(b.amount) || 0 })),
