@@ -108,7 +108,7 @@ export function loadoutKey(l) {
     [...l.accessories.values()].map(contentKey).sort().join(';'), JSON.stringify(l.pets ?? []), JSON.stringify(l.activePets ?? {}),
     JSON.stringify(l.shards ?? {}), JSON.stringify(l.perks ?? {}), [...(l.extras ?? [])].sort().join(','), l.power ?? '', l.bopBonus ?? '',
     Boolean(l.witherImpact), l.owned?.has(GENERAL_MEDALLION_ID),
-    l.dragonGear ? [contentKey(l.dragonGear.weapon), slots(l.dragonGear.armor), slots(l.dragonGear.equipment)].join('|') : '',
+    l.dragonGear ? [contentKey(l.dragonGear.weapon), slots(l.dragonGear.armor), slots(l.dragonGear.equipment)].join('|') : '', l.bank ?? '',
   ].join('\n');
 }
 
@@ -124,6 +124,18 @@ export function gearView(loadout, target) {
     dragonViews.set(loadout, view);
   }
   return view;
+}
+
+// The pet profile with this loadout's bank (Golden Dragon's Legendary Treasure), one object per bank amount so pet
+// stats stay cached.
+const bankProfiles = new WeakMap();
+export function petProfileOf(loadout, ctx) {
+  const base = ctx.petProfile ?? {};
+  const bank = loadout?.bank ?? base.bank ?? 0;
+  let byBank = bankProfiles.get(base);
+  if (!byBank) bankProfiles.set(base, (byBank = new Map()));
+  if (!byBank.has(bank)) byBank.set(bank, { ...base, bank });
+  return byBank.get(bank);
 }
 
 export function isRcm(ctx) {
@@ -608,7 +620,7 @@ function potionBoost(loadout, ctx) {
   let best = 0;
   for (const pet of loadout.pets ?? []) {
     if (pet.type !== 'JELLYFISH') continue;
-    best = Math.max(best, petStats(pet, ctx.petProfile).potionBoost);
+    best = Math.max(best, petStats(pet, petProfileOf(loadout, ctx)).potionBoost);
   }
   return best;
 }
@@ -724,7 +736,7 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
   const pets = {};
   for (const t of TARGETS) {
     const active = loadout.activePets?.[t];
-    pets[t] = active ? petStats(active, c.petProfile) : null;
+    pets[t] = active ? petStats(active, petProfileOf(loadout, c)) : null;
     if (!pets[t]) continue;
     add(pets[t].stats, t);
     bossOnly(pets[t][t], t);
@@ -774,7 +786,7 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
   // Ragnarock: the ability is cast with whichever owned pet has the most strength (swap, cast, swap back),
   // so Chimera copies that pet's strength in every phase.
   if (loadout.rag) {
-    const ragPetStrength = Math.max(0, ...(loadout.pets ?? []).map((p) => petStats(p, c.petProfile).petStrength ?? 0));
+    const ragPetStrength = Math.max(0, ...(loadout.pets ?? []).map((p) => petStats(p, petProfileOf(loadout, c)).petStrength ?? 0));
     const rag = itemRawStats(loadout.rag, c, { chimeraPetStrength: ragPetStrength });
     add({ strength: RAGNAROCK_MULTIPLIER * (rag.global.strength ?? 0) });
   }
@@ -929,7 +941,7 @@ function evaluateWith(loadout, ctx, activeExtras) {
       let dps = dmg * arrows * shots;
       // Wither Skeleton Death's Touch: one extra hit of 67% every second.
       const pet = loadout.activePets?.[target];
-      const deathsTouch = pet ? petStats(pet, ctx.petProfile).special?.deathsTouch ?? 0 : 0;
+      const deathsTouch = pet ? petStats(pet, petProfileOf(loadout, ctx)).special?.deathsTouch ?? 0 : 0;
       if (deathsTouch) dps += hitWith(fabled * deathsTouch);
       // Fire Aspect (withers only; dragons do not burn): a % of the hit as fire damage every second.
       const fire = target === 'wither' ? fireAspectPercent(loadout.weapon) : 0;

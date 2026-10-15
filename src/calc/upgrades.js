@@ -15,7 +15,7 @@ import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
 } from './stats.js';
-import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
+import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
@@ -41,6 +41,13 @@ const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
+// Bank deposits for Golden Dragon, 1M at a time.
+const BANK_STEP = 1_000_000;
+const BANK_LABEL = 'Put 1M coins in the bank (Golden Dragon Legendary Treasure)';
+function depositBank(l) {
+  return { ...cloneLoadout(l), bank: Math.min(GOLDEN_DRAGON_BANK_CAP, (l.bank ?? 0) + BANK_STEP) };
+}
+
 // Stats a pet item has to raise to be worth offering.
 const PET_ITEM_STATS = ['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed', 'abilityDamage'];
 // Learning a power at Maxwell uses up this many of its power stone.
@@ -103,7 +110,8 @@ function dragonItems(l) {
 }
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
-// petProfile: { bank, goldCollection } for Golden Dragon perks (missing values count as maxed).
+// petProfile: { bank, goldCollection } for Golden Dragon perks (no bank data counts as an empty bank; a missing Gold
+// collection counts as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
 // floorMode: 'master' (Master Mode: Titan Killer, Triple-Strike) or 'normal' (F7: First Strike, no master stars,
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
@@ -153,6 +161,7 @@ function cloneLoadout(l) {
     activePets: { ...(l.activePets ?? {}) },
     power: l.power ?? null,
     bopBonus: l.bopBonus ?? null,
+    bank: l.bank ?? 0,
     witherImpact: Boolean(l.witherImpact),
     blades: l.blades ?? [],
     unlockedPowers: new Set(l.unlockedPowers ?? []),
@@ -251,6 +260,8 @@ export function buildLoadout(profile, ctx, weights) {
   loadout.unlockedPowers = new Set([...FREE_POWERS, ...(profile.unlockedPowers ?? []), current]);
   loadout.power = current;
   loadout.bopBonus = ctx.profileStats?.bopBonus ?? null;
+  // Coins in the bank, from the bank API (0 when it is off or there is no bank): Golden Dragon's Legendary Treasure.
+  loadout.bank = Number(ctx.petProfile?.bank) || 0;
   loadout = selectPower(loadout, ctx, weights);
   // Tuning is free to change, so leftover points use the best split for this loadout (10% steps over the
   // class's damage stats), not whatever the profile has saved. Stored on ctx for the rest of the run.
@@ -707,6 +718,12 @@ export function availableUpgrades(loadout, ctx, prices) {
       (l) => ({ ...cloneLoadout(l), bopBonus: BOOK_DAMAGE_OPTION }), { group: 'bop' });
   }
 
+  // Golden Dragon's Legendary Treasure: 1M more coins in the bank (+0.25% damage), up to 1B. The planner merges
+  // deposits made back to back into one step.
+  if (loadout.pets.some((pet) => pet.type === 'GOLDEN_DRAGON') && (loadout.bank ?? 0) < GOLDEN_DRAGON_BANK_CAP) {
+    push(BANK_LABEL, [{ coins: BANK_STEP }], depositBank, { bank: true });
+  }
+
   // Power stones: learn a new power at Maxwell and switch to it.
   for (const [power, stone] of Object.entries(POWER_STONES)) {
     if (loadout.unlockedPowers?.has(power) || !POWERS[power]) continue;
@@ -1081,8 +1098,8 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     const banned = [...rules.banned];
     const scored = scorer ? await scorer({ loadout, current, banned, count: ups.length }) : scoreUpgrades(ups, loadout, current, ctx, weights, banned);
     return scored.map(({ index, changes, gain }) => {
-      const { label, cost, source, unverified, apply } = ups[index];
-      return { label, cost, source, unverified, apply, changes, gain, perMillion: gain / (cost / 1_000_000) };
+      const { label, cost, source, unverified, apply, bank } = ups[index];
+      return { label, cost, source, unverified, apply, bank, changes, gain, perMillion: gain / (cost / 1_000_000) };
     });
   };
 
@@ -1100,8 +1117,26 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     let best = null;
     for (const cand of state.candidates) if (allowed(cand, path.spend) && (!best || cand.perMillion > best.perMillion)) best = cand;
     if (!best) break;
-    const loadout = selectPower(selectPet(best.apply(state.loadout), ctx, weights), ctx, weights);
-    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, facts: stepFacts(state.loadout, loadout), choice: best, path });
+    let loadout = selectPower(selectPet(best.apply(state.loadout), ctx, weights), ctx, weights);
+    let step = { label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion };
+    if (best.bank) {
+      // Keep depositing 1M at a time while the next million still beats every other option, as one step.
+      let next = null;
+      for (const cand of state.candidates) if (!cand.bank && allowed(cand, path.spend) && (!next || cand.perMillion > next.perMillion)) next = cand;
+      let now = evaluate(loadout, ctx, weights);
+      while ((loadout.bank ?? 0) < GOLDEN_DRAGON_BANK_CAP) {
+        const more = depositBank(loadout);
+        const after = evaluate(more, ctx, weights);
+        const gain = weightedGain(now, after, weights);
+        if (!(gain > 1e-9) || (next && gain < next.perMillion)) break;
+        loadout = more;
+        now = after;
+      }
+      const amount = (loadout.bank ?? 0) - (state.loadout.bank ?? 0);
+      const gain = weightedGain(state.current, now, weights);
+      step = { ...step, label: `Put ${amount >= 1e9 ? `${+(amount / 1e9).toFixed(3)}B` : `${(amount / 1e6).toLocaleString('en-US')}M`} coins in the bank (Golden Dragon Legendary Treasure)`, cost: amount, gain, perMillion: gain / (amount / 1e6) };
+    }
+    steps.push({ ...step, facts: stepFacts(state.loadout, loadout), choice: best, path });
     const spend = new Map(path.spend);
     const parent = new Map(path.parent);
     const replaced = new Set(path.replaced);

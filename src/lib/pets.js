@@ -75,7 +75,7 @@ function computePetStats(pet, profile) {
   const base = {};
   for (const key of new Set([...Object.keys(data.min), ...Object.keys(data.max)])) base[key] = lerp(data.min[key] ?? 0, data.max[key] ?? 0, t);
   const n = data.otherMax.map((v, i) => lerp(data.otherMin[i] ?? 0, v, t));
-  const perk = PET_PERKS[pet.type]?.(n, { bank: profile.bank ?? Infinity, goldCollection: profile.goldCollection ?? 1e9 }) ?? {};
+  const perk = PET_PERKS[pet.type]?.(n, { bank: profile.bank ?? 0, goldCollection: profile.goldCollection ?? 1e9 }) ?? {};
 
   // Perk strength that counts as the pet's own stat (boosted by pet items, copied by Chimera).
   if (perk.petStrength) base.strength = (base.strength ?? 0) + perk.petStrength;

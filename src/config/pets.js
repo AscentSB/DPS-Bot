@@ -20,14 +20,17 @@ export const PET_ITEMS = {
 // Perks that raise damage, by pet type. `n` is the pet's perk numbers at its level (NEU otherNums),
 // `p` is profile data ({ bank, goldCollection }). Return stats; `potionBoost` buffs the Dungeon potion.
 // Pets not listed here count their base stats only.
+// Golden Dragon's Legendary Treasure maxes out at this much in the bank (0.25% per million, max 250%).
+export const GOLDEN_DRAGON_BANK_CAP = 1e9;
+
 export const PET_PERKS = {
   // Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
   // Dragon's Greed: +n[1]% strength per 5 Magic Find, max n[2]% (assumed maxed).
-  // Legendary Treasure: counted at its max, n[4]% damage (250% at level 200), whatever the bank holds.
+  // Legendary Treasure: +n[3]% damage per million coins in the bank (0.25% at level 200), max n[4]% (250%, at 1B).
   GOLDEN_DRAGON: (n, p) => ({
     petStrength: 11.1 * Math.min(9, digits(p.goldCollection)),
     additiveStrength: (n[2] ?? 0) / 100,
-    additiveDamage: n[4] ?? 0,
+    additiveDamage: Math.min(n[4] ?? 0, (n[3] ?? 0) * ((p.bank ?? 0) / 1e6)),
   }),
   // Wither Blood: +100% damage to Wither mobs (the wither bosses). Death's Touch: counted as one extra hit of
   // 67% of your hit every second (not RCM).

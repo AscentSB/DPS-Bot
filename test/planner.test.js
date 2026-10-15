@@ -260,10 +260,13 @@ test('Wolf Slayer speed: +1 at levels 1, 3 and 8', async () => {
 
 test('pets: Golden Dragon 200 matches the sheet (300 str with Heph Remedies, +5% str, +250% damage)', async () => {
   const { petStats } = await import('../src/lib/pets.js');
-  const gd = petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_REMEDIES' });
+  const gd = petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_REMEDIES' }, { bank: 1e9 });
   assert.ok(Math.abs(gd.stats.strength - (50 + 99.9) * 2) < 1e-6);
   assert.equal(gd.stats.additiveStrength, 0.05);
   assert.equal(gd.stats.additiveDamage, 250);
+  // Legendary Treasure: 0.25% per million in the bank (none without bank data), max 250% at 1B.
+  assert.equal(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { bank: 100e6 }).stats.additiveDamage, 25);
+  assert.equal(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, {}).stats.additiveDamage, 0);
   const ed = petStats({ type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: 'GOLD_CLAWS' });
   assert.equal(ed.stats.critDamage, 75);
   assert.equal(ed.dragon.additiveDamage, 200);
@@ -1341,11 +1344,20 @@ test('Fire Aspect burns withers only; Mage counts First Strike in Master Mode on
   assert.ok(withWeapon(big({ first_strike: 5 })).wither > bigPlain.wither);
 });
 
-test('an enchant that pushes another off says so (First Strike replaces Triple Strike); Golden Dragon counts its full 250%', async () => {
+test('an enchant that pushes another off says so (First Strike replaces Triple Strike); bank deposits for Golden Dragon merge into one step', async () => {
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
   const l = buildLoadout(profile(items([{ id: 'HYPERION', enchants: { triple_strike: 5 } }])), ctx, weightsFor('mage', null, 'lcm'));
   const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
   assert.ok(availableUpgrades(l, ctx, p).some((u) => u.label === 'First Strike V on Hyperion (replaces Triple Strike)'));
-  const { petStats } = await import('../src/lib/pets.js');
-  close(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { bank: 0 }).stats.additiveDamage, 250);
+  // Golden Dragon with an empty bank: depositing is offered 1M at a time, and back-to-back deposits are one step.
+  const gdCtx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource, petProfile: { bank: 0 } });
+  const gw = weightsFor('mage', null, 'lcm');
+  const gl = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), gdCtx, gw);
+  assert.equal(gl.bank, 0);
+  const deposit = availableUpgrades(gl, gdCtx, p).find((u) => u.label.startsWith('Put 1M coins in the bank'));
+  close(deposit.cost, 1e6);
+  const plan = await planUpgrades(gl, gdCtx, { get: () => null }, gw, 5);
+  const banked = plan.steps.filter((st) => /in the bank/.test(st.label));
+  assert.equal(banked.length, 1);
+  close(banked[0].cost, 1e9);
 });
