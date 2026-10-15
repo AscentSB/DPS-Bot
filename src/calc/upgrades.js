@@ -79,6 +79,13 @@ function setDragonSlot(l, slot, item) {
   else delete d[slotGroup(slot)][slot];
   l.dragonGear = d.weapon || Object.keys(d.armor).length || Object.keys(d.equipment).length ? d : null;
 }
+// Gear worth more against withers than dragons or the other way round (Necron's Blade +50%, Smite, Ender Slayer,
+// boss-only stats).
+function bossSpecific(item, ctx) {
+  if (WITHER_IMPACT_WEAPONS.includes(item.id)) return true;
+  const c = itemContribution(item, ctx);
+  return Object.values(c.wither).some(Boolean) || Object.values(c.dragon).some(Boolean);
+}
 function dragonItems(l) {
   const d = l.dragonGear;
   return d ? [d.weapon, ...Object.values(d.armor), ...Object.values(d.equipment)].filter(Boolean) : [];
@@ -532,7 +539,9 @@ export function availableUpgrades(loadout, ctx, prices) {
     // dragons).
     const slot = isWeapon && !isRag ? 'weapon' : isArmor ? cat : equipSlot;
     const sets = ['main'];
-    if (dragonSet && slot && (isWeapon ? !isRag : true)) {
+    // Swapping only pays when the new piece or the one in that slot is worth more against one boss than the other.
+    const splits = dragonSet && slot && [newItem(id, resource), mainItem(loadout, slot), dragonItem(loadout, slot)].some((it) => it && bossSpecific(it, ctx));
+    if (splits && (isWeapon ? !isRag : true)) {
       sets.push('dragon');
       if (mainItem(loadout, slot) && !dragonItem(loadout, slot)) sets.push('wither');
     }
@@ -542,8 +551,11 @@ export function availableUpgrades(loadout, ctx, prices) {
     const src = cls === 'mage' && isWeapon && !isRag && loadout.weapon?.id !== id ? loadout.weapon : null;
     const buy = (reforgeKeyName, reforge, extra = {}) => {
       for (const set of sets) {
+        // The dragon-set versions come only in the fullest bundle too.
+        if (set !== 'main' && !extra.full) continue;
         buyInto(set, reforgeKeyName, reforge, extra);
-        if (src) for (const copy of ['cheap', 'all']) buyInto(set, reforgeKeyName, reforge, { ...extra, copy });
+        // The copied-enchant bundles come only in the fullest version (best reforge and recombobulator).
+        if (src && extra.full) for (const copy of ['cheap', 'all']) buyInto(set, reforgeKeyName, reforge, { ...extra, copy });
       }
     };
     const buyInto = (set, reforgeKeyName, reforge, extra) => {
@@ -597,21 +609,19 @@ export function availableUpgrades(loadout, ctx, prices) {
     };
     const fresh = newItem(id, resource);
     const recombable = canRecomb(fresh, resource);
-    buy();
-    if (recombable) buy(null, null, { recomb: true });
+    // Gear can come with the best reforge for its slot (and a recombobulator).
+    const best = isAcc ? null : bestReforge(loadout, ctx, fresh);
+    buy(null, null, { full: !best && !recombable });
+    if (recombable) buy(null, null, { recomb: true, full: !best });
     if (isAcc) {
       // Enrichments need Legendary or higher, so most come after the recombobulator.
       for (const recomb of recombable ? [false, true] : [false]) {
         if (!ENRICHABLE_RARITIES.includes(itemRarity({ ...fresh, recomb }))) continue;
         for (const kind of enrichmentKinds(ctx)) buy(null, null, { recomb, enrichment: kind });
       }
-    } else {
-      // Gear can come with the best reforge for its slot (and a recombobulator).
-      const best = bestReforge(loadout, ctx, fresh);
-      if (best) {
-        buy(best.key, best.reforge);
-        if (recombable) buy(best.key, best.reforge, { recomb: true });
-      }
+    } else if (best) {
+      buy(best.key, best.reforge, { full: !recombable });
+      if (recombable) buy(best.key, best.reforge, { recomb: true, full: true });
     }
   }
 
@@ -992,13 +1002,18 @@ export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part 
   for (let index = part; index < ups.length; index += parts) {
     const up = ups[index];
     if (!(up.cost > 0) || skip.has(up.label)) continue;
-    // A new weapon can change the best pet and power (both free to switch), so it is scored with them re-picked,
-    // the same way the step is applied.
-    const next = up.repick ? selectPower(selectPet(up.apply(loadout), ctx, weights), ctx, weights) : up.apply(loadout);
+    // A new weapon can change the best pet and power (both free to switch), so one that already adds damage is
+    // scored with them re-picked, the same way the step is applied. (Re-picking only ever raises the score; a weapon
+    // that loses damage before it is not worth the extra work.)
+    let next = up.apply(loadout);
     const changes = pieceChanges(loadout, next);
     // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
     if (lowFloor && up.cost > LOW_FLOOR_PIECE_MAX_STEP && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
-    const gain = weightedGain(current, evaluate(next, ctx, weights), weights);
+    let gain = weightedGain(current, evaluate(next, ctx, weights), weights);
+    if (up.repick && gain > 1e-9) {
+      next = selectPower(selectPet(next, ctx, weights), ctx, weights);
+      gain = weightedGain(current, evaluate(next, ctx, weights), weights);
+    }
     if (gain > 1e-9) out.push({ index, changes, gain });
   }
   return out;
