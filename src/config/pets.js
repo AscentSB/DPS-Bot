@@ -29,13 +29,34 @@ export const PET_PERKS = {
     additiveStrength: (n[2] ?? 0) / 100,
     additiveDamage: Math.min(n[4] ?? 0, (n[3] ?? 0) * (p.bank / 1e6)),
   }),
-  // Wither Blood: +n[1]% damage to Wither mobs (the wither bosses).
-  WITHER_SKELETON: (n) => ({ wither: { additiveDamage: n[1] ?? 0 } }),
+  // Wither Blood: +100% damage to Wither mobs (the wither bosses). Death's Touch: counted as one extra hit of
+  // 67% of your hit every second (not RCM).
+  WITHER_SKELETON: () => ({ wither: { additiveDamage: 100 }, special: { deathsTouch: 0.67 } }),
   // Bone Arrows: +n[0]% arrow damage, doubled in dungeons. Combo: +3 strength per bow hit, max n[1] stacks
   // (held all fight). Both need a bow.
-  SKELETON: (n) => ({ bowDamage: 2 * (n[0] ?? 0), comboStrength: 3 * (n[1] ?? 0) }),
-  // Fusion-Style Potato: doubles the effect of Hot / Fuming Potato Books.
-  BLAZE: () => ({ potatoMultiplier: 2 }),
+  SKELETON: (n) => ({ bowDamage: 2 * (n[0] ?? 0), special: { comboStrength: 3 * (n[1] ?? 0) } }),
+  // Fusion-Style Potato: doubles the effect of Hot / Fuming Potato Books on the weapon.
+  BLAZE: () => ({ special: { potatoMultiplier: 2 } }),
+  // Giant Slayer: +75% damage to level 100+ monsters (M7 bosses and clear mobs).
+  PIGMAN: () => ({ additiveDamage: 75 }),
+  // Apex Predator: +n[2]% damage with no other mob within 15 blocks: withers only (not dragons or the clear).
+  TIGER: (n) => ({ wither: { additiveDamage: n[2] ?? 0 } }),
+  // Tyrant: pet item combat stats +n[2]%. Close Combat (1.5 blocks) never applies.
+  TYRANNOSAURUS: (n) => ({ special: { itemBoost: (n[2] ?? 0) / 100 } }),
+  // Primal Force: +n[0] damage and +n[1] strength on your weapon (scaled like weapon stats). First Pounce:
+  // First Strike and Triple-Strike are n[2]% stronger. King of the Jungle is not counted.
+  LION: (n) => ({ special: { weaponStats: { damage: n[0] ?? 0, strength: n[1] ?? 0 }, firstStrikeBoost: (n[2] ?? 0) / 100 } }),
+  // Sacred Strength: +n[0]% strength above 85% health (assumed always).
+  GRIFFIN: (n) => ({ additiveStrength: (n[0] ?? 0) / 100 }),
+  // Stampede: kill stacks (max 20), in the clear only (RCM).
+  HORSE: (n) => ({ special: { clearStats: { speed: 20 * (n[0] ?? 0), strength: 20 * (n[1] ?? 0) } } }),
+  SKELETON_HORSE: (n) => ({ special: { clearStats: { attackSpeed: 20 * (n[0] ?? 0), strength: 20 * (n[1] ?? 0) } } }),
+  // Armored Tank: 50% of defense as strength, at its +500 cap. Clubbed Tail is not counted.
+  ANKYLOSAURUS: () => ({ special: { perkStrength: 500 } }),
+  // Hunter: +n[0] speed and speed cap (the clear speed target rises with it).
+  BLACK_CAT: (n) => ({ special: { perkSpeed: n[0] ?? 0, speedCapBonus: n[0] ?? 0 } }),
+  // Not counted (by choice): Zombie Rotten Blade (no Undead targets), Megalodon, Giraffe, Golem, Snowman, Guardian,
+  // Parrot, Bee (no teammates), Bingo, Bat, Flying Fish, Rock, Web Battlefield, Enderman Teleport Savvy.
   // End Strike: +n[0]% damage to Ender mobs (dragons). Superior: +n[3]% all combat stats, attack speed included.
   ENDER_DRAGON: (n) => ({
     dragon: { additiveDamage: n[0] ?? 0 },

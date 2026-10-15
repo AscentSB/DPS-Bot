@@ -415,7 +415,7 @@ function distribute(stats, points, ctx) {
 export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP, asMult = 1) {
   const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / (TUNING_PER_POINT.attackSpeed * asMult) - 1e-9)));
   const left = points - asPoints;
-  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls, ctx?.mode) - speed) / TUNING_PER_POINT.speed)));
+  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls, ctx?.mode) + (ctx?.speedCapBonus ?? 0) - speed) / TUNING_PER_POINT.speed)));
   const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
   distribute(stats, left - speedPoints, ctx);
   return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };
@@ -584,10 +584,25 @@ function rawStats(loadout, ctx, activeExtras) {
     bossOnly(pets[t][t], t);
     // Pet damage perks (Golden Dragon's Legendary Treasure) also raise ability damage.
     add({ magicAdditive: pets[t].stats.additiveDamage ?? 0 }, t);
+    const sp = pets[t].special ?? {};
     // Skeleton Combo strength only builds with a bow.
-    if (pets[t].stats.comboStrength && isBow(loadout.weapon)) add({ strength: pets[t].stats.comboStrength }, t);
+    if (sp.comboStrength && isBow(loadout.weapon)) add({ strength: sp.comboStrength }, t);
+    if (sp.perkStrength) add({ strength: sp.perkStrength }, t);
+    if (sp.perkSpeed) add({ speed: sp.perkSpeed }, t);
+    if (sp.clearStats && rcm) add(sp.clearStats, t);
+    // Lion Primal Force: stats on the weapon, scaled like the weapon's own.
+    if (sp.weaponStats && loadout.weapon) add(scaleBucket(sp.weaponStats, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
+    // Lion First Pounce: First Strike / Triple-Strike stronger (melee, so not RCM).
+    if (sp.firstStrikeBoost && loadout.weapon && !rcm) {
+      for (const key of ['first_strike', 'triple_strike']) {
+        const ench = ENCHANTS[key];
+        const level = loadout.weapon.enchants?.[key] ?? 0;
+        if (!level || ench.floorMode !== (c.floorMode ?? 'master')) continue;
+        add({ additiveDamage: ench.stats.additiveDamage[Math.min(level, 5) - 1] * sp.firstStrikeBoost }, t);
+      }
+    }
     // Blaze: potato books on the weapon count twice (the extra copy, dungeon scaled like the weapon).
-    const potatoBoost = (pets[t].stats.potatoMultiplier ?? 1) - 1;
+    const potatoBoost = (sp.potatoMultiplier ?? 1) - 1;
     if (potatoBoost > 0 && loadout.weapon) {
       const books = Math.min(loadout.weapon.hpb ?? 0, HOT_POTATO.max + FUMING_POTATO.max) * potatoBoost;
       add(scaleBucket({ damage: books * HOT_POTATO.damage, strength: books * HOT_POTATO.strength }, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
@@ -650,7 +665,9 @@ function rawStats(loadout, ctx, activeExtras) {
   const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
   // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
   const needsAttackSpeed = (c.cls === 'mage' && !rcm) || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, c,
+  // Black Cat raises the speed cap, so the speed target goes up with it.
+  const speedCapBonus = pets.wither?.special?.speedCapBonus ?? 0;
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, { ...c, speedCapBonus },
     needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
   add(tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
@@ -733,6 +750,10 @@ function evaluateWith(loadout, ctx, activeExtras) {
     if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;
+    // Wither Skeleton Death's Touch: one extra hit of 67% every second, soft-capped on its own.
+    const pet = loadout.activePets?.[target];
+    const deathsTouch = pet ? petStats(pet, ctx.petProfile).special?.deathsTouch ?? 0 : 0;
+    if (deathsTouch) result[target] += hitWith(fabled * deathsTouch);
     result.stats[target] = s;
   }
   return result;

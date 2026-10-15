@@ -50,6 +50,7 @@ const priceTable = {
 const prices = { get: (id) => (priceTable[id] ? { price: priceTable[id], source: 'BZ' } : null) };
 // A Necron's Blade variant with all 3 Wither scrolls (Wither Impact).
 const scrolled = (item) => ({ ...item, scrolls: ['IMPLOSION_SCROLL', 'SHADOW_WARP_SCROLL', 'WITHER_SHIELD_SCROLL'] });
+const petTierFor = (type) => (['BLACK_CAT', 'GRIFFIN'].includes(type) ? 'MYTHIC' : 'LEGENDARY');
 const profile = (list, extra = {}) => ({ items: list, pets: [], shards: {}, ...extra });
 
 test('NBT decode reads ITEM_IDs, stars, recombs, reforges, gems and enchants', () => {
@@ -894,10 +895,10 @@ test('profile stats: base crit damage, skills, slayers, SkyBlock level, Harp; pr
 test('pet perks: Wither Skeleton vs withers, Skeleton bow damage and Combo, Blaze doubles potato books', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const ws = petStats({ type: 'WITHER_SKELETON', tier: 'LEGENDARY' });
-  close(ws.wither.additiveDamage, 125);
+  close(ws.wither.additiveDamage, 100);
   const sk = petStats({ type: 'SKELETON', tier: 'LEGENDARY' });
   close(sk.stats.bowDamage, 150);
-  close(sk.stats.comboStrength, 60);
+  close(sk.special.comboStrength, 60);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
   const w = weightsFor('arch');
   const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
@@ -912,6 +913,38 @@ test('pet perks: Wither Skeleton vs withers, Skeleton bow damage and Combo, Blaz
   const b = evaluate({ ...ml, activePets: { wither: blaze, dragon: blaze } }, mctx, mw).stats.wither;
   const n = evaluate({ ...ml, activePets: {} }, mctx, mw).stats.wither;
   assert.ok(b.damage > n.damage);
+});
+
+test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, Ankylosaurus, Black Cat, Death\'s Touch, Stampede', async () => {
+  const { petStats } = await import('../src/lib/pets.js');
+  const { tuningAllocation } = await import('../src/calc/stats.js');
+  const ps = (type, heldItem = null) => petStats({ type, tier: petTierFor(type), heldItem });
+  close(ps('PIGMAN').stats.additiveDamage, 75);
+  close(ps('TIGER').wither.additiveDamage, 100);
+  // Tyrant: Hephaestus Remedies (2x strength) becomes 3x.
+  const rex = ps('TYRANNOSAURUS', 'HEPHAESTUS_REMEDIES');
+  close(rex.stats.strength, 75 * 3);
+  const lion = ps('LION');
+  close(lion.special.weaponStats.damage, 20);
+  close(lion.special.firstStrikeBoost, 1);
+  close(ps('GRIFFIN').stats.additiveStrength, 0.15);
+  close(ps('ANKYLOSAURUS').special.perkStrength, 500);
+  close(ps('BLACK_CAT').special.speedCapBonus, 100);
+  // Black Cat lifts the speed target from 500 to 600.
+  assert.equal(tuningAllocation(200, 500, { cls: 'arch', speedCapBonus: 100, tuning: { split: { critDamage: 1 } } }).speedPoints, 67);
+  // Death's Touch adds damage; Stampede only counts in the RCM clear.
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const w = weightsFor('mage');
+  const l = buildLoadout(profile([newItem('HYPERION', resource)]), ctx, w);
+  const ws = { type: 'WITHER_SKELETON', tier: 'LEGENDARY', heldItem: null };
+  const noWb = { ...l, activePets: {} };
+  assert.ok(evaluate({ ...l, activePets: { wither: ws, dragon: ws } }, ctx, w).dragon > evaluate(noWb, ctx, w).dragon);
+  const horse = { type: 'SKELETON_HORSE', tier: 'LEGENDARY', heldItem: null };
+  close(evaluate({ ...l, activePets: { wither: horse, dragon: horse } }, ctx, w).stats.wither.strength, evaluate(noWb, ctx, w).stats.wither.strength);
+  const rctx = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
+  const rw = weightsFor('mage', null, 'rcm');
+  const rl = buildLoadout(profile([scrolled(newItem('HYPERION', resource))]), rctx, rw);
+  assert.ok(evaluate({ ...rl, activePets: { wither: horse } }, rctx, rw).stats.wither.strength > evaluate({ ...rl, activePets: {} }, rctx, rw).stats.wither.strength);
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

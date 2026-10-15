@@ -70,11 +70,14 @@ export function petStats(pet, profile = {}) {
   // Perk strength that counts as the pet's own stat (boosted by pet items, copied by Chimera).
   if (perk.petStrength) base.strength = (base.strength ?? 0) + perk.petStrength;
   const item = PET_ITEMS[pet.heldItem];
-  for (const [key, m] of Object.entries(item?.mult ?? {})) if (base[key]) base[key] *= m;
-  for (const [key, v] of Object.entries(item?.flat ?? {})) base[key] = (base[key] ?? 0) + v;
+  // Tyrant (T-Rex) makes pet item stats stronger.
+  const itemBoost = 1 + (perk.special?.itemBoost ?? 0);
+  for (const [key, m] of Object.entries(item?.mult ?? {})) if (base[key]) base[key] *= 1 + (m - 1) * itemBoost;
+  for (const [key, v] of Object.entries(item?.flat ?? {})) base[key] = (base[key] ?? 0) + v * itemBoost;
 
-  const { petStrength, potionBoost = 0, dragon = {}, wither = {}, ...extra } = perk;
-  return { stats: { ...base, ...addTo(base, extra) }, dragon, wither, petStrength: base.strength ?? 0, potionBoost };
+  // special: perk effects that are not pet stats (not copied by Chimera), applied in rawStats.
+  const { petStrength, potionBoost = 0, dragon = {}, wither = {}, special = {}, ...extra } = perk;
+  return { stats: { ...base, ...addTo(base, extra) }, dragon, wither, special, petStrength: base.strength ?? 0, potionBoost };
 }
 
 function addTo(base, extra) {
