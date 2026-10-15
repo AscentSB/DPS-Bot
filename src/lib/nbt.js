@@ -65,6 +65,7 @@ export function toItemState(nbtItem, resource) {
     reforge: extra.modifier ?? null,
     gems: normalizeGems(extra.gems),
     enrichment: extra.talisman_enrichment ?? null,
+    scrolls: Array.isArray(extra.ability_scroll) ? [...extra.ability_scroll] : [],
     pet: petInfo(extra),
   };
 }

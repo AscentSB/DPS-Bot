@@ -39,6 +39,12 @@ export const ITEM_STATS = {
   ITEM_SPIRIT_BOW: { arrows: 1, shotTicks: 15 },
   STARRED_ITEM_SPIRIT_BOW: { arrows: 1, shotTicks: 14 },
 
+  // Necron's Blade refinements: flat stats per Catacombs level, part of the base stats (dungeon scaled like the rest).
+  HYPERION: { perCataLevel: { damage: 1, intelligence: 2 } },
+  VALKYRIE: { perCataLevel: { damage: 1, strength: 1 } },
+  SCYLLA: { perCataLevel: { damage: 1, critDamage: 1 } },
+  ASTRAEA: { perCataLevel: { damage: 1 } },
+
   // Necron heads: 2x stats on The Catacombs Floor VII.
   DIAMOND_NECRON_HEAD: { statMultiplier: 2 },
   GOLD_NECRON_HEAD: { statMultiplier: 2 },

@@ -35,9 +35,10 @@ export const BASE_DAMAGE = 5;
 // Dungeon blessings (https://hypixelskyblock.minecraft.wiki/w/Blessings).
 // Each blessing adds level x 4 flat and level x 2% to its stats, both times the blessing effect E:
 //   stat = (flat + sum(4 * level * E)) (1 + additive + 2nd additive)(multiplicative) * product(1 + 0.02 * level * E)
-//   E = (1 + floor buff 20%) (1 + Forbidden Blessing 1-10%) (1 + Mimic shard 1-10%) (1 + Paul's Benediction 25%)
+//   E = (1 + floor buff 20%) (1 + Forbidden Blessing 1-10%) (1 + Mimic shard 1-10%)
 // The original formula's 1.1 * 1.1 * 1.2 is E with Forbidden Blessing X and Mimic X.
 // Forbidden Blessing and Mimic come from the profile, so they also show up as upgrades.
+// Mayor perks (Paul's Benediction and the rest) are never counted.
 export const BLESSINGS = {
   power: { level: 19, stats: ['strength', 'critDamage'] },
   wisdom: { level: 12, stats: ['intelligence'] },
@@ -47,9 +48,6 @@ export const BLESSINGS = {
 export const BLESSING_FLAT_PER_LEVEL = 4;
 export const BLESSING_PERCENT_PER_LEVEL = 0.02;
 export const BLESSING_FLOOR_BUFF = 0.2;
-// Set to true while Paul is mayor with Benediction.
-export const PAUL_BENEDICTION = false;
-export const BENEDICTION_BUFF = 0.25;
 
 // Speed: tuning points go into speed until you reach SPEED_CAP (with your damage pet). Only the
 // points left after that can go to crit damage / crit chance. Speed past the cap does nothing.
@@ -121,6 +119,13 @@ export const MAGE_INT_PER_LEVEL = 5;
 export const WITHER_IMPACT_BASE = 10000;
 export const WITHER_IMPACT_SCALING = 0.3;
 export const WITHER_IMPACT_WEAPONS = ['HYPERION', 'ASTRAEA', 'VALKYRIE', 'SCYLLA', 'NECRON_BLADE'];
+// Wither Impact needs all 3 scrolls (ExtraAttributes.ability_scroll). The Ultimate Wither Scroll counts as all 3.
+export const WITHER_SCROLLS = ['IMPLOSION_SCROLL', 'SHADOW_WARP_SCROLL', 'WITHER_SHIELD_SCROLL'];
+export const ULTIMATE_WITHER_SCROLL = 'ULTIMATE_WITHER_SCROLL';
+// Shadow Assassin Cloak: the next melee hit after a teleport deals 10% more. With a Wither Impact blade (all 3
+// scrolls) you teleport every cast, so LCM gets 1.1x. 2 of 3 scrolls does nothing.
+export const SA_CLOAK_IDS = ['SHADOW_ASSASSIN_CLOAK', 'STARRED_SHADOW_ASSASSIN_CLOAK'];
+export const SA_CLOAK_MULTIPLIER = 1.1;
 // Mage class ability damage: +5, plus +1 per 5 Mage levels (doubled when solo, like the class intelligence).
 export const MAGE_ABILITY_DAMAGE_BASE = 5;
 export const MAGE_ABILITY_DAMAGE_PER_5_LEVELS = 1;

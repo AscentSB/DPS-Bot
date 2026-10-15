@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -13,12 +13,12 @@ import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
-import { dropBaseRarity } from '../lib/drops.js';
+import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
@@ -31,9 +31,13 @@ const REPLAN_ROUNDS = 10;
 // unless it alone raises damage by more than REPLACED_SOON_MIN_GAIN percent.
 export const REPLACED_SOON_COINS = 10_000_000;
 export const REPLACED_SOON_MIN_GAIN = 5;
+// Floor-scaled dungeon armor from below floor 10: steps on it (buy included) stay at or under this.
+export const LOW_FLOOR_PIECE_MAX_STEP = 1_000_000;
+const MAX_FLOOR = 10;
 // Mage RCM Chimera pets (intelligence and ability damage, copied by Chimera and boosted by the blade's stars).
 const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
+const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage'];
 
@@ -69,7 +73,7 @@ export function newItem(id, resource) {
   return {
     id, name: cleanName(info?.name ?? id), category: info?.category, baseRarity: info ? dropBaseRarity(id, resource) : 'COMMON', recomb: false,
     stars: dungeonizable ? MAX_STARS : 0, masterStars: 0, dungeon: dungeonizable ? true : undefined,
-    enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null,
+    enchants: {}, hpb: 0, artOfWar: false, reforge: null, gems: { slots: {}, unlocked: [] }, enrichment: null, scrolls: [],
   };
 }
 
@@ -94,6 +98,8 @@ function cloneLoadout(l) {
     pets: [...(l.pets ?? [])],
     activePets: { ...(l.activePets ?? {}) },
     power: l.power ?? null,
+    witherImpact: Boolean(l.witherImpact),
+    blades: l.blades ?? [],
     unlockedPowers: new Set(l.unlockedPowers ?? []),
   };
 }
@@ -134,6 +140,9 @@ export function buildLoadout(profile, ctx, weights) {
   if (addPrism || profile.riftPrism) loadout.owned.add(RIFT_PRISM_ID);
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
+  // Necron's Blade variants you own, and whether any has Wither Impact (for the Shadow Assassin Cloak in LCM).
+  loadout.blades = items.filter((i) => WITHER_IMPACT_WEAPONS.includes(i.id));
+  loadout.witherImpact = loadout.blades.some(hasWitherImpact);
   bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id, ctx.cls));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
   // Mage clears in RCM armor, so it has none.
@@ -425,6 +434,12 @@ export function availableUpgrades(loadout, ctx, prices) {
       const base = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
       const parts = [{ id }, ...(reforge ? reforgeCost(reforge, base) : [])];
       const labels = [`Buy ${cleanName(info.name ?? id)}`, ...(reforge ? [`${reforge.name} reforge`] : [])];
+      // RCM: a bought blade comes with the 3 Wither scrolls.
+      if (ctx.mode === 'rcm' && WITHER_IMPACT_WEAPONS.includes(id)) {
+        base.scrolls = [...WITHER_SCROLLS];
+        parts.push(...WITHER_SCROLLS.map((x) => ({ id: x })));
+        labels.push('Wither scrolls');
+      }
       if (extra.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); labels.push('Recombobulator'); }
       if (extra.enrichment) { parts.push({ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[extra.enrichment].key}` }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
       push(labels.join(' + '), parts, (l) => {
@@ -491,6 +506,20 @@ export function availableUpgrades(loadout, ctx, prices) {
       next.power = power;
       return next;
     }, { group: 'power' });
+  }
+
+  // Wither scrolls: all 3 or nothing. RCM puts them on the blade you cast with; LCM on any blade you own, for the
+  // Shadow Assassin Cloak's 1.1x.
+  const scrollTargets = ctx.mode === 'rcm' && cls === 'mage' ? [loadout.weapon] : loadout.witherImpact ? [] : (loadout.blades ?? []);
+  for (const blade of scrollTargets.filter((b) => b && WITHER_IMPACT_WEAPONS.includes(b.id) && !hasWitherImpact(b))) {
+    const missing = WITHER_SCROLLS.filter((x) => !(blade.scrolls ?? []).includes(x));
+    push(`${missing.map((x) => SCROLL_NAMES[x]).join(', ')} on ${cleanName(blade.name ?? blade.id)}`, missing.map((x) => ({ id: x })), (l) => {
+      const done = { ...blade, scrolls: [...new Set([...(blade.scrolls ?? []), ...WITHER_SCROLLS])] };
+      const next = l.weapon === blade ? replaceItem(l, blade, done) : cloneLoadout(l);
+      next.blades = (next.blades ?? []).map((b) => (b === blade ? done : b));
+      next.witherImpact = true;
+      return next;
+    }, { group: `scrolls:${blade.id}` });
   }
 
   // Pets (level 100, Golden Dragon 200) from the auction house. One active at a time.
@@ -690,7 +719,7 @@ function pieceChanges(prev, next) {
       const key = `${slot}:${b.id}`;
       const prevKey = a ? `${slot}:${a.id}` : null;
       const kind = !a || a.id === b.id ? 'same' : upgradesInto(a.id, b.id) ? 'upgrade' : 'replace';
-      changes.push({ key, prevKey, kind });
+      changes.push({ key, prevKey, kind, item: b });
     }
   };
   scan('armor', ARMOR_SLOTS);
@@ -796,6 +825,8 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned = 
       const next = up.apply(loadout);
       const changes = pieceChanges(loadout, next);
       if (changes.some((c) => doomed.has(c.kind === 'upgrade' ? c.prevKey : c.key) && spent(c) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
+      // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
+      if (up.cost > LOW_FLOOR_PIECE_MAX_STEP && highestFloor(ctx.cataLevel) < MAX_FLOOR && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
       const after = evaluate(next, ctx, weights);
       const gain = weightedGain(current, after, weights);
       if (gain <= 1e-9) continue;

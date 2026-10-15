@@ -48,6 +48,8 @@ const priceTable = {
   SHARD_JORMUNG: 1.8e6, PET_GOLDEN_DRAGON_LEGENDARY: 1.2e9, ANTIQUE_REMEDIES: 5e6, FLAWLESS_JASPER_GEM: 3e6, PERFECT_JASPER_GEM: 14e6,
 };
 const prices = { get: (id) => (priceTable[id] ? { price: priceTable[id], source: 'BZ' } : null) };
+// A Necron's Blade variant with all 3 Wither scrolls (Wither Impact).
+const scrolled = (item) => ({ ...item, scrolls: ['IMPLOSION_SCROLL', 'SHADOW_WARP_SCROLL', 'WITHER_SHIELD_SCROLL'] });
 const profile = (list, extra = {}) => ({ items: list, pets: [], shards: {}, ...extra });
 
 test('NBT decode reads ITEM_IDs, stars, recombs, reforges, gems and enchants', () => {
@@ -692,7 +694,7 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
   assert.equal(t.speedPoints, 54);
   close(t.stats.intelligence, 92);
   const w = weightsFor('mage', null, 'rcm');
-  const withBlade = buildLoadout(profile([newItem('HYPERION', resource), newItem('GIANTS_SWORD', resource)]), ctx, w);
+  const withBlade = buildLoadout(profile([scrolled(newItem('HYPERION', resource)), newItem('GIANTS_SWORD', resource)]), ctx, w);
   assert.equal(withBlade.weapon.id, 'HYPERION');
   const r = evaluate(withBlade, ctx, w);
   assert.ok(r.wither > 0);
@@ -703,7 +705,7 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
   const res = new Map([...resource, ['WISE_WITHER_LEGGINGS', { id: 'WISE_WITHER_LEGGINGS', name: "Storm's Leggings", category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250 } }]]);
   const armorReforges = (mode) => {
     const c = makeContext({ cls: 'mage', cataLevel: 50, resource: res, mode });
-    const l = buildLoadout(profile([newItem('HYPERION', res), newItem('WISE_WITHER_LEGGINGS', res)]), c, weightsFor('mage', null, mode));
+    const l = buildLoadout(profile([scrolled(newItem('HYPERION', res)), newItem('WISE_WITHER_LEGGINGS', res)]), c, weightsFor('mage', null, mode));
     return availableUpgrades(l, c, { get: () => ({ price: 1e5, source: 'BZ' }) }).filter((u) => /reforge on Storm's Leggings/.test(u.label)).map((u) => u.label);
   };
   assert.ok(armorReforges('rcm').some((x) => !x.startsWith('Ancient')), armorReforges('rcm').join(', '));
@@ -713,7 +715,7 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
 test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fabled', () => {
   const w = weightsFor('mage');
   const lcm = makeContext({ cls: 'mage', cataLevel: 50, resource });
-  const plain = { ...newItem('HYPERION', resource), reforge: 'heroic' };
+  const plain = { ...scrolled(newItem('HYPERION', resource)), reforge: 'heroic' };
   const fabled = { ...plain, reforge: 'fabled' };
   const base = buildLoadout(profile([plain]), lcm, w);
   const withFabled = { ...base, weapon: fabled };
@@ -721,7 +723,7 @@ test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fab
   assert.ok(ratioOk);
   const rcm = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
   const rw = weightsFor('mage', null, 'rcm');
-  const blade = (enchants, reforge = 'heroic') => ({ ...newItem('HYPERION', resource), reforge, enchants });
+  const blade = (enchants, reforge = 'heroic') => ({ ...scrolled(newItem('HYPERION', resource)), reforge, enchants });
   const l = buildLoadout(profile([blade({})]), rcm, rw);
   const cast = (item) => evaluate({ ...l, weapon: item }, rcm, rw).wither;
   assert.ok(cast(blade({ smite: 7 })) > cast(blade({})));
@@ -756,7 +758,7 @@ test('RCM: Giant Killer, Prosecute and Swarm (7 mobs) raise Wither Impact; Crow 
   close(crow.stats.intelligence, 225);
   const ctx = makeContext({ cls: 'mage', cataLevel: 0, resource, mode: 'rcm' });
   const w = weightsFor('mage', null, 'rcm');
-  const blade = (enchants) => ({ ...newItem('HYPERION', resource), enchants });
+  const blade = (enchants) => ({ ...scrolled(newItem('HYPERION', resource)), enchants });
   const l = buildLoadout(profile([blade({})]), ctx, w);
   const cast = (enchants) => evaluate({ ...l, weapon: blade(enchants) }, ctx, w).wither;
   for (const e of [{ giant_killer: 7 }, { prosecute: 6 }, { ultimate_swarm: 5 }]) assert.ok(cast(e) > cast({}), JSON.stringify(e));
@@ -822,6 +824,49 @@ test('an accessory with an enrichment can swap it with the Accessory Enrichment 
   const l = buildLoadout(profile([newItem('TERMINATOR', resource), relic]), ctx, w);
   const labels = availableUpgrades(l, ctx, { get: (id) => ({ price: 1e6, source: 'BZ', id }) }).map((u) => u.label);
   assert.ok(labels.some((x) => x.startsWith('Swap Wither Relic enrichment to Critical Damage')), labels.filter((x) => /Wither Relic/.test(x)).join(', '));
+});
+
+test('Hyperion gets +1 damage and +2 intelligence per Catacombs level before dungeon scaling', () => {
+  const c50 = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const hyp = itemContribution(newItem('HYPERION', resource), c50).global;
+  close(hyp.intelligence, (350 + 100) * 6.35);
+  close(hyp.damage, (260 + 50) * 6.35);
+});
+
+test('Shadow Assassin Cloak gives LCM 1.1x only with all 3 Wither scrolls on a blade you own; scrolls are a step', () => {
+  const res = new Map([...resource, ['SHADOW_ASSASSIN_CLOAK', { id: 'SHADOW_ASSASSIN_CLOAK', name: 'Shadow Assassin Cloak', category: 'CLOAK', tier: 'LEGENDARY', dungeon_item: true, stats: {} }]]);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
+  const w = weightsFor('mage');
+  const cloak = newItem('SHADOW_ASSASSIN_CLOAK', res);
+  const two = { ...newItem('HYPERION', res), scrolls: ['IMPLOSION_SCROLL', 'SHADOW_WARP_SCROLL'] };
+  const l2 = buildLoadout(profile([two, cloak]), ctx, w);
+  const l3 = buildLoadout(profile([scrolled(newItem('HYPERION', res)), cloak]), ctx, w);
+  assert.equal(l2.witherImpact, false);
+  assert.equal(l3.witherImpact, true);
+  const d2 = evaluate(l2, ctx, w).wither;
+  const d3 = evaluate(l3, ctx, w).wither;
+  assert.ok(d3 > d2);
+  const step = availableUpgrades(l2, ctx, { get: (id) => ({ price: 2e6, source: 'BZ', id }) }).find((u) => u.label.startsWith('Wither Shield on Hyperion'));
+  assert.ok(step);
+  assert.equal(step.cost, 2e6);
+  close(evaluate(step.apply(l2), ctx, w).wither, d3);
+});
+
+test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor', () => {
+  const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true,
+    tiered_stats: { CRITICAL_DAMAGE: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] } }]]);
+  const w = weightsFor('arch');
+  const table = { FIRST_MASTER_STAR: 2e6, RECOMBOBULATOR_3000: 0.9e6 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
+  const labels = (cata) => {
+    const ctx = makeContext({ cls: 'arch', cataLevel: cata, archerLevel: 50, resource: res });
+    const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SKELETON_MASTER_CHESTPLATE', res)]), ctx, w);
+    return planUpgrades(l, ctx, p, w, 10).steps.map((s) => s.label);
+  };
+  const low = labels(30);
+  assert.ok(!low.includes('1st Master Star on Skeleton Master Chestplate'), low.join(', '));
+  const high = labels(40);
+  assert.ok(high.includes('1st Master Star on Skeleton Master Chestplate'), high.join(', '));
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

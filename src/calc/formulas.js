@@ -1,6 +1,5 @@
 import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
-  PAUL_BENEDICTION, BENEDICTION_BUFF,
   BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_BEAM_BASE, MAGE_BEAM_PER_INTELLIGENCE,
   HYPERION_WITHER_MULTIPLIER, SOFT_CAP, SOFT_CAP_KEEP, WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
@@ -14,9 +13,9 @@ export function calcDamage(weaponDamage) {
   return BASE_DAMAGE + weaponDamage;
 }
 
-// Blessing effect E = (1 + floor buff)(1 + Forbidden Blessing)(1 + Mimic shard)(1 + Benediction).
+// Blessing effect E = (1 + floor buff)(1 + Forbidden Blessing)(1 + Mimic shard). Mayor perks are not counted.
 export function blessingEffect(forbiddenBlessing = 0, mimic = 0) {
-  return (1 + BLESSING_FLOOR_BUFF) * (1 + forbiddenBlessing) * (1 + mimic) * (PAUL_BENEDICTION ? 1 + BENEDICTION_BUFF : 1);
+  return (1 + BLESSING_FLOOR_BUFF) * (1 + forbiddenBlessing) * (1 + mimic);
 }
 
 // Apply every blessing that boosts `stat`: flat first, then each blessing's percent multiplies.

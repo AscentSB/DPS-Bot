@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -30,6 +30,13 @@ import {
 
 // Mage RCM mode: the clear set, scored on Wither Impact damage against clear mobs (the "wither" target;
 // boss-only bonuses do not apply). See rcmDamage.
+// A Necron's Blade variant with Wither Impact (all 3 scrolls, or the Ultimate Wither Scroll).
+export function hasWitherImpact(item) {
+  if (!item || !WITHER_IMPACT_WEAPONS.includes(item.id)) return false;
+  const s = item.scrolls ?? [];
+  return s.includes(ULTIMATE_WITHER_SCROLL) || WITHER_SCROLLS.every((x) => s.includes(x));
+}
+
 export function isRcm(ctx) {
   return ctx?.cls === 'mage' && ctx?.mode === 'rcm';
 }
@@ -186,6 +193,8 @@ export function baseItemStats(id, resource, cls, cataLevel = Infinity, floorMode
       const key = STAT_ALIASES[apiKey.toUpperCase()];
       if (key && Array.isArray(values) && values.length) stats[key] = (stats[key] ?? 0) + values[floorTierIndex(cataLevel, values.length)];
     }
+    // Per-Catacombs-level base stats (Hyperion +1 damage and +2 intelligence per level).
+    if (override.perCataLevel && Number.isFinite(cataLevel)) addLoose(stats, override.perCataLevel, cataLevel);
     const boost = dropStatMultiplier(id, resource);
     if (boost !== 1) for (const key of Object.keys(stats)) stats[key] *= boost;
   }
@@ -675,12 +684,14 @@ function evaluateWith(loadout, ctx, activeExtras) {
         : mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), m));
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
-    const fabled = loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1;
+    // Shadow Assassin Cloak + a Wither Impact blade you own: every melee hit follows a teleport (LCM, 1.1x).
+    const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && (loadout.witherImpact || hasWitherImpact(loadout.weapon)) ? SA_CLOAK_MULTIPLIER : 1;
+    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak;
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);
     else if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
-      const blade = WITHER_IMPACT_WEAPONS.includes(loadout.weapon?.id);
+      const blade = hasWitherImpact(loadout.weapon);
       const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
       result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving) : 0;
       result.stats[target] = s;
@@ -773,7 +784,9 @@ export function evaluate(loadout, ctx, weights) {
 export function weightedGain(before, after, weights) {
   let total = 0;
   for (const target of TARGETS) {
-    if (!weights[target] || before[target] <= 0) continue;
+    if (!weights[target]) continue;
+    // Going from no damage (e.g. a blade without Wither Impact) to some counts as +100%.
+    if (before[target] <= 0) { if (after[target] > 0) total += weights[target]; continue; }
     const pct = ((after[target] - before[target]) / before[target]) * 100;
     total += (pct * weights[target]) / 100;
   }
