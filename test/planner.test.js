@@ -1202,3 +1202,24 @@ test("Mage never uses or buys Necron's armor; Archer still does", () => {
   const arch = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   assert.equal(buildLoadout(profile([newItem('TERMINATOR', res), ...gear.slice(1)]), arch, weightsFor('arch')).armor.LEGGINGS.id, 'POWER_WITHER_LEGGINGS');
 });
+
+test('Mage LCM: a dragon set weapon counts per target (Smite blade for withers, Ender Slayer blade for dragons)', async () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, resource });
+  const weights = weightsFor('mage', null, 'lcm');
+  const owned = items([{ id: 'HYPERION', enchants: { smite: 7 } }, { id: 'HYPERION', enchants: { ender_slayer: 7 } }]);
+  const l = buildLoadout(profile(owned), ctx, weights);
+  assert.equal(l.weapon.enchants.smite, 7);
+  assert.equal(l.dragonGear?.weapon?.enchants.ender_slayer, 7);
+  const both = evaluate(l, ctx, weights);
+  const mainOnly = evaluate({ ...l, dragonGear: null }, ctx, weights);
+  close(both.wither, mainOnly.wither);
+  assert.ok(both.dragon > mainOnly.dragon);
+  // An upgrade on the dragon blade only moves dragon damage.
+  const star = availableUpgrades(l, ctx, prices).find((u) => u.label === '1st Master Star on Hyperion' && u.apply(l).dragonGear?.weapon?.masterStars === 1);
+  const after = evaluate(star.apply(l), ctx, weights);
+  close(after.wither, both.wither);
+  assert.ok(after.dragon > both.dragon);
+  // Other classes never get a dragon set.
+  const arch = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  assert.equal(buildLoadout(profile(owned), arch, weightsFor('arch', null, 'lcm')).dragonGear ?? null, null);
+});

@@ -13,7 +13,7 @@ import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
@@ -41,6 +41,8 @@ const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
+// Mage weapon buys bundled with the current weapon's cheaper enchants: books up to this price each.
+const COPY_BOOK_MAX = 10_000_000;
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage', 'ferocity'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
@@ -52,6 +54,34 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
   if (target === 'wither') return { wither: 100, dragon: 0 };
   if (target === 'dragon') return { wither: 0, dragon: 100 };
   return { ...CLASSES[cls].weights };
+}
+
+// Mage LCM (Master Mode) can swap to a second weapon, armor or equipment for the dragons. loadout.dragonGear
+// { weapon, armor, equipment } holds only the slots that differ from the main set (null when nothing does).
+export function hasDragonSet(ctx) {
+  return ctx.cls === 'mage' && ctx.mode !== 'rcm' && ctx.floorMode !== 'normal';
+}
+
+const slotGroup = (slot) => (ARMOR_SLOTS.includes(slot) ? 'armor' : 'equipment');
+function mainItem(l, slot) {
+  return slot === 'weapon' ? l.weapon : l[slotGroup(slot)][slot];
+}
+function dragonItem(l, slot) {
+  const d = l.dragonGear;
+  return !d ? null : slot === 'weapon' ? d.weapon : d[slotGroup(slot)][slot] ?? null;
+}
+// Set (or clear, item null) a dragon slot on a loadout copy. An item the main set already uses is not stored.
+function setDragonSlot(l, slot, item) {
+  const d = { weapon: l.dragonGear?.weapon ?? null, armor: { ...l.dragonGear?.armor }, equipment: { ...l.dragonGear?.equipment } };
+  const value = item && item !== mainItem(l, slot) ? item : null;
+  if (slot === 'weapon') d.weapon = value;
+  else if (value) d[slotGroup(slot)][slot] = value;
+  else delete d[slotGroup(slot)][slot];
+  l.dragonGear = d.weapon || Object.keys(d.armor).length || Object.keys(d.equipment).length ? d : null;
+}
+function dragonItems(l) {
+  const d = l.dragonGear;
+  return d ? [d.weapon, ...Object.values(d.armor), ...Object.values(d.equipment)].filter(Boolean) : [];
 }
 
 // profile: { cataLevel, secrets, power, tuning } from readMember.
@@ -92,6 +122,8 @@ function cloneLoadout(l) {
     equipment: { ...l.equipment },
     rag: l.rag,
     clearBoots: l.clearBoots ?? null,
+    // Never edited in place (setDragonSlot makes a new one).
+    dragonGear: l.dragonGear ?? null,
     // Shared until a step changes the bag (copy on write), so unchanged bags keep their cached stats.
     accessories: l.accessories,
     owned: new Set(l.owned),
@@ -156,6 +188,7 @@ export function buildLoadout(profile, ctx, weights) {
     : null;
   loadout = selectPet(loadout, ctx, weights);
 
+  const dragonSet = hasDragonSet(ctx);
   for (let pass = 0; pass < 2; pass++) {
     for (const [slot, options] of Object.entries(bySlot)) {
       let best = null;
@@ -164,9 +197,32 @@ export function buildLoadout(profile, ctx, weights) {
         const trial = cloneLoadout(loadout);
         setSlot(trial, slot, option);
         const s = score(trial, ctx, weights);
-        if (s > bestScore) { bestScore = s; best = option; }
+        if (s > bestScore) { bestScore = s; best = trial; }
+        // Mage: the new piece for withers only, keeping the current one for dragons.
+        const current = slot === 'rag' ? null : mainItem(loadout, slot);
+        if (dragonSet && current && current !== option && !dragonItem(loadout, slot)) {
+          const swap = cloneLoadout(loadout);
+          setSlot(swap, slot, option);
+          setDragonSlot(swap, slot, current);
+          const s2 = score(swap, ctx, weights);
+          if (s2 > bestScore) { bestScore = s2; best = swap; }
+        }
       }
-      if (best) setSlot(loadout, slot, best);
+      if (best) loadout = best;
+    }
+    // Mage: the best dragon piece for each slot (none = the main set's).
+    if (!dragonSet) continue;
+    for (const [slot, options] of Object.entries(bySlot)) {
+      if (slot === 'rag') continue;
+      let best = null;
+      let bestScore = score(loadout, ctx, weights);
+      for (const option of options) {
+        const trial = cloneLoadout(loadout);
+        setDragonSlot(trial, slot, option);
+        const s = score(trial, ctx, weights);
+        if (s > bestScore) { bestScore = s; best = trial; }
+      }
+      if (best) loadout = best;
     }
   }
 
@@ -239,6 +295,8 @@ function setSlot(l, slot, item) {
   else if (slot === 'rag') l.rag = item;
   else if (ARMOR_SLOTS.includes(slot)) l.armor[slot] = item;
   else l.equipment[slot] = item;
+  // The dragon set never repeats the main set's piece.
+  if (slot !== 'rag' && dragonItem(l, slot) === item) setDragonSlot(l, slot, null);
 }
 
 // Stable name for where an item sits, used to group mutually exclusive upgrades.
@@ -248,6 +306,9 @@ function slotName(loadout, item) {
   for (const [slot, it] of Object.entries(loadout.armor)) if (it === item) return slot;
   if (loadout.clearBoots === item) return 'clearBoots';
   for (const [slot, it] of Object.entries(loadout.equipment)) if (it === item) return slot;
+  const d = loadout.dragonGear;
+  if (d?.weapon === item) return 'dragon:weapon';
+  for (const [slot, it] of Object.entries({ ...d?.armor, ...d?.equipment })) if (it === item) return `dragon:${slot}`;
   return item.id;
 }
 
@@ -259,6 +320,11 @@ function replaceItem(loadout, oldItem, next) {
   if (l.clearBoots === oldItem) l.clearBoots = next;
   for (const slot of Object.keys(l.armor)) if (l.armor[slot] === oldItem) l.armor[slot] = next;
   for (const slot of Object.keys(l.equipment)) if (l.equipment[slot] === oldItem) l.equipment[slot] = next;
+  if (dragonItems(l).includes(oldItem)) {
+    const d = l.dragonGear;
+    const swap = (group) => Object.fromEntries(Object.entries(group).map(([k, v]) => [k, v === oldItem ? next : v]));
+    l.dragonGear = { weapon: d.weapon === oldItem ? next : d.weapon, armor: swap(d.armor), equipment: swap(d.equipment) };
+  }
   if (l.accessories.get(oldItem.id) === oldItem) {
     l.accessories = new Map(l.accessories);
     if (next.id !== oldItem.id) l.accessories.delete(oldItem.id);
@@ -270,7 +336,7 @@ function replaceItem(loadout, oldItem, next) {
 }
 
 function upgradableItems(loadout) {
-  const set = new Set([loadout.weapon, loadout.rag, loadout.clearBoots, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...loadout.accessories.values()]);
+  const set = new Set([loadout.weapon, loadout.rag, loadout.clearBoots, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...dragonItems(loadout), ...loadout.accessories.values()]);
   set.delete(null);
   set.delete(undefined);
   return [...set];
@@ -317,7 +383,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const name = cleanName(item.name ?? resource.get(item.id)?.name ?? item.id);
     const slot = slotName(loadout, item);
     const isAccessory = item.category === ACCESSORY_CATEGORY;
-    const weaponLike = isWeaponCategory(item.category) && (item === loadout.weapon || item === loadout.rag);
+    const weaponLike = isWeaponCategory(item.category) && (item === loadout.weapon || item === loadout.rag || item === loadout.dragonGear?.weapon);
 
     // Master stars: next star only, dungeon gear with 5 regular stars.
     if (!isAccessory && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
@@ -413,7 +479,8 @@ export function availableUpgrades(loadout, ctx, prices) {
   // New items from the auction house / bazaar.
   const weaponCats = CLASS_WEAPON_CATEGORIES[cls];
   const accIds = new Set(loadout.accessories.keys());
-  const worn = [loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment)].filter(Boolean);
+  const worn = [loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...dragonItems(loadout)].filter(Boolean);
+  const dragonSet = hasDragonSet(ctx);
   for (const [id, info] of resource) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     if (CLASS_EXCLUDED_ITEMS[cls]?.test(id)) continue;
@@ -432,10 +499,30 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id, cls)) continue;
     // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
     // priced and scored as one step, so an expensive accessory is weighed with its recomb and enrichment.
+    // Mage: gear can also go in the dragon set, or replace the main piece for withers only (the old one kept for
+    // dragons).
+    const slot = isWeapon && !isRag ? 'weapon' : isArmor ? cat : equipSlot;
+    const sets = ['main'];
+    if (dragonSet && slot && (isWeapon ? !isRag : true)) {
+      sets.push('dragon');
+      if (mainItem(loadout, slot) && !dragonItem(loadout, slot)) sets.push('wither');
+    }
+    // Mage weapons also come with the current weapon's enchants and potato books (priced as books), so a new
+    // blade is not judged bare against an enchanted one: every enchant, or only books up to COPY_BOOK_MAX each
+    // (the pricey ones then come as their own steps).
+    const src = cls === 'mage' && isWeapon && !isRag && loadout.weapon?.id !== id ? loadout.weapon : null;
     const buy = (reforgeKeyName, reforge, extra = {}) => {
+      for (const set of sets) {
+        buyInto(set, reforgeKeyName, reforge, extra);
+        if (src) for (const copy of ['cheap', 'all']) buyInto(set, reforgeKeyName, reforge, { ...extra, copy });
+      }
+    };
+    const buyInto = (set, reforgeKeyName, reforge, extra) => {
       const base = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
       const parts = [{ id }, ...(reforge ? reforgeCost(reforge, base) : [])];
-      const labels = [`Buy ${cleanName(info.name ?? id)}`, ...(reforge ? [`${reforge.name} reforge`] : [])];
+      const labels = [`Buy ${cleanName(info.name ?? id)}${set === 'dragon' ? ' (dragon set)'
+        : set === 'wither' ? ` (for withers, keep ${cleanName(mainItem(loadout, slot).name ?? mainItem(loadout, slot).id)} for dragons)` : ''}`,
+      ...(reforge ? [`${reforge.name} reforge`] : [])];
       // RCM: a bought blade comes with the 3 Wither scrolls.
       if (ctx.mode === 'rcm' && WITHER_IMPACT_WEAPONS.includes(id)) {
         base.scrolls = [...WITHER_SCROLLS];
@@ -443,18 +530,41 @@ export function availableUpgrades(loadout, ctx, prices) {
         labels.push('Wither scrolls');
       }
       if (extra.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); labels.push('Recombobulator'); }
+      if (extra.copy) {
+        base.enchants = {};
+        for (const [key, level] of Object.entries(src.enchants ?? {})) {
+          const ench = ENCHANTS[key];
+          const book = `ENCHANTMENT_${key.toUpperCase()}_${level}`;
+          const price = prices.get(book)?.price;
+          if (!ench?.categories.includes(cat) || (ench.items && !ench.items.includes(id)) || !price || (extra.copy === 'cheap' && price > COPY_BOOK_MAX)) continue;
+          base.enchants[key] = level;
+          parts.push({ id: book });
+        }
+        const hpb = src.hpb ?? 0;
+        base.hpb = hpb;
+        if (hpb) parts.push({ id: HOT_POTATO.id, qty: Math.min(hpb, HOT_POTATO.max) });
+        if (hpb > HOT_POTATO.max) parts.push({ id: FUMING_POTATO.id, qty: hpb - HOT_POTATO.max });
+        if (src.artOfWar) { base.artOfWar = true; parts.push({ id: ART_OF_WAR.id }); }
+        if (extra.copy === 'all' && base.dungeon) {
+          base.masterStars = src.masterStars ?? 0;
+          parts.push(...MASTER_STAR_IDS.slice(0, base.masterStars).map((x) => ({ id: x })));
+        }
+        labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'} and potato books like ${cleanName(src.name ?? src.id)}`);
+      }
       if (extra.enrichment) { parts.push({ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[extra.enrichment].key}` }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
       push(labels.join(' + '), parts, (l) => {
       const next = cloneLoadout(l);
       const item = { ...base, recomb: Boolean(extra.recomb), enrichment: extra.enrichment ?? null };
       next.owned.add(id);
+      if (set === 'dragon') { setDragonSlot(next, slot, item); return next; }
       if (isRag) next.rag = item;
       if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
       else if (isArmor) next.armor[cat] = item;
       else if (isEquip) next.equipment[equipSlot] = item;
       else if (isAcc) (next.accessories = new Map(next.accessories)).set(id, item);
+      if (set === 'wither') setDragonSlot(next, slot, mainItem(l, slot));
       return next;
-      }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
+      }, { group: isAcc ? undefined : `buy:${set === 'dragon' ? 'dragon:' : ''}${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
     };
     const fresh = newItem(id, resource);
     const recombable = canRecomb(fresh, resource);
@@ -743,19 +853,26 @@ function gemUpgrades(item, ctx) {
 // buy that replaces the old piece.
 function pieceChanges(prev, next) {
   const changes = [];
-  const scan = (group, slots) => {
-    for (const slot of slots) {
-      const a = prev[group]?.[slot];
-      const b = next[group]?.[slot];
-      if (!b || a === b) continue;
-      const key = `${slot}:${b.id}`;
-      const prevKey = a ? `${slot}:${a.id}` : null;
-      const kind = !a || a.id === b.id ? 'same' : upgradesInto(a.id, b.id) ? 'upgrade' : 'replace';
-      changes.push({ key, prevKey, kind, item: b });
+  const seen = new Set();
+  // A piece moved from the main set to the dragon set is still worn, so it is not replaced.
+  const wornAfter = new Set(['wither', 'dragon'].flatMap((t) => { const g = gearView(next, t); return [...Object.values(g.armor), ...Object.values(g.equipment)]; }));
+  for (const t of ['wither', 'dragon']) {
+    const before = gearView(prev, t);
+    const after = gearView(next, t);
+    for (const [group, slots] of [['armor', ARMOR_SLOTS], ['equipment', EQUIPMENT_SLOTS]]) {
+      for (const slot of slots) {
+        const a = before[group]?.[slot];
+        const b = after[group]?.[slot];
+        if (!b || a === b) continue;
+        const key = `${slot}:${b.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const prevKey = a ? `${slot}:${a.id}` : null;
+        const kind = !a || a.id === b.id || wornAfter.has(a) ? 'same' : upgradesInto(a.id, b.id) ? 'upgrade' : 'replace';
+        changes.push({ key, prevKey, kind, item: b });
+      }
     }
-  };
-  scan('armor', ARMOR_SLOTS);
-  scan('equipment', EQUIPMENT_SLOTS);
+  }
   return changes;
 }
 
@@ -782,6 +899,7 @@ function stepFacts(prev, next) {
   item('rag', prev.rag, next.rag);
   for (const slot of ARMOR_SLOTS) item(slot, prev.armor?.[slot], next.armor?.[slot]);
   for (const slot of EQUIPMENT_SLOTS) item(slot, prev.equipment?.[slot], next.equipment?.[slot]);
+  for (const slot of ['weapon', ...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]) item(`dragon:${slot}`, dragonItem(prev, slot), dragonItem(next, slot));
   for (const [id, b] of next.accessories) {
     const a = prev.accessories.get(id);
     // A new accessory takes over its family (a ring after its talisman).
@@ -807,7 +925,7 @@ function stepFacts(prev, next) {
 const ITEM_SLOTS = new Set(['weapon', 'rag', ...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]);
 function factSlot(fact) {
   const parts = fact.split(':');
-  if (parts[0] === 'acc') return `acc:${parts[1]}`;
+  if (parts[0] === 'acc' || parts[0] === 'dragon') return `${parts[0]}:${parts[1]}`;
   return ITEM_SLOTS.has(parts[0]) ? parts[0] : null;
 }
 

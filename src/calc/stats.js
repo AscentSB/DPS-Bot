@@ -108,7 +108,22 @@ export function loadoutKey(l) {
     [...l.accessories.values()].map(contentKey).sort().join(';'), JSON.stringify(l.pets ?? []), JSON.stringify(l.activePets ?? {}),
     JSON.stringify(l.shards ?? {}), JSON.stringify(l.perks ?? {}), [...(l.extras ?? [])].sort().join(','), l.power ?? '', l.bopBonus ?? '',
     Boolean(l.witherImpact), l.owned?.has(GENERAL_MEDALLION_ID),
+    l.dragonGear ? [contentKey(l.dragonGear.weapon), slots(l.dragonGear.armor), slots(l.dragonGear.equipment)].join('|') : '',
   ].join('\n');
+}
+
+// Mage LCM can swap gear for dragons: loadout.dragonGear { weapon, armor, equipment } holds only the slots that
+// differ. The gear used against `target`, as a loadout (cached, so its item stats stay cached too).
+const dragonViews = new WeakMap();
+export function gearView(loadout, target) {
+  const d = target === 'dragon' ? loadout.dragonGear : null;
+  if (!d) return loadout;
+  let view = dragonViews.get(loadout);
+  if (!view) {
+    view = { ...loadout, weapon: d.weapon ?? loadout.weapon, armor: { ...loadout.armor, ...d.armor }, equipment: { ...loadout.equipment, ...d.equipment }, dragonGear: null };
+    dragonViews.set(loadout, view);
+  }
+  return view;
 }
 
 export function isRcm(ctx) {
@@ -620,9 +635,39 @@ function secretDigitFor(loadout, ctx) {
   return loadout.accessories.has(GENERAL_MEDALLION_ID) || loadout.owned.has(GENERAL_MEDALLION_ID) ? secretDigits(ctx.secrets) : 0;
 }
 
-// Raw stat buckets for each target with a fixed set of active extras.
+// Raw stat buckets for each target with a fixed set of active extras. With a dragon set, each target gets the
+// buckets of its own gear, with its own tuning (points are re-spent when swapping sets).
 function rawStats(loadout, ctx, activeExtras) {
   const c = { ...ctx, secretDigit: secretDigitFor(loadout, ctx) };
+  const main = bucketsBeforeTuning(loadout, c, activeExtras);
+  const view = gearView(loadout, 'dragon');
+  if (view === loadout) return tuned(main, loadout, c, TARGETS);
+  const d = bucketsBeforeTuning(view, c, activeExtras);
+  const w = tuned(main, loadout, c, ['wither']);
+  tuned(d, view, c, ['dragon']);
+  return { ...w, buckets: { wither: main.buckets.wither, dragon: d.buckets.dragon } };
+}
+
+// Spend one set's tuning points (attack speed for whichever of `targets` needs more, then speed, then DPS stats)
+// and add them to its buckets.
+function tuned({ buckets, acc, pets, speeds }, loadout, c, targets) {
+  // The whole run's tuning is set for the withers' pet; a dragon set's for the dragon pet.
+  const speedTarget = targets.length === 1 ? targets[0] : 'wither';
+  const speedBeforeTuning = speeds[speedTarget];
+  const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
+  const binding = targets.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), targets[0]);
+  // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
+  const needsAttackSpeed = (c.cls === 'mage' && !isRcm(c)) || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
+  // Black Cat raises the speed cap, so the speed target goes up with it.
+  const speedCapBonus = pets[speedTarget]?.special?.speedCapBonus ?? 0;
+  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, { ...c, speedCapBonus },
+    needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
+  for (const t of TARGETS) addInto(buckets[t], tuning.stats);
+  return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
+}
+
+// Stat buckets for one set of gear, before tuning points. c: the context with its secret digit.
+function bucketsBeforeTuning(loadout, c, activeExtras) {
   const buckets = { wither: emptyBucket(), dragon: emptyBucket() };
   const add = (stats, target, scale = 1) => {
     if (!target || target === 'global') for (const t of TARGETS) addInto(buckets[t], stats, scale);
@@ -754,18 +799,9 @@ function rawStats(loadout, ctx, activeExtras) {
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   // Mage is scored in the boss only (RCM armor for the clear), so its boss boots carry the speed.
   const clearSwap = CLEAR_BOOTS_CLASSES.includes(c.cls) && !rcm ? Math.max(0, bootsSpeed(loadout.clearBoots) - bootsSpeed(loadout.armor.BOOTS)) : 0;
-  const speedBeforeTuning = BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets.wither.speed + clearSwap;
-  // One tuning setup for the whole run: attack speed points cover whichever boss needs more.
-  const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
-  const binding = TARGETS.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), TARGETS[0]);
-  // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
-  const needsAttackSpeed = (c.cls === 'mage' && !rcm) || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
-  // Black Cat raises the speed cap, so the speed target goes up with it.
-  const speedCapBonus = pets.wither?.special?.speedCapBonus ?? 0;
-  const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, { ...c, speedCapBonus },
-    needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
-  add(tuning.stats);
-  return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
+  // Speed per target (a pet's speed perk only counts while it is out).
+  const speeds = Object.fromEntries(TARGETS.map((t) => [t, BASE_SPEED + EXTRA_SPEED + (c.profileSpeed ?? 0) + buckets[t].speed + clearSwap]));
+  return { buckets, acc, pets, speeds };
 }
 
 // Final stats after the strength / crit damage / intelligence / crit chance formulas.
@@ -826,12 +862,15 @@ function evaluateWith(loadout, ctx, activeExtras) {
   const arrows = arrowsPerVolley(loadout.weapon, buckets.wither.arrows, ctx);
   // Attack speed and volleys per target: dragon-only buffs (Weirder Tuba) raise them in P5 only.
   const attackSpeeds = Object.fromEntries(TARGETS.map((t) => [t, attackSpeedOf(buckets[t])]));
-  const volleys = Object.fromEntries(TARGETS.map((t) => [t, volleysPerSecond(loadout.weapon, attackSpeeds[t], ctx)]));
+  const volleys = Object.fromEntries(TARGETS.map((t) => [t, volleysPerSecond(gearView(loadout, t).weapon, attackSpeeds[t], ctx)]));
   const result = {
     stats: {}, ap, speed, attackSpeed: attackSpeeds.wither, attackSpeeds, volleysPerSecond: volleys.wither, volleys, arrowsPerVolley: arrows,
     tuning: { attackSpeed: tuning.attackSpeedPoints, speed: tuning.speedPoints, dps: tuning.dpsPoints },
   };
+  const main = loadout;
   for (const target of TARGETS) {
+    // The gear used against this target (Mage LCM can swap to a dragon set).
+    const loadout = gearView(main, target);
     const shots = volleys[target];
     const s = finalStats(buckets[target], ctx);
     const defense = TARGET_DEFENSE[target];
