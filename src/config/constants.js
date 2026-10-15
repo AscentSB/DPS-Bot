@@ -130,6 +130,9 @@ export const ENCHANTING_MAX_LEVEL = 60;
 // Loving reforge (Red Scarf) on the chestplate: 1.05x ability damage (multiplicative).
 export const LOVING_ABILITY_MULTIPLIER = 1.05;
 
+// Fabled reforge (swords): every hit deals 0-15% more damage, multiplicative, so 1.075x on average.
+export const FABLED_MULTIPLIER = 1.075;
+
 // Hyperion: damage multiplier against withers for mage.
 export const HYPERION_ID = 'HYPERION';
 export const HYPERION_WITHER_MULTIPLIER = 1.5;

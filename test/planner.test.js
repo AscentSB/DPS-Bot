@@ -710,6 +710,24 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
   assert.ok(armorReforges('lcm').every((x) => x.startsWith('Ancient')));
 });
 
+test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fabled', () => {
+  const w = weightsFor('mage');
+  const lcm = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const plain = { ...newItem('HYPERION', resource), reforge: 'heroic' };
+  const fabled = { ...plain, reforge: 'fabled' };
+  const base = buildLoadout(profile([plain]), lcm, w);
+  const withFabled = { ...base, weapon: fabled };
+  const ratioOk = evaluate(withFabled, lcm, w).wither > evaluate(base, lcm, w).wither;
+  assert.ok(ratioOk);
+  const rcm = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
+  const rw = weightsFor('mage', null, 'rcm');
+  const blade = (enchants, reforge = 'heroic') => ({ ...newItem('HYPERION', resource), reforge, enchants });
+  const l = buildLoadout(profile([blade({})]), rcm, rw);
+  const cast = (item) => evaluate({ ...l, weapon: item }, rcm, rw).wither;
+  assert.ok(cast(blade({ smite: 7 })) > cast(blade({})));
+  close(cast(blade({ sharpness: 7 })), cast(blade({})));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

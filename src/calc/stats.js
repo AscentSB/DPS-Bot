@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER,
+  WITHER_IMPACT_WEAPONS, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -255,7 +255,12 @@ export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
     }
     if (ench.legion) continue;
     for (const [stat, values] of Object.entries(ench.stats ?? {})) {
-      addLoose(out[ench.target], { [stat]: values[Math.min(level, values.length) - 1] });
+      const value = values[Math.min(level, values.length) - 1];
+      addLoose(out[ench.target], { [stat]: value });
+      // Mage RCM: weapon damage enchants that are not melee-only also raise ability damage, if they hit clear mobs.
+      if (stat === 'additiveDamage' && weapon && isRcm(ctx) && !ench.melee && (ench.target === 'global' || ench.clearMobs)) {
+        addLoose(out.global, { magicAdditive: value });
+      }
     }
   }
   // Items like Necron heads multiply everything on them (base, reforge, gems, enchants).
@@ -651,8 +656,11 @@ function evaluateWith(loadout, ctx, activeExtras) {
     const s = finalStats(buckets[target], ctx);
     const defense = TARGET_DEFENSE[target];
     let dmg;
-    if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx));
-    else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0);
+    // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
+    // gets it and RCM does not.
+    const fabled = loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1;
+    if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
+    else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);
     else if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
       const blade = WITHER_IMPACT_WEAPONS.includes(loadout.weapon?.id);
@@ -660,7 +668,7 @@ function evaluateWith(loadout, ctx, activeExtras) {
       result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving) : 0;
       result.stats[target] = s;
       continue;
-    } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout));
+    } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;
     result.stats[target] = s;

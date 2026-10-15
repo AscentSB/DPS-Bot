@@ -155,14 +155,15 @@ export function archerDamage(s, defense, classMultiplier = 1) {
 }
 
 // Berserker. Same formula as archer, with extra additive damage (class bonuses are added by the caller).
-export function berserkerDamage(s, defense, baseAdditiveDamage = 0) {
-  return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense));
+export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier = 1) {
+  return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense) * multiplier);
 }
 
 // Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits and overload
 // included). Ability damage does not apply. hyperion = true applies the 1.5x Hyperion multiplier (withers only).
-export function mageDamage(s, defense, hyperion = false) {
-  const beam = expectedHit(s, defense) * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
+// multiplier: multiplicative melee buffs (Fabled 1.075x).
+export function mageDamage(s, defense, hyperion = false, multiplier = 1) {
+  const beam = expectedHit(s, defense) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
   return applySoftCap(beam * (hyperion ? HYPERION_WITHER_MULTIPLIER : 1));
 }
 
