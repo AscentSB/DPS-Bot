@@ -902,18 +902,18 @@ function evaluateWith(loadout, ctx, activeExtras) {
       continue;
     } else dmg = mageDamage(s, defense, fabled);
     // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
-    // Berserk melee bonus multiplies it again on top of the additive. Soft-capped as its own hit, and counted at
+    // Berserk melee bonus multiplies it again on top of the additive. Counted at
     // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast).
     if (ctx.cls === 'bers' && target === 'wither') {
       const ferocity = buckets[target].ferocity * (1 + buckets[target].additiveFerocity);
       if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
     }
-    // Thunderlord: every 3rd hit adds lightning for a % of the hit, soft-capped as its own hit.
+    // Thunderlord: every 3rd hit adds lightning for a % of the hit.
     const thunder = thunderlordPercent(loadout.weapon);
     if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;
     // DPS = damage per arrow x arrows per volley x volleys per second.
     result[target] = dmg * arrows * shots;
-    // Wither Skeleton Death's Touch: one extra hit of 67% every second, soft-capped on its own.
+    // Wither Skeleton Death's Touch: one extra hit of 67% every second.
     const pet = loadout.activePets?.[target];
     const deathsTouch = pet ? petStats(pet, ctx.petProfile).special?.deathsTouch ?? 0 : 0;
     if (deathsTouch) result[target] += hitWith(fabled * deathsTouch);

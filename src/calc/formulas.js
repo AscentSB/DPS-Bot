@@ -1,7 +1,7 @@
 import {
   BASE_DAMAGE, BLESSINGS, BLESSING_FLAT_PER_LEVEL, BLESSING_PERCENT_PER_LEVEL, BLESSING_FLOOR_BUFF,
   BASE_CRIT_CHANCE, SKILL_XP_PER_LEVEL, OVERLOAD_MULTIPLIER, MAGE_BEAM_BASE, MAGE_BEAM_PER_INTELLIGENCE,
-  SOFT_CAP, SOFT_CAP_KEEP, WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
+  WITHER_IMPACT_BASE, WITHER_IMPACT_SCALING,
   DUNGEON_BASE, STAR_STEP, MAX_STARS, MASTER_STAR_STEP, SECRET_STEP, SECRET_DIGIT_CAP,
   CATA_STAT_BONUS, CATA_XP_PER_LEVEL,
 } from '../config/constants.js';
@@ -129,10 +129,6 @@ export function defenseMultiplier(defense) {
 }
 
 // All damage above 1,000,000 has a 90% reduction.
-export function applySoftCap(damage) {
-  if (damage <= SOFT_CAP) return damage;
-  return SOFT_CAP + (damage - SOFT_CAP) * SOFT_CAP_KEEP;
-}
 
 // Expected hit for a given crit chance:
 //   cc <= 100:       crit * cc/100 + noncrit * (1 - cc/100)
@@ -149,21 +145,21 @@ export function expectedHit(s, defense, overload = true) {
 }
 
 // Archer. stats: { damage, critDamage, strength, additiveDamage, critChance }. classMultiplier: the Archer class
-// arrow damage buff (multiplicative), applied before the soft cap.
+// arrow damage buff (multiplicative).
 export function archerDamage(s, defense, classMultiplier = 1) {
-  return applySoftCap(expectedHit(s, defense) * classMultiplier);
+  return expectedHit(s, defense) * classMultiplier;
 }
 
 // Berserker. Same formula as archer, with extra additive damage (class bonuses are added by the caller).
 export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier = 1) {
-  return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense) * multiplier);
+  return expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense) * multiplier;
 }
 
 // Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits included; Mage
 // gets no overload, so crit chance above 100% is worth nothing). Ability damage does not apply.
 // multiplier: multiplicative melee buffs (Fabled 1.075x, Necron's Blade 1.5x vs withers).
 export function mageDamage(s, defense, multiplier = 1) {
-  return applySoftCap(expectedHit(s, defense, false) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0)));
+  return expectedHit(s, defense, false) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0));
 }
 
 // Mage RCM: one Wither Impact cast. Base 10,000 x (1 + Catacombs stat boost), intelligence at 0.3 scaling,
@@ -174,5 +170,5 @@ export function rcmDamage(s, defense, cataStatBoost, magicAdditive = 0, multipli
     * (1 + ((s.intelligence ?? 0) / 100) * WITHER_IMPACT_SCALING)
     * (1 + (s.abilityDamage ?? 0) / 100)
     * (1 + magicAdditive / 100) * multiplier;
-  return applySoftCap(hit * (1 - defense / (defense + 100)));
+  return hit * (1 - defense / (defense + 100));
 }

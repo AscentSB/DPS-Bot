@@ -10,7 +10,7 @@
 //   melee      the enchant says "melee damage", so it does not boost abilities (Mage RCM)
 //   floorMode  only counts in 'master' (Master Mode) or 'normal' (Normal Mode) runs (the /dps floor toggle)
 //   swarm      Swarm: additiveDamage is per enemy within 10 blocks (1 in the boss, RCM_SWARM_ENEMIES = 7 in the clear)
-//   thunder    Thunderlord: every 3rd hit adds a lightning hit of this % of the hit's damage (own soft cap)
+//   thunder    Thunderlord: every 3rd hit adds a lightning hit of this % of the hit's damage
 //   clearMobs  a boss-only damage enchant that also hits clear mobs (Smite: Skeletons and Zombies), so it
 //              boosts Mage RCM in the clear
 //

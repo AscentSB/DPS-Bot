@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calcStrength, calcCritDamage, calcCritChance, calcIntelligence, cataLevelFromXp, cataBoost,
-  dungeonMultiplier, dungeonCritMultiplier, applySoftCap, expectedHit, archerDamage, berserkerDamage,
+  dungeonMultiplier, dungeonCritMultiplier, expectedHit, archerDamage, berserkerDamage,
   mageDamage, rcmDamage, powerMultiplier, secretDigits, applyBlessings, blessingEffect,
 } from '../src/calc/formulas.js';
 
@@ -64,10 +64,6 @@ test('accessory power multiplier matches the wiki (Silky at 250 AP is about 220 
   assert.equal(powerMultiplier(0), 0);
 });
 
-test('soft cap keeps 10% above 1M', () => {
-  assert.equal(applySoftCap(500_000), 500_000);
-  close(applySoftCap(3_000_000), 1_200_000);
-});
 
 test('berserker adds its extra additive damage on top of the archer formula; archer takes a class multiplier', () => {
   const s = { damage: 10, critDamage: 0, strength: 0, additiveDamage: 0, critChance: 100 };
@@ -80,15 +76,15 @@ test('mage beam multipliers scale the beam', () => {
   close(mageDamage(s, 0, 1.5), mageDamage(s, 0) * 1.5);
 });
 
-test('RCM Wither Impact: 10,000 x cata boost x intelligence (0.3 scaling) x ability damage x magic additive, then the soft cap', () => {
+test('RCM Wither Impact: 10,000 x cata boost x intelligence (0.3 scaling) x ability damage x magic additive', () => {
   const s = { intelligence: 1000, abilityDamage: 50 };
-  // 10000 x 1 x (1 + 3) x 1.5 = 60,000, under the soft cap.
+  // 10000 x 1 x (1 + 3) x 1.5 = 60,000.
   close(rcmDamage(s, 0, 0), 60000);
   close(rcmDamage(s, 0, 0, 100), 120000);
   close(rcmDamage(s, 0, 0, 0, 1.05), 63000);
-  // Cata boost 4.85: 60,000 x 5.85 = 351,000, still under the cap.
+  // Cata boost 4.85: 60,000 x 5.85 = 351,000. No soft cap: big casts stay whole.
   close(rcmDamage(s, 0, 4.85), 351000);
-  close(rcmDamage({ intelligence: 20000, abilityDamage: 0 }, 0, 4.85), 1e6 + (10000 * 5.85 * 61 - 1e6) * 0.1);
+  close(rcmDamage({ intelligence: 20000, abilityDamage: 0 }, 0, 4.85), 10000 * 5.85 * 61);
 });
 
 test('mage gets no overload: crit chance above 100% adds nothing to the beam', () => {

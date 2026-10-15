@@ -732,7 +732,7 @@ test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fab
 });
 
 test('floor toggle: Master Mode counts Titan Killer and Triple-Strike, Normal Mode Giant Killer and First Strike', () => {
-  // Low damage (no soft cap) so the additive bonuses show up one to one.
+  // Additive bonuses show up one to one.
   const res = new Map([...resource, ['WEAK_SWORD', { id: 'WEAK_SWORD', name: 'Weak Sword', category: 'SWORD', tier: 'COMMON', stats: { DAMAGE: 1 } }]]);
   const w = weightsFor('mage');
   const dmg = (floorMode, enchants) => {
@@ -749,7 +749,7 @@ test('floor toggle: Master Mode counts Titan Killer and Triple-Strike, Normal Mo
   close(dmg('master', { first_strike: 5 }), dmg('master', {}));
   assert.ok(dmg('normal', { first_strike: 5 }) > dmg('normal', {}));
   close(dmg('normal', { triple_strike: 5 }), dmg('normal', {}));
-  // Thunderlord VII: a 60% lightning hit every 3rd hit = +20% while under the soft cap.
+  // Thunderlord VII: a 60% lightning hit every 3rd hit = +20%.
   close(dmg('master', { thunderlord: 7 }) / dmg('master', {}), 1.2);
   assert.ok(dmg('master', { prosecute: 6 }) > dmg('master', {}));
 });
@@ -1256,7 +1256,7 @@ test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment c
   const weights = weightsFor('mage', null, 'rcm');
   const hype = scrolled(items([{ id: 'HYPERION', stars: 5 }])[0]);
   const l = buildLoadout(profile([hype]), ctx, weights);
-  // Below the soft cap (Catacombs 0), the belt is exactly x1.25 (it applies before the cap, like Loving).
+  // The belt is exactly x1.25.
   const low = makeContext({ cls: 'mage', cataLevel: 0, mode: 'rcm', resource: res });
   const lowL = buildLoadout(profile([hype]), low, weights);
   const withBelt = { ...lowL, equipment: { ...lowL.equipment, BELT: newItem('IMPLOSION_BELT', res) } };

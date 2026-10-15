@@ -128,7 +128,7 @@ export const MAGE_INT_PER_LEVEL = 5;
 
 // Mage RCM (clear set): Wither Impact on a Necron's Blade variant (Hyperion, Astraea, Valkyrie, Scylla).
 // One cast = 10,000 x (1 + Catacombs stat boost) x (1 + intelligence / 100 x 0.3) x (1 + ability damage / 100)
-//   x (1 + magic additive / 100), then the soft cap. No crits, no strength, no weapon enchants.
+//   x (1 + magic additive / 100). No crits, no strength, no weapon enchants.
 // Source: https://hypixelskyblock.minecraft.wiki/w/Damage_Calculation#Ability_Damage
 export const WITHER_IMPACT_BASE = 10000;
 export const WITHER_IMPACT_SCALING = 0.3;
@@ -180,9 +180,6 @@ export const NECRON_BLADE_WITHER_MULTIPLIER = 1.5;
 export const DUAL_WIELD_WEAPONS = ['HYPERION', 'DARK_CLAYMORE'];
 export const DUAL_WIELD_ADDITIVE = 50;
 
-// Soft cap: everything above SOFT_CAP keeps SOFT_CAP_KEEP of its value (90% reduction).
-export const SOFT_CAP = 1_000_000;
-export const SOFT_CAP_KEEP = 0.1;
 
 // Dungeon item stats:
 //   stat       * (1 + cataBoost + 0.1 * stars + 0.05 * masterStars + 0.01 * secretDigit)
