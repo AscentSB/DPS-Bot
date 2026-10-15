@@ -41,6 +41,8 @@ const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
+// Stats a pet item has to raise to be worth offering.
+const PET_ITEM_STATS = ['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed', 'abilityDamage'];
 // Learning a power at Maxwell uses up this many of its power stone.
 const POWER_STONES_TO_LEARN = 9;
 // Mage weapon buys bundled with the current weapon's cheaper enchants: books up to this price each.
@@ -720,6 +722,14 @@ export function availableUpgrades(loadout, ctx, prices) {
     const buyPet = (p, label, parts) => push(label, parts,
       (l) => { const next = cloneLoadout(l); next.pets.push(p); return selectPet(next, ctx, ctx.weights ?? weightsFor(cls, null, ctx.mode, ctx.floorMode)); }, { group: 'pet' });
     buyPet(pet, `Buy ${petName} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)})`, [{ id: `PET_${type}_${tier}_MAX` }]);
+    // Also bundled with each pet item that raises its stats, so a pet is not judged without the item it will get.
+    const bare = petStats(pet, ctx.petProfile).stats;
+    for (const [itemId, item] of Object.entries(PET_ITEMS)) {
+      const held = petStats({ ...pet, heldItem: itemId }, ctx.petProfile).stats;
+      if (!PET_ITEM_STATS.some((k) => (held[k] ?? 0) > (bare[k] ?? 0))) continue;
+      buyPet({ ...pet, heldItem: itemId }, `Buy ${petName} Pet (${titleCase(tier.toLowerCase())}, level ${maxPetLevel(type)}) + ${item.name}`,
+        [{ id: `PET_${type}_${tier}_MAX` }, { id: itemId }]);
+    }
     // The rarity below plus a Tier Boost plays at the same rarity, often for less.
     const below = petTiers(type).find((t) => effectiveTier({ type, tier: t, heldItem: TIER_BOOST_ID }) === tier && t !== tier);
     if (below) {
@@ -755,7 +765,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     for (const [itemId, item] of Object.entries(PET_ITEMS)) {
       if (active.heldItem === itemId) continue;
       const after = petStats({ ...active, heldItem: itemId }, ctx.petProfile).stats;
-      if (!['strength', 'critDamage', 'critChance', 'intelligence', 'attackSpeed', 'abilityDamage'].some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
+      if (!PET_ITEM_STATS.some((k) => (after[k] ?? 0) > (before[k] ?? 0))) continue;
       push(`${item.name} on ${titleCase(active.type.toLowerCase())} Pet`, [{ id: itemId }], (l) => {
         const next = cloneLoadout(l);
         const pet = { ...active, heldItem: itemId };

@@ -1266,3 +1266,16 @@ test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment c
   const f7 = makeContext({ cls: 'mage', cataLevel: 50, mode: 'rcm', floorMode: 'normal', resource: res });
   assert.ok(!availableUpgrades(buildLoadout(profile([hype]), f7, weights), f7, p).some((u) => /Master Star/.test(u.label)));
 });
+
+test('pet buys also come bundled with a pet item that raises their stats, priced together', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource });
+  const w = weightsFor('mage', null, 'lcm');
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }])), ctx, w);
+  const p = { get: (id) => ({ PET_GOLDEN_DRAGON_LEGENDARY_MAX: { price: 900e6, source: 'AH' }, ANTIQUE_REMEDIES: { price: 1e6, source: 'BZ' } }[id] ?? null) };
+  const ups = availableUpgrades(l, ctx, p);
+  const bare = ups.find((u) => u.label === 'Buy Golden_dragon Pet (Legendary, level 200)' || /^Buy Golden.dragon Pet \(Legendary, level 200\)$/i.test(u.label));
+  const bundle = ups.find((u) => /^Buy Golden.dragon Pet \(Legendary, level 200\) \+ Antique Remedies$/i.test(u.label));
+  assert.ok(bare && bundle);
+  close(bundle.cost, 901e6);
+  assert.ok(evaluate(bundle.apply(l), ctx, w).wither > evaluate(bare.apply(l), ctx, w).wither);
+});
