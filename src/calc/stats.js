@@ -639,13 +639,12 @@ function secretDigitFor(loadout, ctx) {
 // buckets of its own gear, with its own tuning (points are re-spent when swapping sets).
 function rawStats(loadout, ctx, activeExtras) {
   const c = { ...ctx, secretDigit: secretDigitFor(loadout, ctx) };
-  const main = bucketsBeforeTuning(loadout, c, activeExtras);
+  const pre = bucketsBeforeTuning(loadout, c, activeExtras);
   const view = gearView(loadout, 'dragon');
-  if (view === loadout) return tuned(main, loadout, c, TARGETS);
-  const d = bucketsBeforeTuning(view, c, activeExtras);
-  const w = tuned(main, loadout, c, ['wither']);
-  tuned(d, view, c, ['dragon']);
-  return { ...w, buckets: { wither: main.buckets.wither, dragon: d.buckets.dragon } };
+  if (view === loadout) return tuned(pre, loadout, c, TARGETS);
+  const w = tuned(pre, loadout, c, ['wither']);
+  tuned(pre, view, c, ['dragon']);
+  return w;
 }
 
 // Spend one set's tuning points (attack speed for whichever of `targets` needs more, then speed, then DPS stats)
@@ -662,12 +661,14 @@ function tuned({ buckets, acc, pets, speeds }, loadout, c, targets) {
   const speedCapBonus = pets[speedTarget]?.special?.speedCapBonus ?? 0;
   const tuning = tuningAllocation(acc.tuningPoints, speedBeforeTuning, { ...c, speedCapBonus },
     needsAttackSpeed ? attackSpeedOf(buckets[binding]) : ATTACK_SPEED_CAP, 1 + buckets[binding].additiveAttackSpeed);
-  for (const t of TARGETS) addInto(buckets[t], tuning.stats);
+  for (const t of targets) addInto(buckets[t], tuning.stats);
   return { buckets, ap: acc.ap, speed: speedBeforeTuning + tuning.stats.speed, tuning };
 }
 
-// Stat buckets for one set of gear, before tuning points. c: the context with its secret digit.
+// Stat buckets for each target before tuning points, each with the gear used against it (gearView). c: the
+// context with its secret digit.
 function bucketsBeforeTuning(loadout, c, activeExtras) {
+  const gear = { wither: gearView(loadout, 'wither'), dragon: gearView(loadout, 'dragon') };
   const buckets = { wither: emptyBucket(), dragon: emptyBucket() };
   const add = (stats, target, scale = 1) => {
     if (!target || target === 'global') for (const t of TARGETS) addInto(buckets[t], stats, scale);
@@ -682,7 +683,7 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
   if (c.cls === 'mage') add({ intelligence: MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
   add(profileStatTotals(c));
   // Arrow base damage, added to the bow's (Nansorb for Archer, Bouncy for Berserker).
-  if (isBow(loadout.weapon)) add({ damage: ARROW_DAMAGE[c.cls] ?? 0 });
+  for (const t of TARGETS) if (isBow(gear[t].weapon)) add({ damage: ARROW_DAMAGE[c.cls] ?? 0 }, t);
   // Combat skill: +0.5 base crit chance per level.
   add({ critChance: (c.combatLevel ?? 0) * COMBAT_CRIT_CHANCE_PER_LEVEL });
   // Mage class ability damage (+5, +1 per 5 levels, doubled solo) and Enchanting (+0.5% per level). RCM only uses it.
@@ -691,24 +692,24 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
   bossOnly(misc.wither, 'wither');
   bossOnly(misc.dragon, 'dragon');
 
-  for (const item of loadoutGear(loadout)) {
-    const contrib = itemContribution(item, c);
-    add(contrib.global);
-    bossOnly(contrib.wither, 'wither');
-    bossOnly(contrib.dragon, 'dragon');
-  }
-
-  // Dual wield: Prosecute copy early, Execute copy late.
-  if (loadout.weapon?.dualWield && !rcm) add({ additiveDamage: DUAL_WIELD_ADDITIVE });
-
-  // Legion: percent of combat stats per piece of armor (crit chance counts more players against dragons).
-  let legion = 0;
-  for (const item of Object.values(loadout.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL;
-  if (legion) {
-    const l = legion * LEGION_PLAYERS;
-    add({ additiveStrength: l, additiveCritDamage: l, additiveIntelligence: l, additiveAttackSpeed: l });
-    add({ additiveCritChance: l }, 'wither');
-    add({ additiveCritChance: legion * LEGION_DRAGON_CRIT_CHANCE_PLAYERS }, 'dragon');
+  for (const t of TARGETS) {
+    const g = gear[t];
+    for (const item of loadoutGear(g)) {
+      const contrib = itemContribution(item, c);
+      add(contrib.global, t);
+      bossOnly(contrib[t], t);
+    }
+    // Dual wield: Prosecute copy early, Execute copy late.
+    if (g.weapon?.dualWield && !rcm) add({ additiveDamage: DUAL_WIELD_ADDITIVE }, t);
+    // Legion: percent of combat stats per piece of armor (crit chance counts more players against dragons).
+    let legion = 0;
+    for (const item of Object.values(g.armor)) legion += (item?.enchants?.ultimate_legion ?? 0) * LEGION_PER_LEVEL;
+    if (legion) {
+      const l = legion * LEGION_PLAYERS;
+      add({ additiveStrength: l, additiveCritDamage: l, additiveIntelligence: l, additiveAttackSpeed: l }, t);
+      add({ additiveCritChance: t === 'wither' ? l : legion * LEGION_DRAGON_CRIT_CHANCE_PLAYERS }, t);
+    }
+    add(setBonuses(g, c.cls), t);
   }
 
   const extrasBucket = { global: {}, wither: {}, dragon: {} };
@@ -729,45 +730,45 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
     // Pet damage perks (Golden Dragon's Legendary Treasure) also raise ability damage.
     add({ magicAdditive: pets[t].stats.additiveDamage ?? 0 }, t);
     const sp = pets[t].special ?? {};
+    const weapon = gear[t].weapon;
     // Skeleton Combo strength only builds with a bow.
-    if (sp.comboStrength && isBow(loadout.weapon)) add({ strength: sp.comboStrength }, t);
+    if (sp.comboStrength && isBow(weapon)) add({ strength: sp.comboStrength }, t);
     if (sp.perkStrength) add({ strength: sp.perkStrength }, t);
     if (sp.perkSpeed) add({ speed: sp.perkSpeed }, t);
     // Lion Primal Force: stats on the weapon, scaled like the weapon's own.
-    if (sp.weaponStats && loadout.weapon) add(scaleBucket(sp.weaponStats, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
+    if (sp.weaponStats && weapon) add(scaleBucket(sp.weaponStats, weapon, c, isDungeon(weapon, c.resource)), t);
     // Lion First Pounce: First Strike / Triple-Strike stronger (melee, so not RCM).
-    if (sp.firstStrikeBoost && loadout.weapon && !rcm) {
+    if (sp.firstStrikeBoost && weapon && !rcm) {
       for (const key of ['first_strike', 'triple_strike']) {
         const ench = ENCHANTS[key];
-        const level = loadout.weapon.enchants?.[key] ?? 0;
+        const level = weapon.enchants?.[key] ?? 0;
         if (!level || ench.floorMode !== (c.floorMode ?? 'master')) continue;
         add({ additiveDamage: ench.stats.additiveDamage[Math.min(level, 5) - 1] * sp.firstStrikeBoost }, t);
       }
     }
     // Blaze: potato books on the weapon count twice (the extra copy, dungeon scaled like the weapon).
     const potatoBoost = (sp.potatoMultiplier ?? 1) - 1;
-    if (potatoBoost > 0 && loadout.weapon) {
-      const books = Math.min(loadout.weapon.hpb ?? 0, HOT_POTATO.max + FUMING_POTATO.max) * potatoBoost;
-      add(scaleBucket({ damage: books * HOT_POTATO.damage, strength: books * HOT_POTATO.strength }, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
+    if (potatoBoost > 0 && weapon) {
+      const books = Math.min(weapon.hpb ?? 0, HOT_POTATO.max + FUMING_POTATO.max) * potatoBoost;
+      add(scaleBucket({ damage: books * HOT_POTATO.damage, strength: books * HOT_POTATO.strength }, weapon, c, isDungeon(weapon, c.resource)), t);
     }
   }
   // Chimera on the weapon (not a Ragnarock): copies the active pet's stats, which then get the weapon's
   // dungeon boost (stars and cata; crit chance and attack speed stars only). Big for Mage: Golden Dragon's
   // attack speed and strength.
-  const chimera = loadout.weapon?.enchants?.ultimate_chimera ?? 0;
-  if (chimera && loadout.weapon.id !== RAGNAROCK_WEAPON_ID) {
-    const dungeon = isDungeon(loadout.weapon, c.resource);
-    for (const t of TARGETS) {
-      if (!pets[t]) continue;
+  for (const t of TARGETS) {
+    const weapon = gear[t].weapon;
+    const chimera = weapon?.enchants?.ultimate_chimera ?? 0;
+    if (chimera && weapon.id !== RAGNAROCK_WEAPON_ID && pets[t]) {
+      const dungeon = isDungeon(weapon, c.resource);
       const copy = {};
       for (const [k, v] of Object.entries(pets[t].stats)) {
         if (typeof v === 'number' && (FLAT_STATS.has(k) || k === 'speed' || k === 'attackSpeed' || k === 'abilityDamage')) copy[k] = v * CHIMERA_PER_LEVEL * chimera;
       }
-      add(scaleBucket(copy, loadout.weapon, c, dungeon), t);
+      add(scaleBucket(copy, weapon, c, dungeon), t);
     }
   }
   add(DUNGEON_POTION, null, 1 + potionBoost(loadout, c));
-  add(setBonuses(loadout, c.cls));
 
   // Ragnarock: the ability is cast with whichever owned pet has the most strength (swap, cast, swap back),
   // so Chimera copies that pet's strength in every phase.
@@ -797,7 +798,7 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
-  if (isBow(loadout.weapon)) for (const t of TARGETS) buckets[t].additiveDamage += buckets[t].bowDamage;
+  for (const t of TARGETS) if (isBow(gear[t].weapon)) buckets[t].additiveDamage += buckets[t].bowDamage;
   // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);
   // Mage is scored in the boss only (RCM armor for the clear), so its boss boots carry the speed.
