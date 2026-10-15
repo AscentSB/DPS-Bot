@@ -595,6 +595,13 @@ export function availableUpgrades(loadout, ctx, prices) {
           parts.push(...MASTER_STAR_IDS.slice(0, base.masterStars).map((x) => ({ id: x })));
         }
         labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'} and potato books like ${cleanName(src.name ?? src.id)}`);
+        // Replacing a dual-wielded weapon: the full copy comes as a dual-wield pair too (two copies, Execute on one),
+        // so the new blade is not judged against the old pair as a single weapon.
+        if (extra.copy === 'all' && src.dualWield && DUAL_WIELD_WEAPONS.includes(id) && base.enchants.prosecute) {
+          base.dualWield = true;
+          parts.push(...parts.slice());
+          labels.push('dual wield (2 copies)');
+        }
       }
       if (extra.enrichment) { parts.push({ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[extra.enrichment].key}` }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
       push(labels.join(' + '), parts, (l) => {
