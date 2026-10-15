@@ -1282,3 +1282,16 @@ test('pet buys also come bundled with a pet item that raises their stats, priced
   close(bundle.cost, 901e6);
   assert.ok(evaluate(bundle.apply(l), ctx, w).wither > evaluate(bare.apply(l), ctx, w).wither);
 });
+
+test('Mage: a Tier Boosted Ender Dragon is only used if attack speed still reaches the cap', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, resource });
+  const w = weightsFor('mage', null, 'lcm');
+  const boosted = { type: 'ENDER_DRAGON', tier: 'EPIC', heldItem: 'PET_ITEM_TIER_BOOST' };
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [boosted] }), ctx, w);
+  const r = evaluate({ ...l, activePets: { ...l.activePets, dragon: boosted } }, ctx, w);
+  if (r.attackSpeeds.dragon < 100) assert.notEqual(l.activePets.dragon, boosted);
+  // A real Legendary Ender Dragon (no Tier Boost) is allowed.
+  const legendary = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const l2 = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [legendary] }), ctx, w);
+  assert.equal(l2.activePets.dragon?.type, 'ENDER_DRAGON');
+});

@@ -19,7 +19,7 @@ import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
-import { PHASE_PETS, EXCLUDED_PETS } from '../config/pets.js';
+import { PHASE_PETS, EXCLUDED_PETS, TIER_BOOST_ID } from '../config/pets.js';
 import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
@@ -990,6 +990,8 @@ export function selectPet(loadout, ctx, weights) {
     for (const pet of pool.length ? pool : candidates) {
       // Weighted over both bosses: tuning is shared, so a pet for one boss can change the other.
       const r = evaluate({ ...loadout, activePets: { ...activePets, [target]: pet } }, ctx, weights);
+      // Mage can only use a Tier Boosted Ender Dragon if attack speed still reaches the cap some other way.
+      if (ctx.cls === 'mage' && pet?.type === 'ENDER_DRAGON' && pet.heldItem === TIER_BOOST_ID && r.attackSpeeds[target] < ATTACK_SPEED_CAP) continue;
       const score = r.wither * weights.wither + r.dragon * weights.dragon;
       if (score > bestScore) { bestScore = score; best = pet; }
     }
