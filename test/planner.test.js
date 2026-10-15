@@ -824,7 +824,7 @@ test('an accessory with an enrichment can swap it with the Accessory Enrichment 
   const relic = { ...newItem('WITHER_RELIC', resource), enrichment: 'critical_chance' };
   const l = buildLoadout(profile([newItem('TERMINATOR', resource), relic]), ctx, w);
   const labels = availableUpgrades(l, ctx, { get: (id) => ({ price: 1e6, source: 'BZ', id }) }).map((u) => u.label);
-  assert.ok(labels.some((x) => x.startsWith('Swap Wither Relic enrichment to Critical Damage')), labels.filter((x) => /Wither Relic/.test(x)).join(', '));
+  assert.ok(labels.some((x) => x.startsWith('Swap all enriched accessories (1) to Critical Damage')), labels.filter((x) => /Swap/.test(x)).join(', '));
 });
 
 test('Hyperion gets +1 damage and +2 intelligence per Catacombs level before dungeon scaling', () => {
@@ -1013,6 +1013,21 @@ test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and i
   // Under level 75 the damage option is locked.
   const low = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(60, null), w);
   assert.ok(!availableUpgrades(low, mk(60, null), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
+});
+
+test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag as one step', () => {
+  const ids = ['ACC_A', 'ACC_B', 'ACC_C', 'ACC_D', 'ACC_E'];
+  const res = new Map([...resource, ...ids.map((id) => [id, { id, name: id, category: 'ACCESSORY', tier: 'LEGENDARY' }])]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const accs = ids.map((id) => ({ ...newItem(id, res), enrichment: 'walk_speed' }));
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), ...accs]), ctx, w);
+  const p = { get: (id) => (id === 'TALISMAN_ENRICHMENT_SWAPPER' ? { price: 1e5, source: 'BZ' } : null) };
+  const steps = planUpgrades(l, ctx, p, w, 10).steps;
+  const swap = steps.find((x) => /^Swap all enriched accessories \(5\)/.test(x.label));
+  assert.ok(swap, steps.map((x) => x.label).join(', '));
+  close(swap.cost, 1e5);
+  assert.ok(!steps.some((x) => /^Swap ACC_/.test(x.label)));
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

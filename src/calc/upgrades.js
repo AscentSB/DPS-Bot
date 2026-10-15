@@ -403,11 +403,6 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (item.enrichment === kind) continue;
         push(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
-        // An accessory that already has an enrichment can swap it instead of taking a new one.
-        if (item.enrichment) {
-          push(`Swap ${name} enrichment to ${enrichmentName(kind)} (Accessory Enrichment Swapper)`, [{ id: ENRICHMENT_SWAPPER_ID }],
-            (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
-        }
       }
     }
   }
@@ -499,6 +494,32 @@ export function availableUpgrades(loadout, ctx, prices) {
     const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
     push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
       (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
+  }
+
+  // Accessory Enrichment Swapper: one swapper changes every enriched accessory in the bag to the enrichment you pick.
+  // Accessories you want to keep are taken out first, so a swap can cover all enriched accessories, only the dungeon
+  // ones or only the regular ones.
+  const enriched = [...loadout.accessories.values()].filter((a) => a.enrichment);
+  const isDungeonAcc = (a) => Boolean(resource.get(a.id)?.dungeon_item);
+  const SWAP_GROUPS = [['all', () => true], ['dungeon', isDungeonAcc], ['non-dungeon', (a) => !isDungeonAcc(a)]];
+  for (const kind of enrichmentKinds(ctx)) {
+    const seen = new Set();
+    for (const [groupName, keep] of SWAP_GROUPS) {
+      const targets = enriched.filter((a) => keep(a) && a.enrichment !== kind);
+      const key = targets.map((a) => a.id).sort().join(',');
+      if (!targets.length || seen.has(key)) continue;
+      seen.add(key);
+      const which = groupName === 'all' ? 'all' : `the ${groupName}`;
+      push(`Swap ${which} enriched accessories (${targets.length}) to ${enrichmentName(kind)} (1 Accessory Enrichment Swapper${groupName === 'all' ? '' : ', take the others out first'})`,
+        [{ id: ENRICHMENT_SWAPPER_ID }], (l) => {
+          let next = l;
+          for (const t of targets) {
+            const cur = next.accessories.get(t.id) ?? t;
+            next = replaceItem(next, cur, { ...cur, enrichment: kind });
+          }
+          return next;
+        }, { group: 'enrichswap' });
+    }
   }
 
   // Book of Progression not on damage (and SkyBlock level 75+): switching costs 500 coins x SkyBlock level.
@@ -884,6 +905,7 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
   rest.steps = rest.steps.map(({ facts, ...step }) => step);
   return rest;
 }
+
 
 // Profile upgrades (no coins): the next level of each profile stat source, ranked by % damage gained.
 const CLASS_LEVEL_KEY = { arch: 'archerLevel', bers: 'berserkLevel', mage: 'mageLevel' };
