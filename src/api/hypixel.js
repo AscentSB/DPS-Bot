@@ -136,12 +136,19 @@ export function readMember(profile, uuid, resource) {
     },
     // Golden Dragon perks. Missing values count as maxed.
     petProfile: {
-      // Shared (co-op) bank plus the member's personal bank. Both hidden (bank API off): undefined.
-      bank: profile.banking?.balance == null && member.profile?.bank_account == null ? undefined
-        : (Number(profile.banking?.balance) || 0) + (Number(member.profile?.bank_account) || 0),
+      bank: bankBalance(profile, member),
       goldCollection: member.collection?.GOLD_INGOT ?? undefined,
     },
   };
+}
+
+// Coins in the bank for Golden Dragon. A solo profile has one bank (profile.banking). A co-op adds the member's
+// personal bank. Bank API off: undefined.
+function bankBalance(profile, member) {
+  const shared = profile.banking?.balance;
+  const personal = Object.keys(profile.members ?? {}).length > 1 ? member.profile?.bank_account : null;
+  if (shared == null && personal == null) return undefined;
+  return (Number(shared) || 0) + (Number(personal) || 0);
 }
 
 // Speed from Wolf Slayer levels.

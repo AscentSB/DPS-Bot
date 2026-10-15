@@ -1397,10 +1397,12 @@ test('clear set: an owned Golden Dragon stays the pet with an empty bank, and no
   assert.ok(!availableUpgrades(noGd, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) }).some((u) => /Pigman/.test(u.label)));
 });
 
-test('Golden Dragon bank: co-op bank plus personal bank, hidden when both are missing', () => {
+test('Golden Dragon bank: co-op adds the personal bank, solo has one bank, hidden when both are missing', () => {
   const member = (extra) => ({ inventory: { inv_contents: { data: encode([{ id: 'HYPERION' }]) } }, ...extra });
-  const read = (profileExtra, memberExtra) => readMember({ members: { u: member(memberExtra) }, ...profileExtra }, 'u', resource).petProfile.bank;
-  assert.equal(read({ banking: { balance: 600e6 } }, { profile: { bank_account: 400e6 } }), 1e9);
+  const read = (profileExtra, memberExtra, coop = false) => readMember({ members: { u: member(memberExtra), ...(coop ? { v: {} } : {}) }, ...profileExtra }, 'u', resource).petProfile.bank;
+  assert.equal(read({ banking: { balance: 600e6 } }, { profile: { bank_account: 400e6 } }, true), 1e9);
+  // Solo: the one bank only, never counted twice.
+  assert.equal(read({ banking: { balance: 600e6 } }, { profile: { bank_account: 600e6 } }), 600e6);
   assert.equal(read({ banking: { balance: 250e6 } }, {}), 250e6);
   assert.equal(read({}, {}), undefined);
 });
