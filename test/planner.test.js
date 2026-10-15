@@ -749,7 +749,7 @@ test('floor toggle: Master Mode counts Titan Killer and Triple-Strike, Normal Mo
   assert.ok(dmg('master', { prosecute: 6 }) > dmg('master', {}));
 });
 
-test('RCM: Giant Killer, Prosecute and Swarm (5 mobs) raise Wither Impact; Crow + Hephaestus Relic boosts ability damage', async () => {
+test('RCM: Giant Killer, Prosecute and Swarm (7 mobs) raise Wither Impact; Crow + Hephaestus Relic boosts ability damage', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const crow = petStats({ type: 'CROW', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_RELIC' });
   close(crow.stats.abilityDamage, 30);
