@@ -869,6 +869,28 @@ test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor'
   assert.ok(high.includes('1st Master Star on Skeleton Master Chestplate'), high.join(', '));
 });
 
+test('profile stats: base crit damage, skills, slayers, SkyBlock level, Harp; profile upgrades rank the next levels', async () => {
+  const { profileStatTotals } = await import('../src/calc/stats.js');
+  const { profileUpgrades } = await import('../src/calc/upgrades.js');
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 40, resource, skills: { FORAGING: 20, ENCHANTING: 60, ALCHEMY: 50 }, slayers: { spider: 7, wolf: 7, enderman: 8 },
+    profileStats: { sbLevel: 278, harpSongs: ['hymn_joy', 'vie_en_rose'], cakes: [{ stat: 'strength', amount: 2 }] } });
+  const t = profileStatTotals(ctx);
+  // 50 base + spider 1-4 (4) + 5-6 (4) + wolf 5 (1) + 7 (2) = 61 crit damage.
+  close(t.critDamage, 61);
+  close(t.critChance, 1);
+  // Foraging 20: 14 + 2 x 6 = 26, SkyBlock 278 / 5 = 55, cake 2.
+  close(t.strength, 26 + 55 + 2);
+  // Enchanting 60: 14 + 92 = 106, Alchemy 50: 14 + 72 = 86, enderman 1+2+3+4 = 10, Harp 1 + 4.
+  close(t.intelligence, 106 + 86 + 10 + 5);
+  assert.deepEqual(profileStatTotals(makeContext({ cls: 'mage', cataLevel: 50, resource })), {});
+  const w = weightsFor('mage');
+  const l = buildLoadout(profile([newItem('HYPERION', resource)]), ctx, w);
+  const { rows } = profileUpgrades(l, ctx, w);
+  assert.ok(rows.some((r) => r.label === 'Mage 40 → 41'));
+  assert.ok(rows.some((r) => r.label.startsWith("Melody's Harp")));
+  for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1].gain >= rows[i].gain);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

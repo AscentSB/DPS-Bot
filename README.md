@@ -4,7 +4,7 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 
 ## Command
 
-`/dps ign:<name> class:<Archer|Berserker|Mage> [target:<Withers|Dragons>] [upgrades:<All levels|Max level only>] [mage:<Boss set (LCM)|Clear set (RCM)>] [floor:<Master Mode|Normal Mode>]`
+`/dps ign:<name> class:<Archer|Berserker|Mage> [target:<Withers|Dragons>] [upgrades:<All levels|Max level only>] [mage:<Boss set (LCM)|Clear set (RCM)>] [floor:<Master Mode|Normal Mode>] [menu:<Coin upgrades|Profile upgrades>]`
 
 `upgrades` picks how leveled upgrades are listed. All levels (default) lists Duplex I, II, III... as separate steps. Max level only jumps straight to Duplex V at the price of the Duplex V book, all remaining master stars in one step, Perfect gems, and max essence perk levels.
 
@@ -57,6 +57,8 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Necron's Blade refinements get their per-Catacombs-level stats as base stats (dungeon scaled with the rest): Hyperion +1 damage and +2 intelligence per level, Valkyrie +1 damage and strength, Scylla +1 damage and crit damage, Astraea +1 damage.
 - Wither scrolls (Implosion, Shadow Warp, Wither Shield) are read from the item. All 3 (or the Ultimate Wither Scroll) give Wither Impact; 2 of 3 does nothing. RCM needs them on the blade you cast with (a bought blade comes with them). In LCM, a Shadow Assassin Cloak with any owned Wither Impact blade gives 1.1x (every hit follows a teleport). Missing scrolls are priced as one step.
 - Powers: the best learned power is used (switching at Maxwell is free) and re-picked after every step. Unlearned powers are a step priced at their power stone. Accessories with an enrichment can swap it with the Accessory Enrichment Swapper instead of buying a new one.
+- Profile stats (when the profile is read): base 50 crit damage, Foraging strength, Enchanting and Alchemy intelligence (+1 per level to 14, +2 after), Tarantula, Wolf and Enderman slayer rewards, +1 strength per 5 SkyBlock levels, Melody's Harp songs played perfectly (up to +26 intelligence) and active Century Cake buffs. Fairy souls and the bestiary give no damage stats. Mayor perks are never counted.
+- `menu:Profile upgrades` lists the next level of each profile source (Catacombs, your class, Combat, Foraging, Enchanting, Alchemy, slayers, the next 5 SkyBlock levels, each Harp song) ranked by % damage, with no coin cost. `menu:Coin upgrades` (default) is the buy list.
 - Below floor 10 (Catacombs under 36), floor-scaled dungeon armor gets no step over 1M coins (it is replaced at floor 10).
 - Fabled reforge: every melee hit deals 0-15% more, multiplicative, counted as 1.075x (LCM beam and sword hits, not RCM).
 - All damage above 1,000,000 keeps 10%.

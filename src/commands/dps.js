@@ -3,7 +3,7 @@ import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { ensurePrices, prices } from '../api/prices.js';
-import { makeContext, buildLoadout, planUpgrades, weightsFor } from '../calc/upgrades.js';
+import { makeContext, buildLoadout, planUpgrades, weightsFor, profileUpgrades } from '../calc/upgrades.js';
 import { cataBoost } from '../calc/formulas.js';
 
 export const data = new SlashCommandBuilder()
@@ -18,6 +18,8 @@ export const data = new SlashCommandBuilder()
     .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }))
   .addStringOption((o) => o.setName('mage').setDescription('Mage only: boss set (LCM beam) or clear set (RCM, 500 speed)')
     .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
+  .addStringOption((o) => o.setName('menu').setDescription('Coin upgrades (buy list) or profile upgrades (skills, slayers, levels)')
+    .addChoices({ name: 'Coin upgrades', value: 'coins' }, { name: 'Profile upgrades', value: 'profile' }))
   .addStringOption((o) => o.setName('floor').setDescription('Mage boss set only: Master Mode (M7) or Normal Mode (F7: no dragons, master stars or Master Skull)')
     .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }));
 
@@ -40,6 +42,25 @@ export function formatCoins(n) {
   if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
   if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
   return `${Math.round(n)}`;
+}
+
+// Profile menu: next level of each profile stat source, by % damage gained (no coins).
+export function buildProfileEmbed({ name, cls, mode, cataLevel, result, weights }) {
+  const rcm = cls === 'mage' && mode === 'rcm';
+  const lines = result.rows.map((r, i) => `**${i + 1}.** ${r.label} · **+${r.gain.toFixed(2)}%**`);
+  let description = lines.join('\n') || 'No profile upgrade raises your damage.';
+  if (description.length > 4000) description = `${description.slice(0, 3990)}\n...`;
+  const d = result.damage;
+  return new EmbedBuilder()
+    .setTitle(`${name} · ${CLASSES[cls].label}${rcm ? ' RCM' : ''} profile upgrades`)
+    .setDescription(description)
+    .addFields(
+      { name: 'Weights', value: rcm ? 'Clear set (RCM)' : `Wither ${weights.wither} / Dragon ${weights.dragon}`, inline: true },
+      { name: 'Catacombs', value: `Level ${cataLevel}`, inline: true },
+      { name: 'Damage now', value: rcm ? `Wither Impact ${formatCoins(d.wither)} per cast` : `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}` },
+    )
+    .setFooter({ text: 'Profile upgrades cost no coins: skills, slayers, class and Catacombs levels, SkyBlock level, Harp songs.' })
+    .setColor(0x2e86c1);
 }
 
 export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit, mode, floorMode = 'master' }) {
@@ -76,6 +97,7 @@ export async function execute(interaction) {
   const cls = interaction.options.getString('class', true);
   const target = interaction.options.getString('target');
   const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
+  const menu = interaction.options.getString('menu') ?? 'coins';
   const mode = cls === 'mage' ? interaction.options.getString('mage') ?? 'lcm' : 'lcm';
   // Normal Mode is for Mage LCM only.
   const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
@@ -90,9 +112,13 @@ export async function execute(interaction) {
 
     const member = readMember(profile, account.uuid, resource);
     const { cataLevel } = member;
-    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, upgradeMode, mode, floorMode, resource });
+    const ctx = makeContext({ cls, cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning, profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel, berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel, skills: member.skills, slayers: member.slayers, profileStats: member.profileStats, upgradeMode, mode, floorMode, resource });
     const weights = weightsFor(cls, target, mode, floorMode);
     const loadout = buildLoadout(member, ctx, weights);
+    if (menu === 'profile') {
+      const result = profileUpgrades(loadout, ctx, weights);
+      return interaction.editReply({ embeds: [buildProfileEmbed({ name: account.name, cls, mode, cataLevel, result, weights })] });
+    }
     const plan = planUpgrades(loadout, ctx, prices, weights);
 
     await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan, weights, tuningSplit: ctx.tuning?.split, mode, floorMode })] });

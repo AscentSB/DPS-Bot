@@ -20,6 +20,8 @@ import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
+import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS } from '../config/profile.js';
+import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
@@ -59,11 +61,11 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
   // The Normal Mode toggle is for Mage LCM only (F7 Archer / Berserker damage and the RCM clear set are scored in Master Mode).
   const floor = cls === 'mage' && mode !== 'rcm' ? floorMode : 'master';
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, upgradeMode, mode, floorMode: floor, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -872,6 +874,50 @@ export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPG
   const { overspent, ...rest } = plan;
   rest.steps = rest.steps.map(({ facts, ...step }) => step);
   return rest;
+}
+
+// Profile upgrades (no coins): the next level of each profile stat source, ranked by % damage gained.
+const CLASS_LEVEL_KEY = { arch: 'archerLevel', bers: 'berserkLevel', mage: 'mageLevel' };
+const CLASS_NAME = { arch: 'Archer', bers: 'Berserk', mage: 'Mage' };
+export function profileUpgrades(loadout, ctx, weights) {
+  const base = evaluate(loadout, ctx, weights);
+  const rows = [];
+  const tryCtx = (label, changes) => {
+    const next = { ...ctx, ...changes };
+    const gain = weightedGain(base, evaluate(loadout, next, weights), weights);
+    if (gain > 1e-9) rows.push({ label, gain });
+  };
+  const withPlayer = (patch) => ({ player: { ...(ctx.player ?? {}), ...patch } });
+  if (ctx.cataLevel < CATA_STAT_BONUS.length - 1) tryCtx(`Catacombs ${ctx.cataLevel} → ${ctx.cataLevel + 1}`, { cataLevel: ctx.cataLevel + 1 });
+  const classKey = CLASS_LEVEL_KEY[ctx.cls];
+  if ((ctx[classKey] ?? 0) < 50) tryCtx(`${CLASS_NAME[ctx.cls]} ${ctx[classKey]} → ${ctx[classKey] + 1}`, { [classKey]: ctx[classKey] + 1 });
+  if (ctx.combatLevel < COMBAT_MAX_LEVEL) tryCtx(`Combat ${ctx.combatLevel} → ${ctx.combatLevel + 1}`, { combatLevel: ctx.combatLevel + 1 });
+  const skills = ctx.player?.skills;
+  if (skills) {
+    for (const [skill, { max }] of Object.entries(SKILL_BONUSES)) {
+      const level = skills[skill] ?? 0;
+      if (level < max) tryCtx(`${titleCase(skill.toLowerCase())} ${level} → ${level + 1}`, withPlayer({ skills: { ...skills, [skill]: level + 1 } }));
+    }
+  }
+  const slayers = ctx.player?.slayers;
+  if (slayers) {
+    for (const boss of new Set([...Object.keys(SLAYER_BONUSES), 'wolf'])) {
+      const level = slayers[boss] ?? 0;
+      if (level >= SLAYER_MAX_LEVEL) continue;
+      const changes = withPlayer({ slayers: { ...slayers, [boss]: level + 1 } });
+      if (boss === 'wolf' && WOLF_SLAYER_SPEED_LEVELS.includes(level + 1)) changes.profileSpeed = (ctx.profileSpeed ?? 0) + 1;
+      tryCtx(`${titleCase(boss)} Slayer ${level} → ${level + 1}`, changes);
+    }
+  }
+  const p = ctx.profileStats;
+  if (p) {
+    const target = (Math.floor((p.sbLevel ?? 0) / SB_STRENGTH_EVERY) + 1) * SB_STRENGTH_EVERY;
+    tryCtx(`SkyBlock level ${p.sbLevel} → ${target}`, { profileStats: { ...p, sbLevel: target } });
+    for (const [key, song] of Object.entries(HARP_SONGS)) {
+      if (!(p.harpSongs ?? []).includes(key)) tryCtx(`Melody's Harp: ${song.name} (perfect)`, { profileStats: { ...p, harpSongs: [...(p.harpSongs ?? []), key] } });
+    }
+  }
+  return { rows: rows.sort((a, b) => b.gain - a.gain), damage: base };
 }
 
 function ordinal(n) {

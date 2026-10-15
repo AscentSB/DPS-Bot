@@ -20,6 +20,7 @@ import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { PHASE_PETS } from '../config/pets.js';
+import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -35,6 +36,27 @@ export function hasWitherImpact(item) {
   if (!item || !WITHER_IMPACT_WEAPONS.includes(item.id)) return false;
   const s = item.scrolls ?? [];
   return s.includes(ULTIMATE_WITHER_SCROLL) || WITHER_SCROLLS.every((x) => s.includes(x));
+}
+
+// Flat stats from the profile: base crit damage, skills, slayers, SkyBlock level, Harp songs, cake buffs.
+// Only counted when the profile was read (ctx.profileStats).
+export function profileStatTotals(ctx) {
+  const p = ctx.profileStats;
+  if (!p) return {};
+  const out = { critDamage: BASE_CRIT_DAMAGE };
+  for (const [skill, { max, steps }] of Object.entries(SKILL_BONUSES)) {
+    const level = Math.min(max, ctx.player?.skills?.[skill] ?? max);
+    const keys = Object.keys(steps).map(Number).sort((a, b) => a - b);
+    for (let l = 1; l <= level; l++) addLoose(out, steps[keys.filter((k) => k <= l).at(-1)]);
+  }
+  for (const [boss, rewards] of Object.entries(SLAYER_BONUSES)) {
+    const level = ctx.player?.slayers?.[boss] ?? 0;
+    for (let l = 1; l <= level; l++) addLoose(out, rewards[l]);
+  }
+  addLoose(out, { strength: Math.floor((p.sbLevel ?? 0) / SB_STRENGTH_EVERY) });
+  for (const song of p.harpSongs ?? []) addLoose(out, { intelligence: HARP_SONGS[song]?.intelligence ?? 0 });
+  for (const cake of p.cakes ?? []) addLoose(out, { [cake.stat]: cake.amount });
+  return out;
 }
 
 export function isRcm(ctx) {
@@ -519,6 +541,7 @@ function rawStats(loadout, ctx, activeExtras) {
   add(misc.stats);
   // Mage class intelligence (solo): 250 + 2 x 5 per Mage level.
   if (c.cls === 'mage') add({ intelligence: MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
+  add(profileStatTotals(c));
   // Combat skill: +0.5 base crit chance per level.
   add({ critChance: (c.combatLevel ?? 0) * COMBAT_CRIT_CHANCE_PER_LEVEL });
   // Mage class ability damage (+5, +1 per 5 levels, doubled solo) and Enchanting (+0.5% per level). RCM only uses it.
