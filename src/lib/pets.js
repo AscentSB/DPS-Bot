@@ -69,7 +69,8 @@ export function petStats(pet, profile = {}) {
 
 function computePetStats(pet, profile) {
   const data = petData(pet.type, effectiveTier(pet));
-  if (!data) return { stats: {}, dragon: {}, petStrength: 0, potionBoost: 0 };
+  // A pet with no stat data (a new or unknown type) counts as no stats.
+  if (!data) return { stats: {}, dragon: {}, wither: {}, special: {}, petStrength: 0, potionBoost: 0 };
   const t = progress(data, pet.type, pet.level ?? maxPetLevel(pet.type));
   const base = {};
   for (const key of new Set([...Object.keys(data.min), ...Object.keys(data.max)])) base[key] = lerp(data.min[key] ?? 0, data.max[key] ?? 0, t);

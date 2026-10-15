@@ -1312,3 +1312,10 @@ test('Mage never gets clear boots (boss set and clear set); the clear set comes 
     }
   }
 });
+
+test('a pet the bot has no data for (new or unknown type) is ignored instead of crashing', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const w = weightsFor('mage', null, 'lcm');
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [{ type: 'SOME_NEW_PET', tier: 'LEGENDARY', heldItem: null }] }), ctx, w);
+  assert.ok(evaluate(l, ctx, w).wither > 0);
+});
