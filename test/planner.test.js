@@ -1295,3 +1295,14 @@ test('Mage: a Tier Boosted Ender Dragon is only used if attack speed still reach
   const l2 = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [legendary] }), ctx, w);
   assert.equal(l2.activePets.dragon?.type, 'ENDER_DRAGON');
 });
+
+test('Mage never gets clear boots (boss set and clear set); the clear set comes from the RCM plan', () => {
+  const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 45 } }]]);
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  for (const mode of ['lcm', 'rcm']) {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode, resource: res });
+    const l = buildLoadout(profile(items([{ id: 'HYPERION' }, { id: 'SPEED_WITHER_BOOTS' }])), ctx, weightsFor('mage', null, mode));
+    assert.equal(l.clearBoots ?? null, null);
+    assert.ok(!availableUpgrades(l, ctx, p).some((u) => /clear boots/.test(u.label)));
+  }
+});
