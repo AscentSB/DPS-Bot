@@ -18,12 +18,12 @@ test('blessings match the wiki worked example (Power 29 + Time 5, Benediction, F
 test('default blessing effect is the floor buff only; Forbidden Blessing and Mimic multiply it', () => {
   close(blessingEffect(), 1.2);
   close(blessingEffect(0.1, 0.1), 1.1 * 1.1 * 1.2);
-  // Strength: Power 19 and Time 5, flat and percent both scaled by the effect.
+  // Strength: Power 29 and Time 5 (defaults), flat and percent both scaled by the effect.
   const e = blessingEffect(0.1, 0.1);
-  const expected = (1000 + 4 * 19 * e + 4 * 5 * e) * 1.1 * 1.2 * (1 + 0.02 * 19 * e) * (1 + 0.02 * 5 * e);
+  const expected = (1000 + 4 * 29 * e + 4 * 5 * e) * 1.1 * 1.2 * (1 + 0.02 * 29 * e) * (1 + 0.02 * 5 * e);
   close(calcStrength(1000, 0.1, 0, 1.2, e), expected);
-  close(calcCritDamage(1000, 0, 0, 1, e), (1000 + 4 * 19 * e) * (1 + 0.02 * 19 * e));
-  close(calcIntelligence(500, 0, 0, 1, e), (500 + 4 * 12 * e + 4 * 5 * e) * (1 + 0.02 * 12 * e) * (1 + 0.02 * 5 * e));
+  close(calcCritDamage(1000, 0, 0, 1, e), (1000 + 4 * 29 * e) * (1 + 0.02 * 29 * e));
+  close(calcIntelligence(500, 0, 0, 1, e), (500 + 4 * 14 * e + 4 * 5 * e) * (1 + 0.02 * 14 * e) * (1 + 0.02 * 5 * e));
   // Crit chance from the sheet: flat 424.34 (+30 base), add 0.056, Terminator 0.25 -> 119.95
   close(calcCritChance(424.3383228, 0.056, 0.25), 119.9453172);
 });
@@ -98,4 +98,13 @@ test('mage gets no overload: crit chance above 100% adds nothing to the beam', (
   assert.ok(mageDamage({ ...s, critChance: 100 }, 0) > mageDamage({ ...s, critChance: 90 }, 0));
   // Archer still overloads.
   assert.ok(archerDamage({ ...s, critChance: 150 }, 0) > archerDamage({ ...s, critChance: 100 }, 0));
+});
+
+test('blessing levels can be chosen within their limits; anything else keeps the default', async () => {
+  const { blessingsWith } = await import('../src/config/constants.js');
+  const b = blessingsWith({ power: 10, wisdom: 3, time: 0 });
+  assert.deepEqual([b.power.level, b.wisdom.level, b.time.level], [10, 3, 0]);
+  const bad = blessingsWith({ power: 4, wisdom: 15, time: 3 });
+  assert.deepEqual([bad.power.level, bad.wisdom.level, bad.time.level], [29, 14, 5]);
+  close(calcStrength(1000, 0, 0, 1, 1.2, b), (1000 + 4 * 10 * 1.2) * (1 + 0.02 * 10 * 1.2));
 });

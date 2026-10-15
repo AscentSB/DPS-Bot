@@ -30,24 +30,24 @@ export function applyBlessings(value, stat, effect, blessings = BLESSINGS) {
   return { flat, pct };
 }
 
-function blessed(stat, flat, additive, additive2, multiplicative, effect) {
-  const b = applyBlessings(flat, stat, effect);
+function blessed(stat, flat, additive, additive2, multiplicative, effect, blessings = BLESSINGS) {
+  const b = applyBlessings(flat, stat, effect, blessings);
   return b.flat * (1 + additive + additive2) * multiplicative * b.pct;
 }
 
 // (Strength + Power + Time flat)(1 + additive + 2nd additive)(multiplicative)(1 + Power %)(1 + Time %)
-export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
-  return blessed('strength', strength, additive, additive2, multiplicative, effect);
+export function calcStrength(strength, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect(), blessings = BLESSINGS) {
+  return blessed('strength', strength, additive, additive2, multiplicative, effect, blessings);
 }
 
 // (CritDamage + Power flat)(1 + additive + 2nd additive)(multiplicative)(1 + Power %)
-export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
-  return blessed('critDamage', critDamage, additive, additive2, multiplicative, effect);
+export function calcCritDamage(critDamage, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect(), blessings = BLESSINGS) {
+  return blessed('critDamage', critDamage, additive, additive2, multiplicative, effect, blessings);
 }
 
 // (Intelligence + Wisdom + Time flat)(1 + additive + 2nd additive)(multiplicative)(1 + Wisdom %)(1 + Time %)
-export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect()) {
-  return blessed('intelligence', intelligence, additive, additive2, multiplicative, effect);
+export function calcIntelligence(intelligence, additive = 0, additive2 = 0, multiplicative = 1, effect = blessingEffect(), blessings = BLESSINGS) {
+  return blessed('intelligence', intelligence, additive, additive2, multiplicative, effect, blessings);
 }
 
 // (CritChance + 30)(1 + additive)(multiplicative)

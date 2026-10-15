@@ -833,9 +833,9 @@ export function finalStats(bucket, ctx) {
   const effect = blessingEffect(bucket.blessing, bucket.blessingShard);
   return {
     damage: calcDamage(bucket.damage),
-    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength, effect),
-    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, effect),
-    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, effect),
+    strength: calcStrength(bucket.strength, bucket.additiveStrength, bucket.additiveStrength2, bucket.multStrength, effect, ctx.blessings),
+    critDamage: calcCritDamage(bucket.critDamage, bucket.additiveCritDamage, bucket.additiveCritDamage2, bucket.multCritDamage, effect, ctx.blessings),
+    intelligence: calcIntelligence(bucket.intelligence, bucket.additiveIntelligence, bucket.additiveIntelligence2, bucket.multIntelligence, effect, ctx.blessings),
     critChance: calcCritChance(bucket.critChance, bucket.additiveCritChance, bucket.multCritChance),
     additiveDamage: bucket.additiveDamage + classAdditiveDamage(ctx),
     abilityDamage: bucket.abilityDamage,

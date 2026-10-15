@@ -1,5 +1,5 @@
 import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CLASSES } from '../config/constants.js';
+import { CLASSES, BLESSING_LIMITS, blessingsWith } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
@@ -19,17 +19,23 @@ const ign = (o) => o.setName('ign').setDescription('Your Hypixel IGN').setRequir
 const target = (o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
   .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' });
 
+// Optional dungeon blessing levels (defaults: Power 29, Wisdom 14, Time 5).
+const blessingOptions = (c) => c
+  .addIntegerOption((o) => o.setName('power').setDescription('Blessing of Power level (5-29, default 29)').setMinValue(BLESSING_LIMITS.power.min).setMaxValue(BLESSING_LIMITS.power.max))
+  .addIntegerOption((o) => o.setName('wisdom').setDescription('Blessing of Wisdom level (0-14, default 14)').setMinValue(BLESSING_LIMITS.wisdom.min).setMaxValue(BLESSING_LIMITS.wisdom.max))
+  .addIntegerOption((o) => o.setName('time').setDescription('Blessing of Time level (0 or 5, default 5)').addChoices(...BLESSING_LIMITS.time.values.map((v) => ({ name: String(v), value: v }))));
+
 export const data = new SlashCommandBuilder()
   .setName('dps')
   .setDescription('Your next DPS upgrades, ranked by DPS gained per million coins')
-  .addSubcommand((c) => c.setName('archer').setDescription('Archer upgrades').addStringOption(ign).addStringOption(target))
-  .addSubcommand((c) => c.setName('berserker').setDescription('Berserker upgrades').addStringOption(ign).addStringOption(target))
-  .addSubcommand((c) => c.setName('mage').setDescription('Mage upgrades').addStringOption(ign)
+  .addSubcommand((c) => blessingOptions(c.setName('archer').setDescription('Archer upgrades').addStringOption(ign).addStringOption(target)))
+  .addSubcommand((c) => blessingOptions(c.setName('berserker').setDescription('Berserker upgrades').addStringOption(ign).addStringOption(target)))
+  .addSubcommand((c) => blessingOptions(c.setName('mage').setDescription('Mage upgrades').addStringOption(ign)
     .addStringOption((o) => o.setName('set').setDescription('Boss set (LCM beam) or clear set (RCM, 500 speed)')
       .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
     .addStringOption((o) => o.setName('floor').setDescription('Master Mode (M7) or Normal Mode (F7)')
       .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }))
-    .addStringOption(target));
+    .addStringOption(target)));
 
 // Coin plans are computed this deep and shown PAGE_SIZE at a time.
 const PLAN_STEPS = 40;
@@ -84,6 +90,11 @@ function statsText(s, before, after, weights) {
   }).join('\n');
 }
 
+function blessingText(s) {
+  const b = s.blessings;
+  return b ? `Blessings: Power ${b.power} · Wisdom ${b.wisdom} · Time ${b.time}` : null;
+}
+
 function title(s) {
   const set = s.cls === 'mage' ? `${s.mode === 'rcm' ? ' · Clear set' : ' · Boss set'}${s.floorMode === 'normal' ? ' (F7)' : ''}` : '';
   return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
@@ -104,7 +115,7 @@ export function buildEmbed(s) {
       .setTitle(`${title(s)} · Profile upgrades`)
       .setDescription(lines.join('\n\n') || 'No profile upgrade raises your damage.')
       .addFields({ name: 'Damage now', value: damageText(s.profile.damage, rcm), inline: true })
-      .setFooter({ text: `Page ${s.page + 1}/${pageCount(s)} · Skills, slayers, class and Catacombs levels, SkyBlock level and Harp songs. No coins.` })
+      .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · Skills, slayers, class and Catacombs levels, SkyBlock level and Harp songs. No coins.`, blessingText(s)].filter(Boolean).join('\n') })
       .setColor(0x2e86c1);
   }
   const { plan } = s.coins[s.upgradeMode];
@@ -120,7 +131,7 @@ export function buildEmbed(s) {
       { name: `Stats (now → after all ${plan.steps.length})`, value: statsText(s, plan.startDamage.stats, plan.endDamage.stats, s.coins[s.upgradeMode].weights) },
       { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[s.upgradeMode].tuningSplit) },
     )
-    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
+    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, blessingText(s), unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
     .setColor(0x8e44ad);
 }
 
@@ -197,7 +208,10 @@ export async function execute(interaction) {
   const name = interaction.options.getString('ign', true).trim();
   const mode = cls === 'mage' ? interaction.options.getString('set') ?? 'lcm' : 'lcm';
   const floorMode = cls === 'mage' ? interaction.options.getString('floor') ?? 'master' : 'master';
-  const job = { cls, target: interaction.options.getString('target'), mode, floorMode };
+  // Blessing levels: Discord enforces the ranges; blessingsWith falls back to the defaults for anything else.
+  const chosen = blessingsWith({ power: interaction.options.getInteger?.('power') ?? undefined, wisdom: interaction.options.getInteger?.('wisdom') ?? undefined, time: interaction.options.getInteger?.('time') ?? undefined });
+  const blessings = { power: chosen.power.level, wisdom: chosen.wisdom.level, time: chosen.time.level };
+  const job = { cls, target: interaction.options.getString('target'), mode, floorMode, blessings };
   // Replies never repeat the typed IGN or raw error text, so user input cannot reach the message.
   if (!isValidIgn(name)) {
     return interaction.reply({ content: 'That is not a valid Minecraft username (2 to 16 letters, digits or underscores).', ephemeral: true });
@@ -252,7 +266,7 @@ export async function handleButton(interaction) {
   if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
   if (action === 'levels') { s.upgradeMode = s.upgradeMode === 'all' ? 'max' : 'all'; s.page = 0; }
   // Profile upgrades and the max-level plan are worked out the first time they are opened.
-  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, member: s.member };
+  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, blessings: s.blessings, member: s.member };
   const missing = s.view === 'profile' ? !s.profile : !s.coins[s.upgradeMode];
   if (missing) {
     await interaction.deferUpdate();

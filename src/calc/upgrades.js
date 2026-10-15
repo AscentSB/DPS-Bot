@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -109,11 +109,11 @@ function dragonItems(l) {
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
   // The Normal Mode toggle is for Mage only, boss set and clear set (F7 Archer / Berserker damage is scored in Master Mode).
   const floor = cls === 'mage' ? floorMode : 'master';
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.

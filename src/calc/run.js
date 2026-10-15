@@ -4,12 +4,12 @@ import { makeContext, buildLoadout, planUpgrades, weightsFor, profileUpgrades } 
 // thread: { weights, menu, plan?: { steps, startDamage, endDamage }, tuningSplit?, profile?: { rows, damage } }.
 // pool (optional): evaluation workers that score the planner's candidates in parallel.
 // isCancelled (optional): returns true once the plan should stop (checked once per planner step).
-export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', menu = 'coins', limit, resource, prices, pool, isCancelled }) {
+export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', menu = 'coins', limit, resource, prices, pool, isCancelled, blessings }) {
   const ctx = makeContext({
     cls, cataLevel: member.cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning,
     profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel,
     berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel,
-    skills: member.skills, slayers: member.slayers, profileStats: member.profileStats, upgradeMode, mode, floorMode, resource,
+    skills: member.skills, slayers: member.slayers, profileStats: member.profileStats, upgradeMode, mode, floorMode, blessings, resource,
   });
   const weights = weightsFor(cls, target, mode, ctx.floorMode);
   const loadout = buildLoadout(member, ctx, weights);

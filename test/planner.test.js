@@ -716,7 +716,7 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
 test('Fabled gives melee (LCM) 1.075x; RCM counts Smite but not Sharpness or Fabled', () => {
   const w = weightsFor('mage');
   const lcm = makeContext({ cls: 'mage', cataLevel: 50, resource });
-  const plain = { ...scrolled(newItem('HYPERION', resource)), reforge: 'heroic' };
+  const plain = { ...scrolled(newItem('HYPERION', resource)), reforge: null };
   const fabled = { ...plain, reforge: 'fabled' };
   const base = buildLoadout(profile([plain]), lcm, w);
   const withFabled = { ...base, weapon: fabled };

@@ -39,12 +39,26 @@ export const BASE_DAMAGE = 5;
 // The original formula's 1.1 * 1.1 * 1.2 is E with Forbidden Blessing X and Mimic X.
 // Forbidden Blessing and Mimic come from the profile, so they also show up as upgrades.
 // Mayor perks (Paul's Benediction and the rest) are never counted.
+// Default levels; /dps can set others (power 5-29, wisdom 0-14, time 0 or 5).
 export const BLESSINGS = {
-  power: { level: 19, stats: ['strength', 'critDamage'] },
-  wisdom: { level: 12, stats: ['intelligence'] },
+  power: { level: 29, stats: ['strength', 'critDamage'] },
+  wisdom: { level: 14, stats: ['intelligence'] },
   // Blessing of Time: from the Quiz puzzle, always 0 or 5.
   time: { level: 5, stats: ['strength', 'intelligence'] },
 };
+export const BLESSING_LIMITS = { power: { min: 5, max: 29 }, wisdom: { min: 0, max: 14 }, time: { values: [0, 5] } };
+
+// The blessings with chosen levels ({ power, wisdom, time }; missing or invalid ones keep the default).
+export function blessingsWith(levels = {}) {
+  const out = {};
+  for (const [name, b] of Object.entries(BLESSINGS)) {
+    const limit = BLESSING_LIMITS[name];
+    const v = levels?.[name];
+    const ok = Number.isInteger(v) && (limit.values ? limit.values.includes(v) : v >= limit.min && v <= limit.max);
+    out[name] = { ...b, level: ok ? v : b.level };
+  }
+  return out;
+}
 export const BLESSING_FLAT_PER_LEVEL = 4;
 export const BLESSING_PERCENT_PER_LEVEL = 0.02;
 export const BLESSING_FLOOR_BUFF = 0.2;
