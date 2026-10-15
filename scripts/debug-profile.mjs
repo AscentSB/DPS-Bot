@@ -23,7 +23,8 @@ try {
   stage = 'reading the profile (readMember)';
   const member = readMember(profile, account.uuid, resource);
   console.log(`Read ${member.items.length} items, Catacombs ${member.cataLevel}, bank ${member.petProfile?.bank ?? 'not shared (bank API off)'}.`);
-  console.log(`Bank (Golden Dragon uses this one): ${profile.banking?.balance ?? 'hidden (bank API off)'}`);
+  const me = profile.members?.[account.uuid];
+  console.log(`Bank: shared ${profile.banking?.balance ?? 'hidden'}, personal ${me?.profile?.bank_account ?? 'hidden'}, purse ${me?.currencies?.coin_purse ?? 'hidden'}, members ${Object.keys(profile.members ?? {}).length}. Golden Dragon uses ${member.petProfile?.bank ?? 'none (bank API off)'}.`);
   console.log(`Profile: ${profile.cute_name ?? '?'} (selected: ${Boolean(profile.selected)})`);
   console.log(`Pets read (${member.pets.length}): ${member.pets.map((p) => `${p.type} ${p.tier}${p.heldItem ? ` + ${p.heldItem}` : ''}`).join(', ') || 'none'}`);
   stage = 'loading prices';
