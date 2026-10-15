@@ -1,30 +1,38 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { runInWorker } from '../worker/client.js';
-import { cataBoost } from '../calc/formulas.js';
+
+// One subcommand per class, so the Mage-only options only show under /dps mage.
+const SUBCOMMAND_CLASS = { archer: 'arch', berserker: 'bers', mage: 'mage' };
+const ign = (o) => o.setName('ign').setDescription('Your Hypixel IGN').setRequired(true);
+const target = (o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
+  .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' });
+const levels = (o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
+  .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' });
 
 export const data = new SlashCommandBuilder()
   .setName('dps')
-  .setDescription('Rank your next DPS upgrades by % DPS gained per million coins')
-  .addStringOption((o) => o.setName('ign').setDescription('Your Hypixel IGN').setRequired(true))
-  .addStringOption((o) => o.setName('class').setDescription('Your dungeon class').setRequired(true)
-    .addChoices({ name: 'Archer', value: 'arch' }, { name: 'Berserker', value: 'bers' }, { name: 'Mage', value: 'mage' }))
-  .addStringOption((o) => o.setName('target').setDescription('Only rank for Withers or Dragons')
-    .addChoices({ name: 'Withers', value: 'wither' }, { name: 'Dragons', value: 'dragon' }))
-  .addStringOption((o) => o.setName('upgrades').setDescription('List every level (Duplex I, II, ...) or jump to the max level')
-    .addChoices({ name: 'All levels', value: 'all' }, { name: 'Max level only', value: 'max' }))
-  .addStringOption((o) => o.setName('mage').setDescription('Mage only: boss set (LCM beam) or clear set (RCM, 500 speed)')
-    .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
-  .addStringOption((o) => o.setName('menu').setDescription('Coin upgrades (buy list) or profile upgrades (skills, slayers, levels)')
-    .addChoices({ name: 'Coin upgrades', value: 'coins' }, { name: 'Profile upgrades', value: 'profile' }))
-  .addStringOption((o) => o.setName('floor').setDescription('Mage boss set only: Master Mode (M7) or Normal Mode (F7: no dragons, master stars or Master Skull)')
-    .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }));
+  .setDescription('Your next DPS upgrades, ranked by DPS gained per million coins')
+  .addSubcommand((c) => c.setName('archer').setDescription('Archer upgrades').addStringOption(ign).addStringOption(target).addStringOption(levels))
+  .addSubcommand((c) => c.setName('berserker').setDescription('Berserker upgrades').addStringOption(ign).addStringOption(target).addStringOption(levels))
+  .addSubcommand((c) => c.setName('mage').setDescription('Mage upgrades').addStringOption(ign)
+    .addStringOption((o) => o.setName('set').setDescription('Boss set (LCM beam) or clear set (RCM, 500 speed)')
+      .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
+    .addStringOption((o) => o.setName('floor').setDescription('Boss set only: Master Mode (M7) or Normal Mode (F7)')
+      .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }))
+    .addStringOption(target).addStringOption(levels));
+
+// Coin plans are computed this deep and shown PAGE_SIZE at a time.
+const PLAN_STEPS = 40;
+const PAGE_SIZE = 8;
+// Button sessions are kept this long after the last use.
+const SESSION_MS = 30 * 60 * 1000;
+const sessions = new Map();
 
 const TUNING_LABELS = { strength: 'strength', critDamage: 'crit damage', critChance: 'crit chance', intelligence: 'intelligence' };
 
-// "6 attack speed · 48 speed · 177 crit chance" from the allocation and the split leftover points use.
 function tuningText(tuning, split) {
   const parts = [];
   if (tuning?.attackSpeed) parts.push(`${tuning.attackSpeed} attack speed`);
@@ -43,82 +51,112 @@ export function formatCoins(n) {
   return `${Math.round(n)}`;
 }
 
-// Profile menu: next level of each profile stat source, by % damage gained (no coins).
-export function buildProfileEmbed({ name, cls, mode, cataLevel, result, weights }) {
-  const rcm = cls === 'mage' && mode === 'rcm';
-  const lines = result.rows.map((r, i) => `**${i + 1}.** ${r.label} · **+${r.gain.toFixed(2)}%**`);
-  let description = lines.join('\n') || 'No profile upgrade raises your damage.';
-  if (description.length > 4000) description = `${description.slice(0, 3990)}\n...`;
-  const d = result.damage;
-  return new EmbedBuilder()
-    .setTitle(`${name} · ${CLASSES[cls].label}${rcm ? ' RCM' : ''} profile upgrades`)
-    .setDescription(description)
-    .addFields(
-      { name: 'Weights', value: rcm ? 'Clear set (RCM)' : `Wither ${weights.wither} / Dragon ${weights.dragon}`, inline: true },
-      { name: 'Catacombs', value: `Level ${cataLevel}`, inline: true },
-      { name: 'Damage now', value: rcm ? `Wither Impact ${formatCoins(d.wither)} per cast` : `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}` },
-    )
-    .setFooter({ text: 'Profile upgrades cost no coins: skills, slayers, class and Catacombs levels, SkyBlock level, Harp songs.' })
-    .setColor(0x2e86c1);
+function damageText(d, rcm) {
+  return rcm ? `${formatCoins(d.wither)} per Wither Impact` : `Withers ${formatCoins(d.wither)}\nDragons ${formatCoins(d.dragon)}`;
 }
 
-export function buildEmbed({ name, cls, target, cataLevel, plan, weights, tuningSplit, mode, floorMode = 'master' }) {
-  const lines = plan.steps.map((s, i) =>
-    `**${i + 1}.** ${s.label}\n   +${s.gain.toFixed(2)}% for ${formatCoins(s.cost)} (${s.source}) · **${s.perMillion.toFixed(3)}%/M**`);
-  const anyUnverified = plan.steps.some((s) => s.unverified);
-  const rcm = cls === 'mage' && mode === 'rcm';
-  const fmt = (d) => (rcm ? `Wither Impact ${formatCoins(d.wither)} per cast` : `Wither ${formatCoins(d.wither)} · Dragon ${formatCoins(d.dragon)}`);
-  const targetLabel = rcm ? 'Clear set (RCM, 500 speed)' : target === 'wither' ? 'Withers only' : target === 'dragon' ? 'Dragons only' : `Wither ${weights.wither} / Dragon ${weights.dragon}`;
-  let description = lines.join('\n') || 'No priced upgrades found that raise your damage.';
-  if (description.length > 4000) description = `${description.slice(0, 3990)}\n...`;
+function title(s) {
+  const set = s.cls === 'mage' ? (s.mode === 'rcm' ? ' · Clear set' : s.floorMode === 'normal' ? ' · Boss set (F7)' : ' · Boss set') : '';
+  return `${s.name} · ${CLASSES[s.cls].label}${set}`;
+}
+
+export function pageCount(s) {
+  const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.plan.steps ?? [];
+  return Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+}
+
+export function buildEmbed(s) {
+  const rcm = s.cls === 'mage' && s.mode === 'rcm';
+  const first = s.page * PAGE_SIZE;
+  if (s.view === 'profile') {
+    const rows = s.profile.rows.slice(first, first + PAGE_SIZE);
+    const lines = rows.map((r, i) => `**${first + i + 1}. ${r.label}**\n+${r.gain.toFixed(2)}% DPS`);
+    return new EmbedBuilder()
+      .setTitle(`${title(s)} · Profile upgrades`)
+      .setDescription(lines.join('\n\n') || 'No profile upgrade raises your damage.')
+      .addFields({ name: 'Damage now', value: damageText(s.profile.damage, rcm), inline: true })
+      .setFooter({ text: `Page ${s.page + 1}/${pageCount(s)} · Skills, slayers, class and Catacombs levels, SkyBlock level and Harp songs. No coins.` })
+      .setColor(0x2e86c1);
+  }
+  const { plan } = s.coins;
+  const steps = plan.steps.slice(first, first + PAGE_SIZE);
+  const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(2) : st.perMillion.toFixed(3)}% per 1M`);
+  const unverified = plan.steps.some((st) => st.unverified);
   return new EmbedBuilder()
-    .setTitle(`${name} · ${CLASSES[cls].label}${rcm ? ' RCM' : ''} upgrades`)
-    .setDescription(description)
+    .setTitle(`${title(s)} · Coin upgrades`)
+    .setDescription(lines.join('\n\n') || 'No priced upgrade raises your damage.')
     .addFields(
-      { name: 'Weights', value: `${targetLabel} · ${floorMode === 'normal' ? 'Normal Mode' : 'Master Mode'}`, inline: true },
-      { name: 'Catacombs', value: `Level ${cataLevel} (+${Math.round(cataBoost(cataLevel) * 100)}%)`, inline: true },
-      { name: 'Accessory Power', value: `${plan.startDamage.ap} → ${plan.endDamage.ap}`, inline: true },
-      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, tuningSplit) },
-      { name: 'Damage now', value: fmt(plan.startDamage) },
-      { name: 'Damage after all listed', value: fmt(plan.endDamage) },
+      { name: 'Damage now', value: damageText(plan.startDamage, rcm), inline: true },
+      { name: `After all ${plan.steps.length}`, value: damageText(plan.endDamage, rcm), inline: true },
+      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins.tuningSplit) },
     )
-    .setFooter({
-      text: [
-        'Prices: bazaar instant buy (BZ) and auction lowest BIN (AH). Each step assumes the ones above it.',
-        anyUnverified ? '(?) = not in the public API; skip it if you already have it.' : null,
-      ].filter(Boolean).join('\n'),
-    })
+    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
     .setColor(0x8e44ad);
 }
 
+function buttons(id, s) {
+  const pages = pageCount(s);
+  return [new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`dps:${id}:prev`).setLabel('◀ Back').setStyle(ButtonStyle.Secondary).setDisabled(s.page === 0),
+    new ButtonBuilder().setCustomId(`dps:${id}:next`).setLabel('Next ▶').setStyle(ButtonStyle.Secondary).setDisabled(s.page >= pages - 1),
+    new ButtonBuilder().setCustomId(`dps:${id}:coins`).setLabel('Coin upgrades').setStyle(s.view === 'coins' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'coins'),
+    new ButtonBuilder().setCustomId(`dps:${id}:profile`).setLabel('Profile upgrades').setStyle(s.view === 'profile' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'profile'),
+  )];
+}
+
+function prune() {
+  const now = Date.now();
+  for (const [id, s] of sessions) if (now - s.usedAt > SESSION_MS) sessions.delete(id);
+}
+
 export async function execute(interaction) {
-  const ign = interaction.options.getString('ign', true).trim();
-  const cls = interaction.options.getString('class', true);
-  const target = interaction.options.getString('target');
-  const upgradeMode = interaction.options.getString('upgrades') ?? 'all';
-  const menu = interaction.options.getString('menu') ?? 'coins';
-  const mode = cls === 'mage' ? interaction.options.getString('mage') ?? 'lcm' : 'lcm';
-  // Normal Mode is for Mage LCM only.
+  const sub = interaction.options.getSubcommand();
+  const cls = SUBCOMMAND_CLASS[sub];
+  const name = interaction.options.getString('ign', true).trim();
+  const mode = cls === 'mage' ? interaction.options.getString('set') ?? 'lcm' : 'lcm';
   const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
+  const job = { cls, target: interaction.options.getString('target'), upgradeMode: interaction.options.getString('upgrades') ?? 'all', mode, floorMode };
   await interaction.deferReply();
 
   try {
-    const account = await getMinecraftProfile(ign);
-    if (!account) return interaction.editReply(`No Minecraft account named **${ign}**.`);
-
+    const account = await getMinecraftProfile(name);
+    if (!account) return interaction.editReply(`No Minecraft account named **${name}**.`);
     const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]);
     if (!profile) return interaction.editReply(`**${account.name}** has no SkyBlock profiles.`);
-
     const member = readMember(profile, account.uuid, resource);
-    const { cataLevel } = member;
+
     // The planner runs in a worker thread so the bot stays connected while it works.
-    const out = await runInWorker({ member, cls, target, upgradeMode, mode, floorMode, menu });
-    if (out.menu === 'profile') {
-      return interaction.editReply({ embeds: [buildProfileEmbed({ name: account.name, cls, mode, cataLevel, result: out.profile, weights: out.weights })] });
-    }
-    await interaction.editReply({ embeds: [buildEmbed({ name: account.name, cls, target, cataLevel, plan: out.plan, weights: out.weights, tuningSplit: out.tuningSplit, mode, floorMode: out.floorMode })] });
+    const coins = await runInWorker({ ...job, member, menu: 'coins', limit: PLAN_STEPS });
+    prune();
+    const id = interaction.id;
+    const s = { ...job, name: account.name, member, coins, profile: null, view: 'coins', page: 0, owner: interaction.user.id, usedAt: Date.now() };
+    sessions.set(id, s);
+    await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   } catch (err) {
     console.error(err);
     await interaction.editReply(`Error: ${err.message}`);
   }
+}
+
+// Back / Next / Coin upgrades / Profile upgrades.
+export async function handleButton(interaction) {
+  const [, id, action] = interaction.customId.split(':');
+  const s = sessions.get(id);
+  if (!s) return interaction.reply({ content: 'These results expired. Run /dps again.', ephemeral: true });
+  if (interaction.user.id !== s.owner) return interaction.reply({ content: 'Only the person who ran this /dps can use these buttons.', ephemeral: true });
+  s.usedAt = Date.now();
+  if (action === 'prev') s.page = Math.max(0, s.page - 1);
+  if (action === 'next') s.page = Math.min(pageCount(s) - 1, s.page + 1);
+  if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
+  if (s.view === 'profile' && !s.profile) {
+    await interaction.deferUpdate();
+    try {
+      s.profile = (await runInWorker({ cls: s.cls, target: s.target, upgradeMode: s.upgradeMode, mode: s.mode, floorMode: s.floorMode, member: s.member, menu: 'profile' })).profile;
+    } catch (err) {
+      console.error(err);
+      s.view = 'coins';
+    }
+    return interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
+  }
+  await interaction.update({ embeds: [buildEmbed(s)], components: buttons(id, s) });
 }

@@ -2,7 +2,7 @@ import { makeContext, buildLoadout, planUpgrades, weightsFor, profileUpgrades } 
 
 // One /dps run from a read profile (readMember output). Returns plain data only, so it can cross a worker
 // thread: { weights, menu, plan?: { steps, startDamage, endDamage }, tuningSplit?, profile?: { rows, damage } }.
-export function runDps({ member, cls, target, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', menu = 'coins', resource, prices }) {
+export function runDps({ member, cls, target, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', menu = 'coins', limit, resource, prices }) {
   const ctx = makeContext({
     cls, cataLevel: member.cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning,
     profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel,
@@ -16,7 +16,7 @@ export function runDps({ member, cls, target, upgradeMode = 'all', mode = 'lcm',
     const { rows, damage: now } = profileUpgrades(loadout, ctx, weights);
     return { weights, menu, floorMode: ctx.floorMode, profile: { rows, damage: damage(now) } };
   }
-  const plan = planUpgrades(loadout, ctx, prices, weights);
+  const plan = planUpgrades(loadout, ctx, prices, weights, limit);
   return {
     weights, menu, floorMode: ctx.floorMode, tuningSplit: ctx.tuning?.split ?? null,
     plan: {

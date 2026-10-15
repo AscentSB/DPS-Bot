@@ -11,6 +11,7 @@ client.once(Events.ClientReady, (c) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton() && interaction.customId.startsWith('dps:')) return dps.handleButton(interaction);
   if (!interaction.isChatInputCommand() || interaction.commandName !== dps.data.name) return;
   await dps.execute(interaction);
 });
