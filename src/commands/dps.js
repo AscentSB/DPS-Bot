@@ -1,6 +1,6 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { CLASSES } from '../config/constants.js';
-import { getMinecraftProfile } from '../api/mojang.js';
+import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { runInWorker } from '../worker/client.js';
 
@@ -55,7 +55,7 @@ function damageText(d, rcm) {
 
 function title(s) {
   const set = s.cls === 'mage' ? (s.mode === 'rcm' ? ' · Clear set' : s.floorMode === 'normal' ? ' · Boss set (F7)' : ' · Boss set') : '';
-  return `${s.name} · ${CLASSES[s.cls].label}${set}`;
+  return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
 }
 
 export function pageCount(s) {
@@ -116,13 +116,17 @@ export async function execute(interaction) {
   const mode = cls === 'mage' ? interaction.options.getString('set') ?? 'lcm' : 'lcm';
   const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
   const job = { cls, target: interaction.options.getString('target'), mode, floorMode };
+  // Replies never repeat the typed IGN or raw error text, so user input cannot reach the message.
+  if (!isValidIgn(name)) {
+    return interaction.reply({ content: 'That is not a valid Minecraft username (2 to 16 letters, digits or underscores).', ephemeral: true });
+  }
   await interaction.deferReply();
 
   try {
     const account = await getMinecraftProfile(name);
-    if (!account) return interaction.editReply(`No Minecraft account named **${name}**.`);
+    if (!account) return interaction.editReply('No Minecraft account has that username.');
     const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]);
-    if (!profile) return interaction.editReply(`**${account.name}** has no SkyBlock profiles.`);
+    if (!profile) return interaction.editReply(`**${escapeMarkdown(account.name)}** has no SkyBlock profiles.`);
     const member = readMember(profile, account.uuid, resource);
 
     // The planner runs in a worker thread so the bot stays connected while it works.
@@ -134,7 +138,7 @@ export async function execute(interaction) {
     await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   } catch (err) {
     console.error(err);
-    await interaction.editReply(`Error: ${err.message}`);
+    await interaction.editReply('Something went wrong while loading this profile. Try again in a minute.');
   }
 }
 

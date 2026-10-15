@@ -3,7 +3,8 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import * as dps from './commands/dps.js';
 import { startWorker } from './worker/client.js';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// No message from the bot may ping anyone, whatever text ends up in it.
+const client = new Client({ intents: [GatewayIntentBits.Guilds], allowedMentions: { parse: [], repliedUser: false } });
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Logged in as ${c.user.tag}`);

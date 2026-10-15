@@ -1,4 +1,5 @@
 import { getJson } from './http.js';
+import { isValidUuid } from './mojang.js';
 import { ITEMS_REFRESH_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp, skillLevelFromXp } from '../calc/formulas.js';
@@ -26,6 +27,7 @@ export async function getItemsResource() {
 export async function getSelectedProfile(uuid) {
   const key = process.env.HYPIXEL_API_KEY;
   if (!key) throw new Error('HYPIXEL_API_KEY is not set.');
+  if (!isValidUuid(uuid)) throw new Error('Invalid UUID.');
   const data = await getJson(`${API}/skyblock/profiles?uuid=${uuid}`, { headers: { 'API-Key': key } });
   if (!data?.success) throw new Error(data?.cause ?? 'Hypixel API request failed.');
   const profiles = data.profiles ?? [];
