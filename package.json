@@ -8,7 +8,8 @@
     "deploy": "node src/deploy-commands.js",
     "test": "node --test test/*.test.js",
     "update-data": "node scripts/update-data.mjs",
-    "check-env": "node scripts/check-env.mjs"
+    "check-env": "node scripts/check-env.mjs",
+    "debug-profile": "node scripts/debug-profile.mjs"
   },
   "repository": {
     "type": "git",
