@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_DRAGON_CRIT_CHANCE_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, THUNDERLORD_EVERY,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -894,7 +894,8 @@ function evaluateWith(loadout, ctx, activeExtras) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
       const blade = hasWitherImpact(loadout.weapon);
       const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
-      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * bookMultiplier(loadout, ctx)) : 0;
+      const implosion = loadout.equipment.BELT?.id === IMPLOSION_BELT_ID ? IMPLOSION_BELT_MULTIPLIER : 1;
+      result[target] = blade ? rcmDamage(s, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * implosion * bookMultiplier(loadout, ctx)) : 0;
       result.stats[target] = s;
       continue;
     } else dmg = mageDamage(s, defense, fabled);

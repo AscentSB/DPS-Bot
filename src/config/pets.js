@@ -74,7 +74,8 @@ export const PET_PERKS = {
 // the listed pet, or no pet is listed, the owned pet that gives the most damage against that boss is used.
 export const PHASE_PETS = {
   wither: { arch: 'GOLDEN_DRAGON', bers: 'GOLDEN_DRAGON', mage: 'GOLDEN_DRAGON' },
-  dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON', mage: 'GOLDEN_DRAGON' },
+  // Mage has no fixed dragon pet: the owned pet that does the most damage against dragons wins.
+  dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON' },
 };
 
 // Pets never used (Horse and Skeleton Horse: their Jump Boost gets in the way).

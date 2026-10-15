@@ -772,11 +772,11 @@ test('upper-case enchant keys from the profile are read', () => {
   assert.equal(it.enchants.prosecute, 6);
 });
 
-test('Normal Mode (Mage LCM only): no master stars, no Master Skull, withers only; other modes stay Master Mode', () => {
+test('Normal Mode (Mage only): no master stars, no Master Skull, withers only; other classes stay Master Mode', () => {
   const nm = makeContext({ cls: 'mage', cataLevel: 50, resource, floorMode: 'normal' });
   assert.equal(nm.floorMode, 'normal');
   assert.equal(makeContext({ cls: 'arch', cataLevel: 50, resource, floorMode: 'normal' }).floorMode, 'master');
-  assert.equal(makeContext({ cls: 'mage', cataLevel: 50, resource, floorMode: 'normal', mode: 'rcm' }).floorMode, 'master');
+  assert.equal(makeContext({ cls: 'mage', cataLevel: 50, resource, floorMode: 'normal', mode: 'rcm' }).floorMode, 'normal');
   assert.deepEqual(weightsFor('mage', null, 'lcm', 'normal'), { wither: 100, dragon: 0 });
   const mm = makeContext({ cls: 'mage', cataLevel: 50, resource });
   const starred = { ...newItem('HYPERION', resource), masterStars: 5 };
@@ -813,6 +813,8 @@ test('powers: the best learned power is used for free; unlearned ones are a ston
   const p = { get: (id) => ({ price: 1e6, source: 'BZ', id }) };
   const learn = availableUpgrades(l, ctx, p).find((u) => u.label.startsWith('Learn Bizarre power'));
   assert.ok(learn);
+  // Learning a power takes 9 of its stone.
+  close(learn.cost, 9e6);
   const after = learn.apply(l);
   assert.equal(after.power, 'bizarre');
   assert.ok(evaluate(after, ctx, w).wither >= evaluate(l, ctx, w).wither);
@@ -1237,4 +1239,24 @@ test('dual wield: a second Prosecute Hyperion with Execute costs the full first 
   const star = availableUpgrades(next, ctx, prices).find((u) => u.label === '1st Master Star on Hyperion (both copies)');
   close(star.cost, 2 * 8e6);
   assert.ok(!availableUpgrades(next, ctx, prices).some((u) => u.label.startsWith('Dual wield')));
+});
+
+test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment changes; power stones cost 9', () => {
+  const res = new Map([...resource, ['IMPLOSION_BELT', { id: 'IMPLOSION_BELT', name: 'Implosion Belt', category: 'BELT', tier: 'EPIC', stats: { DEFENSE: 70 } }]]);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, mode: 'rcm', resource: res });
+  const weights = weightsFor('mage', null, 'rcm');
+  const hype = scrolled(items([{ id: 'HYPERION', stars: 5 }])[0]);
+  const l = buildLoadout(profile([hype]), ctx, weights);
+  // Below the soft cap (Catacombs 0), the belt is exactly x1.25 (it applies before the cap, like Loving).
+  const low = makeContext({ cls: 'mage', cataLevel: 0, mode: 'rcm', resource: res });
+  const lowL = buildLoadout(profile([hype]), low, weights);
+  const withBelt = { ...lowL, equipment: { ...lowL.equipment, BELT: newItem('IMPLOSION_BELT', res) } };
+  close(evaluate(withBelt, low, weights).wither, evaluate(lowL, low, weights).wither * 1.25);
+  const table = { ...priceTable, IMPLOSION_BELT: 5e6, TALISMAN_ENRICHMENT_INTELLIGENCE: 1e6, TALISMAN_ENRICHMENT_SWAPPER: 1e6, FIRST_MASTER_STAR: 8e6 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
+  const ups = availableUpgrades(l, ctx, p);
+  assert.ok(ups.some((u) => u.label.startsWith('Buy Implosion Belt')));
+  assert.ok(!ups.some((u) => /Enrichment|enriched/.test(u.label)));
+  const f7 = makeContext({ cls: 'mage', cataLevel: 50, mode: 'rcm', floorMode: 'normal', resource: res });
+  assert.ok(!availableUpgrades(buildLoadout(profile([hype]), f7, weights), f7, p).some((u) => /Master Star/.test(u.label)));
 });

@@ -139,8 +139,9 @@ export const CLASS_TUNING_STATS = {
 };
 // Mage RCM clear set: leftover tuning and enrichments go to intelligence (ability damage cannot be tuned).
 export const RCM_TUNING_STATS = ['intelligence'];
-export const RCM_ENRICHMENTS = ['intelligence', 'walk_speed'];
 export const tuningStats = (ctx) => (ctx?.cls === 'mage' && ctx?.mode === 'rcm' ? RCM_TUNING_STATS : CLASS_TUNING_STATS[ctx?.cls] ?? []);
-export const enrichmentKinds = (ctx) => (ctx?.cls === 'mage' && ctx?.mode === 'rcm' ? RCM_ENRICHMENTS : CLASS_ENRICHMENTS[ctx?.cls] ?? []);
+// Enrichments to offer. None for the Mage clear set: enrichments cannot be swapped mid run, and the bag is set up for
+// the boss.
+export const enrichmentKinds = (ctx) => (ctx?.cls === 'mage' && ctx?.mode === 'rcm' ? [] : CLASS_ENRICHMENTS[ctx?.cls] ?? []);
 // Dungeon accessories (and their enrichments) get the Catacombs boost: x (1 + cata boost). Stars and the
 // General's Medallion do not apply, and crit chance and attack speed are not boosted. See accessoryItemStats.

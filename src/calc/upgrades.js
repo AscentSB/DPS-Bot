@@ -1,6 +1,6 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
-  MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
+  MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
   MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
@@ -41,6 +41,8 @@ const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
+// Learning a power at Maxwell uses up this many of its power stone.
+const POWER_STONES_TO_LEARN = 9;
 // Mage weapon buys bundled with the current weapon's cheaper enchants: books up to this price each.
 const COPY_BOOK_MAX = 10_000_000;
 const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage', 'ferocity'];
@@ -100,8 +102,8 @@ function dragonItems(l) {
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
 export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
-  // The Normal Mode toggle is for Mage LCM only (F7 Archer / Berserker damage and the RCM clear set are scored in Master Mode).
-  const floor = cls === 'mage' && mode !== 'rcm' ? floorMode : 'master';
+  // The Normal Mode toggle is for Mage only, boss set and clear set (F7 Archer / Berserker damage is scored in Master Mode).
+  const floor = cls === 'mage' ? floorMode : 'master';
   return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, resource };
 }
 
@@ -422,7 +424,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     }
 
     // Master stars: next star only, dungeon gear with 5 regular stars.
-    if (!isAccessory && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
+    if (!isAccessory && ctx.floorMode !== 'normal' && isDungeon(item, resource) && (item.stars ?? 0) >= MAX_STARS && item.masterStars < MAX_MASTER_STARS) {
       if (ctx.upgradeMode === 'max') {
         const parts = MASTER_STAR_IDS.slice(item.masterStars, MAX_MASTER_STARS).map((id) => ({ id }));
         pushItem(`${parts.length > 1 ? `${ordinal(item.masterStars + 1)}–${ordinal(MAX_MASTER_STARS)} Master Stars` : `${ordinal(MAX_MASTER_STARS)} Master Star`} on ${name}`, parts,
@@ -531,7 +533,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const isAcc = cat === ACCESSORY_CATEGORY;
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
-    if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls)) continue;
+    if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls) && !(id === IMPLOSION_BELT_ID && ctx.mode === 'rcm')) continue;
     if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id, cls)) continue;
     // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
     // priced and scored as one step, so an expensive accessory is weighed with its recomb and enrichment.
@@ -684,7 +686,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   // Power stones: learn a new power at Maxwell and switch to it.
   for (const [power, stone] of Object.entries(POWER_STONES)) {
     if (loadout.unlockedPowers?.has(power) || !POWERS[power]) continue;
-    push(`Learn ${titleCase(power)} power (${cleanName(resource.get(stone)?.name ?? stone)})`, [{ id: stone }], (l) => {
+    push(`Learn ${titleCase(power)} power (${POWER_STONES_TO_LEARN} ${cleanName(resource.get(stone)?.name ?? stone)})`, [{ id: stone, qty: POWER_STONES_TO_LEARN }], (l) => {
       const next = cloneLoadout(l);
       next.unlockedPowers.add(power);
       next.power = power;

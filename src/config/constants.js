@@ -134,6 +134,9 @@ export const ENCHANTING_ABILITY_DAMAGE_PER_LEVEL = 0.5;
 export const ENCHANTING_MAX_LEVEL = 60;
 // Loving reforge (Red Scarf) on the chestplate: 1.05x ability damage (multiplicative).
 export const LOVING_ABILITY_MULTIPLIER = 1.05;
+// Implosion Belt (RCM): x1.25 Wither Impact damage.
+export const IMPLOSION_BELT_ID = 'IMPLOSION_BELT';
+export const IMPLOSION_BELT_MULTIPLIER = 1.25;
 
 // Ferocity hits land about 0.5s late, and Goldor (the only place Berserker procs it) lives about 1s, so
 // ferocity damage counts half.

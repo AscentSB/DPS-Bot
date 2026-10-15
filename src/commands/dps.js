@@ -27,7 +27,7 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((c) => c.setName('mage').setDescription('Mage upgrades').addStringOption(ign)
     .addStringOption((o) => o.setName('set').setDescription('Boss set (LCM beam) or clear set (RCM, 500 speed)')
       .addChoices({ name: 'Boss set (LCM)', value: 'lcm' }, { name: 'Clear set (RCM)', value: 'rcm' }))
-    .addStringOption((o) => o.setName('floor').setDescription('Boss set only: Master Mode (M7) or Normal Mode (F7)')
+    .addStringOption((o) => o.setName('floor').setDescription('Master Mode (M7) or Normal Mode (F7)')
       .addChoices({ name: 'Master Mode', value: 'master' }, { name: 'Normal Mode', value: 'normal' }))
     .addStringOption(target));
 
@@ -85,7 +85,7 @@ function statsText(s, before, after, weights) {
 }
 
 function title(s) {
-  const set = s.cls === 'mage' ? (s.mode === 'rcm' ? ' · Clear set' : s.floorMode === 'normal' ? ' · Boss set (F7)' : ' · Boss set') : '';
+  const set = s.cls === 'mage' ? `${s.mode === 'rcm' ? ' · Clear set' : ' · Boss set'}${s.floorMode === 'normal' ? ' (F7)' : ''}` : '';
   return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
 }
 
@@ -196,7 +196,7 @@ export async function execute(interaction) {
   const cls = SUBCOMMAND_CLASS[sub];
   const name = interaction.options.getString('ign', true).trim();
   const mode = cls === 'mage' ? interaction.options.getString('set') ?? 'lcm' : 'lcm';
-  const floorMode = cls === 'mage' && mode === 'lcm' ? interaction.options.getString('floor') ?? 'master' : 'master';
+  const floorMode = cls === 'mage' ? interaction.options.getString('floor') ?? 'master' : 'master';
   const job = { cls, target: interaction.options.getString('target'), mode, floorMode };
   // Replies never repeat the typed IGN or raw error text, so user input cannot reach the message.
   if (!isValidIgn(name)) {
