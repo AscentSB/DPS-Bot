@@ -28,7 +28,8 @@ export const ENCHANTS = {
   // Titan Killer is for Master Mode (high defense): counted at its cap there, 0 in Normal Mode.
   // Prosecute is counted at full target health: early damage matters most (Lethality speeds up the rest), and RCM
   // one-taps. Execute (missing health) is left out for the same reason. Cubism hits nothing in dungeons.
-  giant_killer: { categories: SWORDS, target: 'global', stats: { additiveDamage: [5, 10, 15, 20, 30, 45, 65] }, conflicts: ['titan_killer'] },
+  // Boss set: Titan Killer in Master Mode (M7), Giant Killer in Normal Mode (F7). The clear set uses Giant Killer on both.
+  giant_killer: { categories: SWORDS, target: 'global', floorMode: 'normal', stats: { additiveDamage: [5, 10, 15, 20, 30, 45, 65] }, conflicts: ['titan_killer'] },
   titan_killer: { categories: SWORDS, target: 'global', floorMode: 'master', stats: { additiveDamage: [6, 12, 18, 24, 40, 60, 80] }, conflicts: ['giant_killer'] },
   prosecute: { categories: SWORDS, target: 'global', stats: { additiveDamage: [10, 20, 30, 40, 70, 100] } },
   // First hits on a mob (melee only): Triple-Strike for Master Mode (M7), First Strike for Normal Mode (F7).

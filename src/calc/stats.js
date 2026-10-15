@@ -380,7 +380,7 @@ function computeItemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
     for (const [stat, values] of Object.entries(ench.stats ?? {})) {
       const value = values[Math.min(level, values.length) - 1] * enemies;
       addLoose(out[ench.target], { [stat]: value });
-      // Mage RCM: only Titan Killer, Prosecute, Swarm and Smite raise Wither Impact damage (Master and Normal Mode).
+      // Mage RCM: only Giant Killer, Prosecute, Swarm and Smite raise Wither Impact damage (Master and Normal Mode).
       if (stat === 'additiveDamage' && weapon && isRcm(ctx) && RCM_ENCHANTS.includes(name)) {
         addLoose(out.global, { magicAdditive: value });
       }
