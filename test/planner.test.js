@@ -842,7 +842,7 @@ test('Hyperion gets +1 damage and +2 intelligence per Catacombs level before dun
   close(hyp.damage, (260 + 50) * 6.35);
 });
 
-test('Shadow Assassin Cloak gives LCM 1.1x only with all 3 Wither scrolls on a blade you own; scrolls are a step', () => {
+test('Shadow Assassin Cloak gives 1.1x only while holding a blade with all 3 Wither scrolls; scrolls are a step', () => {
   const res = new Map([...resource, ['SHADOW_ASSASSIN_CLOAK', { id: 'SHADOW_ASSASSIN_CLOAK', name: 'Shadow Assassin Cloak', category: 'CLOAK', tier: 'LEGENDARY', dungeon_item: true, stats: {} }]]);
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
   const w = weightsFor('mage');
@@ -859,6 +859,9 @@ test('Shadow Assassin Cloak gives LCM 1.1x only with all 3 Wither scrolls on a b
   assert.ok(step);
   assert.equal(step.cost, 2e6);
   close(evaluate(step.apply(l2), ctx, w).wither, d3);
+  // Holding another weapon gets no 1.1x, even with the scrolled Hyperion owned.
+  const gs = newItem('GIANTS_SWORD', res);
+  close(evaluate({ ...l3, weapon: gs }, ctx, w).wither, evaluate({ ...l2, weapon: gs }, ctx, w).wither);
 });
 
 test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor', async () => {

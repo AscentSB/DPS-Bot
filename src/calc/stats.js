@@ -885,9 +885,10 @@ function evaluateWith(loadout, ctx, activeExtras) {
         : mageDamage(s, defense, m));
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
-    // Shadow Assassin Cloak + a Wither Impact blade you own: every melee hit follows a teleport (LCM, 1.1x).
+    // Shadow Assassin Cloak while holding a Wither Impact blade (all 3 scrolls): every hit follows a teleport (1.1x).
+    // Only with that blade in hand; any other weapon gets nothing.
     // Necron's Blade family held: +50% vs withers.
-    const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && (loadout.witherImpact || hasWitherImpact(loadout.weapon)) ? SA_CLOAK_MULTIPLIER : 1;
+    const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && hasWitherImpact(loadout.weapon) ? SA_CLOAK_MULTIPLIER : 1;
     const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target) * bookMultiplier(loadout, ctx);
     if (ctx.cls === 'arch') dmg = archerDamage(s, defense, archerMultiplier(ctx) * fabled);
     else if (ctx.cls === 'bers') dmg = berserkerDamage(s, defense, 0, fabled);

@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -594,6 +594,12 @@ export function availableUpgrades(loadout, ctx, prices) {
           base.masterStars = src.masterStars ?? 0;
           parts.push(...MASTER_STAR_IDS.slice(0, base.masterStars).map((x) => ({ id: x })));
         }
+        // A full Necron's Blade variant with a Shadow Assassin Cloak worn also comes with the 3 Wither scrolls (1.1x).
+        if (extra.copy === 'all' && WITHER_IMPACT_WEAPONS.includes(id) && !base.scrolls.length && SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id)) {
+          base.scrolls = [...WITHER_SCROLLS];
+          parts.push(...WITHER_SCROLLS.map((x) => ({ id: x })));
+          labels.push('Wither scrolls');
+        }
         labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'} and potato books like ${cleanName(src.name ?? src.id)}`);
         // Replacing a dual-wielded weapon: the full copy comes as a dual-wield pair too (two copies, Execute on one),
         // so the new blade is not judged against the old pair as a single weapon.
@@ -703,14 +709,14 @@ export function availableUpgrades(loadout, ctx, prices) {
     }, { group: 'power' });
   }
 
-  // Wither scrolls: all 3 or nothing. RCM puts them on the blade you cast with; LCM on any blade you own, for the
-  // Shadow Assassin Cloak's 1.1x.
-  const scrollTargets = ctx.mode === 'rcm' && cls === 'mage' ? [loadout.weapon] : loadout.witherImpact ? [] : (loadout.blades ?? []);
+  // Wither scrolls: all 3 or nothing, on a blade you hold (RCM: for Wither Impact; LCM: for the Shadow Assassin
+  // Cloak's 1.1x, which only works with that blade in hand). Covers the main and dragon-set weapon.
+  const scrollTargets = ctx.mode === 'rcm' && cls === 'mage' ? [loadout.weapon] : [loadout.weapon, loadout.dragonGear?.weapon];
   for (const blade of scrollTargets.filter((b) => b && WITHER_IMPACT_WEAPONS.includes(b.id) && !hasWitherImpact(b))) {
     const missing = WITHER_SCROLLS.filter((x) => !(blade.scrolls ?? []).includes(x));
     push(`${missing.map((x) => SCROLL_NAMES[x]).join(', ')} on ${cleanName(blade.name ?? blade.id)}`, missing.map((x) => ({ id: x })), (l) => {
       const done = { ...blade, scrolls: [...new Set([...(blade.scrolls ?? []), ...WITHER_SCROLLS])] };
-      const next = l.weapon === blade ? replaceItem(l, blade, done) : cloneLoadout(l);
+      const next = replaceItem(l, blade, done);
       next.blades = (next.blades ?? []).map((b) => (b === blade ? done : b));
       next.witherImpact = true;
       return next;
