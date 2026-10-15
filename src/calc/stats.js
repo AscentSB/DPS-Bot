@@ -584,6 +584,14 @@ function rawStats(loadout, ctx, activeExtras) {
     bossOnly(pets[t][t], t);
     // Pet damage perks (Golden Dragon's Legendary Treasure) also raise ability damage.
     add({ magicAdditive: pets[t].stats.additiveDamage ?? 0 }, t);
+    // Skeleton Combo strength only builds with a bow.
+    if (pets[t].stats.comboStrength && isBow(loadout.weapon)) add({ strength: pets[t].stats.comboStrength }, t);
+    // Blaze: potato books on the weapon count twice (the extra copy, dungeon scaled like the weapon).
+    const potatoBoost = (pets[t].stats.potatoMultiplier ?? 1) - 1;
+    if (potatoBoost > 0 && loadout.weapon) {
+      const books = Math.min(loadout.weapon.hpb ?? 0, HOT_POTATO.max + FUMING_POTATO.max) * potatoBoost;
+      add(scaleBucket({ damage: books * HOT_POTATO.damage, strength: books * HOT_POTATO.strength }, loadout.weapon, c, isDungeon(loadout.weapon, c.resource)), t);
+    }
   }
   // Chimera on the weapon (not a Ragnarock): copies the active pet's stats, which then get the weapon's
   // dungeon boost (stars and cata; crit chance and attack speed stars only). Big for Mage: Golden Dragon's

@@ -891,6 +891,29 @@ test('profile stats: base crit damage, skills, slayers, SkyBlock level, Harp; pr
   for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1].gain >= rows[i].gain);
 });
 
+test('pet perks: Wither Skeleton vs withers, Skeleton bow damage and Combo, Blaze doubles potato books', async () => {
+  const { petStats } = await import('../src/lib/pets.js');
+  const ws = petStats({ type: 'WITHER_SKELETON', tier: 'LEGENDARY' });
+  close(ws.wither.additiveDamage, 125);
+  const sk = petStats({ type: 'SKELETON', tier: 'LEGENDARY' });
+  close(sk.stats.bowDamage, 150);
+  close(sk.stats.comboStrength, 60);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  const wsPet = { type: 'WITHER_SKELETON', tier: 'LEGENDARY', heldItem: null };
+  const withWs = evaluate({ ...l, activePets: { wither: wsPet, dragon: wsPet } }, ctx, w);
+  const none = evaluate({ ...l, activePets: {} }, ctx, w);
+  assert.ok(withWs.wither / none.wither > withWs.dragon / none.dragon);
+  const mctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const mw = weightsFor('mage');
+  const ml = buildLoadout(profile([{ ...newItem('HYPERION', resource), hpb: 15 }]), mctx, mw);
+  const blaze = { type: 'BLAZE', tier: 'LEGENDARY', heldItem: null };
+  const b = evaluate({ ...ml, activePets: { wither: blaze, dragon: blaze } }, mctx, mw).stats.wither;
+  const n = evaluate({ ...ml, activePets: {} }, mctx, mw).stats.wither;
+  assert.ok(b.damage > n.damage);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };
