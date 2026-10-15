@@ -12,6 +12,8 @@ async function route(interaction) {
   await dps.execute(interaction);
 }
 
+if (!process.env.HYPIXEL_API_KEY?.trim()) console.warn('HYPIXEL_API_KEY is missing from .env: /dps cannot read profiles until it is set.');
+
 // Prices (bazaar and auction house, every 5 minutes) and the item list (hourly) load once at launch, in the
 // background; commands read the cache and say "try again" until the first load is done.
 startPriceRefresh();
@@ -26,6 +28,10 @@ if (port) {
   startWorker();
   createInteractionServer({ publicKey, onInteraction: route }).listen(port, () => console.log(`HTTP interactions on port ${port}`));
 } else {
+  if (!process.env.DISCORD_TOKEN?.trim()) {
+    console.error('DISCORD_TOKEN is missing. Put DISCORD_TOKEN=your-bot-token in a file named .env (not .env.txt) in the bot folder, next to package.json.');
+    process.exit(1);
+  }
   // No message from the bot may ping anyone, whatever text ends up in it.
   const client = new Client({ intents: [GatewayIntentBits.Guilds], allowedMentions: { parse: [], repliedUser: false } });
   client.once(Events.ClientReady, (c) => {
