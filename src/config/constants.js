@@ -294,7 +294,7 @@ export const ARMOR_REFORGE = 'ancient';
 
 // Price refresh intervals.
 export const AUCTION_REFRESH_MS = 5 * 60 * 1000;
-export const BAZAAR_REFRESH_MS = 2 * 60 * 1000;
+export const BAZAAR_REFRESH_MS = 5 * 60 * 1000;
 export const ITEMS_REFRESH_MS = 60 * 60 * 1000;
 // Auction prices are the median of each item's lowest BIN over the last few changed downloads, so one sniped
 // listing or one bought-out cheapest listing does not swing the plan.

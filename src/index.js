@@ -3,12 +3,19 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import * as dps from './commands/dps.js';
 import { startWorker } from './worker/client.js';
 import { createInteractionServer } from './http/interactions.js';
+import { startPriceRefresh } from './api/prices.js';
+import { getItemsResource } from './api/hypixel.js';
 
 async function route(interaction) {
   if (interaction.isButton() && interaction.customId.startsWith('dps:')) return dps.handleButton(interaction);
   if (!interaction.isChatInputCommand() || interaction.commandName !== dps.data.name) return;
   await dps.execute(interaction);
 }
+
+// Prices (bazaar and auction house, every 5 minutes) and the item list (hourly) load once at launch, in the
+// background; commands read the cache and say "try again" until the first load is done.
+startPriceRefresh();
+getItemsResource().catch((err) => console.error('Item list load failed:', err.message));
 
 // Interactions arrive one of two ways (Discord sends them to only one): over the Gateway (default), or over HTTP
 // when INTERACTIONS_PORT is set and the app's Interactions Endpoint URL points at this server.

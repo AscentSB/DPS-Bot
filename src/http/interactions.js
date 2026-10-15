@@ -58,6 +58,10 @@ export function adaptInteraction(raw, respond, fetchImpl = fetch) {
     deferReply: async () => respond({ type: CALLBACK.DEFERRED_MESSAGE }),
     update: async (payload) => respond({ type: CALLBACK.UPDATE, data: message(payload) }),
     deferUpdate: async () => respond({ type: CALLBACK.DEFERRED_UPDATE }),
+    followUp: async (payload) => {
+      const res = await fetchImpl(`${API}/webhooks/${raw.application_id}/${raw.token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(message(payload)) });
+      if (!res.ok) throw new Error(`Followup failed: HTTP ${res.status}`);
+    },
     editReply: async (payload) => {
       const res = await fetchImpl(webhook, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(message(payload)) });
       if (!res.ok) throw new Error(`Edit original response failed: HTTP ${res.status}`);

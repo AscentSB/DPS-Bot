@@ -2,7 +2,8 @@ import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, Bu
 import { CLASSES } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
-import { runInWorker } from '../worker/client.js';
+import { runInWorker, PlanTimeoutError } from '../worker/client.js';
+import { pricesReady } from '../api/prices.js';
 
 // One subcommand per class, so the Mage-only options only show under /dps mage.
 const SUBCOMMAND_CLASS = { archer: 'arch', berserker: 'bers', mage: 'mage' };
@@ -112,6 +113,17 @@ function prune() {
   for (const [id, s] of sessions) if (now - s.usedAt > SESSION_MS) sessions.delete(id);
 }
 
+// Fixed replies for failures (never the raw error, which can hold outside text).
+const PRICES_LOADING = 'Prices are still loading after a restart. Try again in a moment.';
+const MOJANG_DOWN = 'Could not reach Mojang to look up that username. Try again in a minute.';
+const PLAN_TOO_LONG = 'This calculation took too long and was stopped. Try again in a minute.';
+function hypixelError(err) {
+  const msg = String(err?.message ?? '');
+  if (msg.includes('HYPIXEL_API_KEY') || /HTTP 403/.test(msg)) return 'The bot\'s Hypixel API key is missing or invalid. Tell the bot owner.';
+  if (/HTTP 429/.test(msg)) return 'The Hypixel API rate limit was reached. Try again in a minute.';
+  return 'Could not reach the Hypixel API. Try again in a minute.';
+}
+
 export async function execute(interaction) {
   const now = Date.now();
   for (const [user, at] of lastRun) if (now - at >= COOLDOWN_MS) lastRun.delete(user);
@@ -131,12 +143,16 @@ export async function execute(interaction) {
   if (!isValidIgn(name)) {
     return interaction.reply({ content: 'That is not a valid Minecraft username (2 to 16 letters, digits or underscores).', ephemeral: true });
   }
+  if (!pricesReady()) return interaction.reply({ content: PRICES_LOADING, ephemeral: true });
   await interaction.deferReply();
 
   try {
-    const account = await getMinecraftProfile(name);
+    let account;
+    try { account = await getMinecraftProfile(name); } catch (err) { console.error(err); return interaction.editReply(MOJANG_DOWN); }
     if (!account) return interaction.editReply('No Minecraft account has that username.');
-    const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]);
+    let resource;
+    let profile;
+    try { [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]); } catch (err) { console.error(err); return interaction.editReply(hypixelError(err)); }
     if (!profile) return interaction.editReply(`**${escapeMarkdown(account.name)}** has no SkyBlock profiles.`);
     const member = readMember(profile, account.uuid, resource);
 
@@ -149,7 +165,10 @@ export async function execute(interaction) {
     await interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   } catch (err) {
     console.error(err);
-    await interaction.editReply('Something went wrong while loading this profile. Try again in a minute.');
+    // readMember explains a profile with its Inventory API turned off; that text is ours, not outside input.
+    const text = err instanceof PlanTimeoutError ? PLAN_TOO_LONG : /Inventory API is disabled/.test(err?.message) ? err.message
+      : 'Something went wrong while loading this profile. Try again in a minute.';
+    await interaction.editReply(text);
   }
 }
 
@@ -176,6 +195,7 @@ export async function handleButton(interaction) {
       console.error(err);
       s.view = 'coins';
       s.upgradeMode = 'all';
+      await interaction.followUp({ content: err instanceof PlanTimeoutError ? PLAN_TOO_LONG : 'Could not work that list out. Try again in a minute.', ephemeral: true });
     }
     return interaction.editReply({ embeds: [buildEmbed(s)], components: buttons(id, s) });
   }

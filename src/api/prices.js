@@ -56,10 +56,15 @@ export async function ensurePrices() {
   await Promise.all(waits);
 }
 
+// True once both price sources have loaded at least once (commands answer "try again" until then).
+export function pricesReady() {
+  return loadedAt.bazaar > 0 && loadedAt.auctions > 0;
+}
+
 export function startPriceRefresh() {
   const tick = () => ensurePrices().catch((err) => console.error('Price load failed:', err.message));
   tick();
-  setInterval(tick, BAZAAR_REFRESH_MS).unref();
+  setInterval(tick, Math.min(BAZAAR_REFRESH_MS, AUCTION_REFRESH_MS)).unref();
 }
 
 // Price lookup over { bazaar, auctions }, read at lookup time (a refresh swaps the maps in place of the old ones).

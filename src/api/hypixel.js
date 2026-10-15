@@ -11,16 +11,25 @@ import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
 const API = 'https://api.hypixel.net/v2';
 
 let itemsCache = { map: null, fetchedAt: 0 };
+let itemsLoading = null;
 
-// Item resource keyed by ITEM_ID. Holds stats, category, tier and dungeon_item flag.
+// Item resource keyed by ITEM_ID. Holds stats, category, tier and dungeon_item flag. Loaded once (callers share
+// the request) and refreshed hourly in the background: a stale list is served while the new one loads.
 export async function getItemsResource() {
   if (itemsCache.map && Date.now() - itemsCache.fetchedAt < ITEMS_REFRESH_MS) return itemsCache.map;
-  const data = await getJson(`${API}/resources/skyblock/items`);
-  if (!data?.success) throw new Error('Could not load the SkyBlock items resource.');
-  const map = new Map();
-  for (const item of data.items) map.set(item.id, item);
-  itemsCache = { map, fetchedAt: Date.now() };
-  return map;
+  itemsLoading ??= (async () => {
+    const data = await getJson(`${API}/resources/skyblock/items`);
+    if (!data?.success) throw new Error('Could not load the SkyBlock items resource.');
+    const map = new Map();
+    for (const item of data.items) map.set(item.id, item);
+    itemsCache = { map, fetchedAt: Date.now() };
+    return map;
+  })().finally(() => { itemsLoading = null; });
+  if (itemsCache.map) {
+    itemsLoading.catch((err) => console.error('Item list refresh failed:', err.message));
+    return itemsCache.map;
+  }
+  return itemsLoading;
 }
 
 // Selected profiles by UUID: { at, profile } once loaded, or { promise } while loading (callers share one request).
