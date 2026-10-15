@@ -142,11 +142,18 @@ export function readMember(profile, uuid, resource) {
   };
 }
 
-// Coins in the bank for Golden Dragon. A co-op counts the co-op bank only (never a personal bank). A solo profile
+// Members still on the profile. A member who left keeps an entry with profile.deletion_notice, and an invite not
+// yet accepted has coop_invitation.confirmed false. Neither counts.
+export function activeMembers(profile) {
+  return Object.values(profile?.members ?? {}).filter((m) => !m?.profile?.deletion_notice && m?.profile?.coop_invitation?.confirmed !== false
+    && m?.coop_invitation?.confirmed !== false).length;
+}
+
+// Coins in the bank for Golden Dragon. A co-op whose other members all left counts as solo. A co-op counts the co-op bank only (never a personal bank). A solo profile
 // has one bank, which the API can report in either field, so the larger one counts. Bank API off: undefined.
 function bankBalance(profile, member) {
   const shared = profile.banking?.balance;
-  const solo = Object.keys(profile.members ?? {}).length <= 1;
+  const solo = activeMembers(profile) <= 1;
   const personal = solo ? member.profile?.bank_account : null;
   if (shared == null && personal == null) return undefined;
   return Math.max(Number(shared) || 0, Number(personal) || 0);

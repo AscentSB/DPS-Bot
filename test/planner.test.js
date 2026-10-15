@@ -1404,6 +1404,10 @@ test('Golden Dragon bank: co-op bank only on a co-op, the one bank on a solo pro
   assert.equal(read({ banking: { balance: 0.25 } }, { profile: { bank_account: 1e9 } }, false), 1e9);
   assert.equal(read({ banking: { balance: 1e9 } }, { profile: { bank_account: 1e9 } }, false), 1e9);
   assert.equal(read({}, { profile: { bank_account: 400e6 } }, true), undefined);
+  // The other members left: solo again.
+  const left = { profile: { deletion_notice: { timestamp: 1 } } };
+  const p = { banking: { balance: 0.25 }, members: { u: member({ profile: { bank_account: 1e9 } }), v: left, w: left } };
+  assert.equal(readMember(p, 'u', resource).petProfile.bank, 1e9);
 });
 
 test('bank deposits never show as two steps in a row', async () => {
