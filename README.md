@@ -60,6 +60,7 @@ A global upgrade counts for 100. Picking `target` puts all 100 on that boss.
 - Profile stats (when the profile is read): base 50 crit damage, Foraging strength, Enchanting and Alchemy intelligence (+1 per level to 14, +2 after), Tarantula, Wolf and Enderman slayer rewards, +1 strength per 5 SkyBlock levels, Melody's Harp songs played perfectly (up to +26 intelligence) and active Century Cake buffs. Fairy souls and the bestiary give no damage stats. Mayor perks are never counted.
 - `menu:Profile upgrades` lists the next level of each profile source (Catacombs, your class, Combat, Foraging, Enchanting, Alchemy, slayers, the next 5 SkyBlock levels, each Harp song) ranked by % damage, with no coin cost. `menu:Coin upgrades` (default) is the buy list.
 - Below floor 10 (Catacombs under 36), floor-scaled dungeon armor gets no step over 1M coins (it is replaced at floor 10).
+- Ferocity: Berserker against withers only (not dragons, never Archer or Mage). Each 100 ferocity is one extra hit per arrow, a melee hit, so it takes the normal hit (additive included) times the Berserk melee bonus as a multiplier (1 + (40 + 1.5 per level) / 100), soft-capped on its own. Ferocity on dungeon gear gets stars and the medallion only. Sources: gear, reforges (Dirty), pets (Tiger, Hound, ...) and Tiger's Merciless Swipe.
 - Fabled reforge: every melee hit deals 0-15% more, multiplicative, counted as 1.075x (LCM beam and sword hits, not RCM).
 - All damage above 1,000,000 keeps 10%.
 

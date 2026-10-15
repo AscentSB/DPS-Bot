@@ -71,7 +71,7 @@ const STAT_ALIASES = {
   DAMAGE: 'damage', STRENGTH: 'strength', CRITICAL_DAMAGE: 'critDamage', CRIT_DAMAGE: 'critDamage',
   CRITICAL_CHANCE: 'critChance', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence',
   WALK_SPEED: 'speed', SPEED: 'speed', ATTACK_SPEED: 'attackSpeed', BONUS_ATTACK_SPEED: 'attackSpeed',
-  ABILITY_DAMAGE_PERCENT: 'abilityDamage', ABILITY_DAMAGE: 'abilityDamage',
+  ABILITY_DAMAGE_PERCENT: 'abilityDamage', ABILITY_DAMAGE: 'abilityDamage', FEROCITY: 'ferocity',
 };
 
 // Flat stats get dungeon scaling. Percent, fraction and multiplier stats do not.
@@ -89,7 +89,7 @@ function emptyBucket() {
     additiveCritDamage: 0, additiveCritDamage2: 0, multCritDamage: 1,
     additiveCritChance: 0, multCritChance: 1,
     additiveIntelligence: 0, additiveIntelligence2: 0, multIntelligence: 1,
-    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0, abilityDamage: 0, magicAdditive: 0,
+    blessing: 0, blessingShard: 0, speed: 0, bowDamage: 0, attackSpeed: 0, additiveAttackSpeed: 0, arrows: 0, abilityDamage: 0, magicAdditive: 0, ferocity: 0, additiveFerocity: 0,
   };
 }
 
@@ -240,7 +240,7 @@ export function gemStat(gem, quality, rarity) {
 // Every dungeon item is assumed to be a regular 5-starred item.
 // Crit chance, attack speed and ability damage get the star part only (1.5 + master stars + medallion), no Catacombs boost.
 // Speed gets the full dungeon multiplier like strength.
-const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'abilityDamage']);
+const STAR_ONLY_STATS = new Set(['critChance', 'attackSpeed', 'abilityDamage', 'ferocity']);
 
 function scaleBucket(stats, item, ctx, dungeon) {
   if (!dungeon) return stats;
@@ -682,6 +682,11 @@ export function classAdditiveDamage(ctx) {
   return warrior + berserk;
 }
 
+// Berserk melee bonus as a multiplier (40 + 0.75 per level, per-level part doubled solo): ferocity hits only.
+export function berserkMeleeMultiplier(ctx) {
+  return 1 + (BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0)) / 100;
+}
+
 // Archer class arrow damage: a multiplicative buff from Archer level (solo).
 export function archerMultiplier(ctx) {
   return ctx.cls === 'arch' ? 1 + (SOLO_CLASS_MULTIPLIER * ARCHER_ARROW_DAMAGE_PER_LEVEL * (ctx.archerLevel ?? 0)) / 100 : 1;
@@ -744,6 +749,12 @@ function evaluateWith(loadout, ctx, activeExtras) {
       result.stats[target] = s;
       continue;
     } else dmg = mageDamage(s, defense, target === 'wither' && hasHyperion(loadout), fabled);
+    // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
+    // Berserk melee bonus multiplies it again on top of the additive. Soft-capped as its own hit.
+    if (ctx.cls === 'bers' && target === 'wither') {
+      const ferocity = buckets[target].ferocity * (1 + buckets[target].additiveFerocity);
+      if (ferocity > 0) dmg += (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
+    }
     // Thunderlord: every 3rd hit adds lightning for a % of the hit, soft-capped as its own hit.
     const thunder = thunderlordPercent(loadout.weapon);
     if (thunder) dmg += hitWith(fabled * thunder / 100) / THUNDERLORD_EVERY;

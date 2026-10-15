@@ -2130,31 +2130,38 @@
   "stats": {
    "COMMON": {
     "strength": 2,
-    "attackSpeed": 2
+    "attackSpeed": 2,
+    "ferocity": 2
    },
    "UNCOMMON": {
     "strength": 4,
-    "attackSpeed": 3
+    "attackSpeed": 3,
+    "ferocity": 3
    },
    "RARE": {
     "strength": 6,
-    "attackSpeed": 5
+    "attackSpeed": 5,
+    "ferocity": 6
    },
    "EPIC": {
     "strength": 10,
-    "attackSpeed": 10
+    "attackSpeed": 10,
+    "ferocity": 9
    },
    "LEGENDARY": {
     "strength": 12,
-    "attackSpeed": 15
+    "attackSpeed": 15,
+    "ferocity": 12
    },
    "MYTHIC": {
     "strength": 15,
-    "attackSpeed": 20
+    "attackSpeed": 20,
+    "ferocity": 15
    },
    "DIVINE": {
     "strength": 20,
-    "attackSpeed": 25
+    "attackSpeed": 25,
+    "ferocity": 18
    }
   }
  },

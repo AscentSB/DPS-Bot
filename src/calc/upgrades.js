@@ -41,7 +41,7 @@ const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
 const SCROLL_NAMES = { IMPLOSION_SCROLL: 'Implosion', SHADOW_WARP_SCROLL: 'Shadow Warp', WITHER_SHIELD_SCROLL: 'Wither Shield' };
 const HEPH_RELIC_ID = 'HEPHAESTUS_RELIC';
-const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage'];
+const DPS_STATS = ['damage', 'strength', 'critDamage', 'critChance', 'intelligence', 'speed', 'attackSpeed', 'abilityDamage', 'ferocity'];
 
 // Weights for the run. Choosing a single target puts the full global weight on it.
 // Mage RCM (mode 'rcm') is scored on clear mobs only, kept in the "wither" slot.

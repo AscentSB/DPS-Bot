@@ -40,7 +40,8 @@ export const PET_PERKS = {
   // Giant Slayer: +75% damage to level 100+ monsters (M7 bosses and clear mobs).
   PIGMAN: () => ({ additiveDamage: 75 }),
   // Apex Predator: +n[2]% damage with no other mob within 15 blocks: withers only (not dragons or the clear).
-  TIGER: (n) => ({ wither: { additiveDamage: n[2] ?? 0 } }),
+  // Merciless Swipe: +n[0]% ferocity.
+  TIGER: (n) => ({ wither: { additiveDamage: n[2] ?? 0 }, additiveFerocity: (n[0] ?? 0) / 100 }),
   // Tyrant: pet item combat stats +n[2]%. Close Combat (1.5 blocks) never applies.
   TYRANNOSAURUS: (n) => ({ special: { itemBoost: (n[2] ?? 0) / 100 } }),
   // Primal Force: +n[0] damage and +n[1] strength on your weapon (scaled like weapon stats). First Pounce:

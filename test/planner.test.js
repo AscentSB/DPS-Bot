@@ -943,6 +943,25 @@ test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, An
   assert.equal(dpsPets([{ type: 'SKELETON_HORSE', tier: 'LEGENDARY', heldItem: null }], ctx).length, 0);
 });
 
+test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier), stars only, never Archer', () => {
+  const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, FEROCITY: 20 } }]]);
+  const dmg = (cls, res2) => {
+    const ctx = makeContext({ cls, cataLevel: 50, berserkLevel: 50, archerLevel: 50, resource: res2 });
+    const w = weightsFor(cls);
+    const l = buildLoadout(profile([newItem('TERMINATOR', res2)]), ctx, w);
+    return { r: evaluate({ ...l, activePets: {} }, ctx, w), l, ctx };
+  };
+  const withF = dmg('bers', res);
+  const without = dmg('bers', resource);
+  assert.ok(withF.r.wither > without.r.wither);
+  close(withF.r.dragon, without.r.dragon);
+  const a1 = dmg('arch', res);
+  const a0 = dmg('arch', resource);
+  close(a1.r.wither, a0.r.wither);
+  // Ferocity on a dungeon item gets the star multiplier only (1.5 at 5 stars, no cata).
+  close(itemContribution(newItem('TERMINATOR', res), withF.ctx).global.ferocity, 20 * 1.5);
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };
