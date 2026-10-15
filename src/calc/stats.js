@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -136,6 +136,13 @@ export function petProfileOf(loadout, ctx) {
   if (!byBank) bankProfiles.set(base, (byBank = new Map()));
   if (!byBank.has(bank)) byBank.set(bank, { ...base, bank });
   return byBank.get(bank);
+}
+
+// Shadow Assassin Cloak averaged over every hit: one hit in (cooldown x hits per second) gets 1.1x.
+export function saCloakMultiplier(hitsPerSecond, ctx) {
+  const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * Math.min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0)) : 0;
+  const hitsPerCooldown = Math.max(1, SA_CLOAK_COOLDOWN_S * (1 - reduction / 100) * hitsPerSecond);
+  return 1 + (SA_CLOAK_MULTIPLIER - 1) / hitsPerCooldown;
 }
 
 export function isRcm(ctx) {
@@ -908,10 +915,10 @@ function evaluateWith(loadout, ctx, activeExtras) {
     const defense = TARGET_DEFENSE[target];
     // Fabled: every hit deals 0-15% more (multiplicative), 7.5% on average. Melee hits only, so the beam
     // gets it and RCM does not.
-    // Shadow Assassin Cloak while holding a Wither Impact blade (all 3 scrolls): every hit follows a teleport (1.1x).
-    // Only with that blade in hand; any other weapon gets nothing.
+    // Shadow Assassin Cloak while holding a Wither Impact blade (all 3 scrolls): one 1.1x hit per cooldown,
+    // averaged over every hit. Any other weapon gets nothing.
     // Necron's Blade family held: +50% vs withers.
-    const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && hasWitherImpact(loadout.weapon) ? SA_CLOAK_MULTIPLIER : 1;
+    const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && hasWitherImpact(loadout.weapon) ? saCloakMultiplier(shots, ctx) : 1;
     const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target) * bookMultiplier(loadout, ctx);
     if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).

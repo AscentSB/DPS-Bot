@@ -137,10 +137,15 @@ export const WITHER_IMPACT_WEAPONS = ['HYPERION', 'ASTRAEA', 'VALKYRIE', 'SCYLLA
 // Wither Impact needs all 3 scrolls (ExtraAttributes.ability_scroll). The Ultimate Wither Scroll counts as all 3.
 export const WITHER_SCROLLS = ['IMPLOSION_SCROLL', 'SHADOW_WARP_SCROLL', 'WITHER_SHIELD_SCROLL'];
 export const ULTIMATE_WITHER_SCROLL = 'ULTIMATE_WITHER_SCROLL';
-// Shadow Assassin Cloak: the next melee hit after a teleport deals 10% more. With a Wither Impact blade (all 3
-// scrolls) you teleport every cast, so LCM gets 1.1x. 2 of 3 scrolls does nothing.
+// Shadow Assassin Cloak: the next hit after a teleport deals 10% more, once every SA_CLOAK_COOLDOWN_S seconds
+// (shortened by Mage cooldown reduction). Averaged over every hit: 1 + 0.1 / (hits per cooldown). Needs a Wither
+// Impact blade in hand (all 3 scrolls) to teleport. 2 of 3 scrolls does nothing.
 export const SA_CLOAK_IDS = ['SHADOW_ASSASSIN_CLOAK', 'STARRED_SHADOW_ASSASSIN_CLOAK'];
 export const SA_CLOAK_MULTIPLIER = 1.1;
+export const SA_CLOAK_COOLDOWN_S = 3;
+// Mage cooldown reduction: Mage level / 2 percent (max 25), doubled when solo: 50% at level 50.
+export const MAGE_COOLDOWN_REDUCTION_PER_LEVEL = 0.5;
+export const MAGE_COOLDOWN_REDUCTION_MAX = 25;
 // Mage class ability damage: +5, plus +1 per 5 Mage levels (doubled when solo, like the class intelligence).
 export const MAGE_ABILITY_DAMAGE_BASE = 5;
 export const MAGE_ABILITY_DAMAGE_PER_5_LEVELS = 1;

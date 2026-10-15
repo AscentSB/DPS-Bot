@@ -5,7 +5,7 @@ import nbt from 'prismarine-nbt';
 import { decodeItems, toItemState } from '../src/lib/nbt.js';
 import { readMember } from '../src/api/hypixel.js';
 import { makeContext, buildLoadout, planUpgrades, weightsFor, availableUpgrades, newItem } from '../src/calc/upgrades.js';
-import { evaluate, itemContribution, shardStats, totalAccessoryPower, accessoryStats } from '../src/calc/stats.js';
+import { evaluate, itemContribution, shardStats, totalAccessoryPower, accessoryStats, saCloakMultiplier } from '../src/calc/stats.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 
@@ -1436,4 +1436,15 @@ test('LCM scroll step names the Shadow Assassin Cloak ability; RCM does not', ()
   };
   assert.equal(label('lcm'), 'Implosion, Shadow Warp, Wither Shield on Hyperion (Shadow Assassin Cloak ability)');
   assert.equal(label('rcm'), 'Implosion, Shadow Warp, Wither Shield on Hyperion');
+});
+
+test('Shadow Assassin Cloak: one 1.1x hit per 3s (less Mage cooldown reduction), averaged over every hit', () => {
+  // Mage 50 solo: 50% cooldown reduction, 1.5s. 4 beam hits a second: 6 hits per cooldown.
+  close(saCloakMultiplier(4, { cls: 'mage', mageLevel: 50 }), 1 + 0.1 / 6);
+  // Berserker: 3s, 1 hit a second.
+  close(saCloakMultiplier(1, { cls: 'bers' }), 1 + 0.1 / 3);
+  // 12 hits per cooldown: 1.0083x.
+  close(saCloakMultiplier(4, { cls: 'bers' }), 1 + 0.1 / 12);
+  // Never more than every hit.
+  close(saCloakMultiplier(0.1, { cls: 'bers' }), 1.1);
 });
