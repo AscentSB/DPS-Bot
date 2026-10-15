@@ -23,10 +23,11 @@ export const WARRIOR_PER_LEVEL_AFTER_50 = 1;
 // A global upgrade counts for wither weight + dragon weight = 100.
 export const GLOBAL_WEIGHT = 100;
 
-// Enemy defense used in (1 - defense / (defense + 100)). Edit to match the bosses you fight.
+// Boss defense, used in (1 - defense / (defense + 100)) on boss hits. The Mage clear set (RCM) is scored on clear
+// mobs and ignores it.
 export const TARGET_DEFENSE = {
-  wither: 0,
-  dragon: 0,
+  wither: 9000,
+  dragon: 12500,
 };
 
 // damage = BASE_DAMAGE + weapon_damage

@@ -98,7 +98,7 @@ npm start
 - `src/config/enchants.js`: enchant stats per level and which boss they affect.
 - `src/config/accessories.js`: Accessory Power, powers, tuning, enrichments.
 - `src/config/gemstones.js`: gemstone stats.
-- `src/config/constants.js`: weights, boss defense, blessing levels (Time 0 or 5; mayor perks are never counted), Catacombs table.
+- `src/config/constants.js`: weights, boss defense (withers 9,000, dragons 12,500; the clear set ignores it), blessing levels (Time 0 or 5; mayor perks are never counted), Catacombs table.
 - `src/calc/formulas.js`: the damage and stat formulas.
 
 `npm run update-data` refreshes reforge stats, accessory families, fragged item recipes and pet stats from the NotEnoughUpdates repo. `npm test` runs the tests.
