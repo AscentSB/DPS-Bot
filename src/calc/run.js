@@ -13,7 +13,12 @@ export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 
   });
   const weights = weightsFor(cls, target, mode, ctx.floorMode);
   const loadout = buildLoadout(member, ctx, weights);
-  const damage = (d) => ({ wither: d.wither, dragon: d.dragon, ap: d.ap, tuning: d.tuning });
+  // Stats shown with the damage (after tuning), per target: the dragon pet and dragon set can change them.
+  const STAT_KEYS = ['strength', 'critDamage', 'critChance', 'intelligence', 'abilityDamage'];
+  const stats = (d) => Object.fromEntries(['wither', 'dragon'].map((t) => [t, {
+    ...Object.fromEntries(STAT_KEYS.map((k) => [k, d.stats?.[t]?.[k] ?? 0])), attackSpeed: d.attackSpeeds?.[t] ?? 0, speed: d.speed ?? 0,
+  }]));
+  const damage = (d) => ({ wither: d.wither, dragon: d.dragon, ap: d.ap, tuning: d.tuning, stats: stats(d) });
   if (menu === 'profile') {
     const { rows, damage: now } = profileUpgrades(loadout, ctx, weights);
     return { weights, menu, floorMode: ctx.floorMode, profile: { rows, damage: damage(now) } };

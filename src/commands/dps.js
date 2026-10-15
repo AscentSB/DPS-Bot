@@ -65,6 +65,25 @@ function damageText(d, rcm) {
   return rcm ? `${formatCoins(d.wither)} per Wither Impact` : `Withers ${formatCoins(d.wither)}\nDragons ${formatCoins(d.dragon)}`;
 }
 
+// Stats that matter for each class: Mage RCM only uses speed, intelligence and ability damage.
+const STAT_LABELS = { critChance: 'Crit chance', attackSpeed: 'Attack speed', speed: 'Speed', strength: 'Strength', critDamage: 'Crit damage', intelligence: 'Intelligence', abilityDamage: 'Ability damage' };
+function shownStats(s) {
+  if (s.cls === 'mage' && s.mode === 'rcm') return ['speed', 'intelligence', 'abilityDamage'];
+  return ['critChance', 'attackSpeed', 'speed', 'strength', 'critDamage', ...(s.cls === 'mage' ? ['intelligence'] : [])];
+}
+const statNumber = (n) => Math.round(n).toLocaleString('en-US');
+
+// "Strength 1,200 → 1,450", with the dragon values after it when they differ (dragon pet or dragon set).
+function statsText(s, before, after, weights) {
+  const targets = ['wither', 'dragon'].filter((t) => weights?.[t] > 0);
+  const [main, other] = targets.length ? targets : ['wither'];
+  return shownStats(s).map((k) => {
+    const pair = (t) => `${statNumber(before?.[t]?.[k] ?? 0)} → ${statNumber(after?.[t]?.[k] ?? 0)}`;
+    const differs = other && (before?.[other]?.[k] !== before?.[main]?.[k] || after?.[other]?.[k] !== after?.[main]?.[k]);
+    return `${STAT_LABELS[k]} ${pair(main)}${differs ? ` (dragons ${pair(other)})` : ''}`;
+  }).join('\n');
+}
+
 function title(s) {
   const set = s.cls === 'mage' ? (s.mode === 'rcm' ? ' · Clear set' : s.floorMode === 'normal' ? ' · Boss set (F7)' : ' · Boss set') : '';
   return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
@@ -98,6 +117,7 @@ export function buildEmbed(s) {
     .addFields(
       { name: 'Damage now', value: damageText(plan.startDamage, rcm), inline: true },
       { name: `After all ${plan.steps.length}`, value: damageText(plan.endDamage, rcm), inline: true },
+      { name: `Stats (now → after all ${plan.steps.length})`, value: statsText(s, plan.startDamage.stats, plan.endDamage.stats, s.coins[s.upgradeMode].weights) },
       { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[s.upgradeMode].tuningSplit) },
     )
     .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
