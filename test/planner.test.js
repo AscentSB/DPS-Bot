@@ -785,6 +785,23 @@ test('Normal Mode (Mage LCM only): no master stars, no Master Skull, withers onl
   close(itemContribution(skull, mm).global.multStrength, 1.1);
 });
 
+test('a small step overwritten within 10M coins is skipped; one replaced later stays', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  const plan = (second) => {
+    const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: second };
+    return planUpgrades(l, ctx, { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) }, w, 5).steps.map((s) => s.label);
+  };
+  // Duplex II for 2.5M right after Duplex I (under 5% gain): Duplex I is skipped.
+  const soon = plan(2.5e6);
+  assert.ok(!soon.some((x) => x.startsWith('Duplex I ')), soon.join(', '));
+  assert.ok(soon.some((x) => x.startsWith('Duplex II ')), soon.join(', '));
+  // Duplex II for 20M: more than 10M later, so Duplex I stays.
+  const late = plan(20e6);
+  assert.ok(late.some((x) => x.startsWith('Duplex I ')), late.join(', '));
+});
+
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
   const { meetsRequirements } = await import('../src/lib/requirements.js');
   const player = { cataLevel: 23, skills: { COMBAT: 24, HUNTING: 3 }, slayers: { spider: 3 } };

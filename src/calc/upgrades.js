@@ -13,7 +13,7 @@ import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
   evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
@@ -25,7 +25,12 @@ import { meetsRequirements } from '../lib/requirements.js';
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 // Most coins spent on an armor or equipment piece the plan later replaces (buy + upgrades, kept below this).
 export const REPLACED_PIECE_BUDGET = 25_000_000;
-const REPLAN_ROUNDS = 6;
+const REPLAN_ROUNDS = 10;
+// A step the plan overwrites soon after (a reforge, enchant level, gem, enrichment, pet item, piece or pet that a
+// later step replaces with at most this many coins spent in between, the replacing step included) is skipped,
+// unless it alone raises damage by more than REPLACED_SOON_MIN_GAIN percent.
+export const REPLACED_SOON_COINS = 10_000_000;
+export const REPLACED_SOON_MIN_GAIN = 5;
 // Mage RCM Chimera pets (intelligence and ability damage, copied by Chimera and boosted by the blade's stars).
 const RCM_CHIMERA_PETS = ['CROW', 'SHEEP'];
 const CHIMERA_MAX = 5;
@@ -661,7 +666,84 @@ function pieceChanges(prev, next) {
 // Pieces the plan later replaces ("doomed") get under REPLACED_PIECE_BUDGET coins in total (buy + upgrades,
 // carried through Golden -> Diamond and Wither -> Necron's upgrades), so the plan does not sink money into
 // armor or equipment it throws away.
-function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
+// What a step sets, as keys a later step can overwrite. Stacking upgrades (stars, master stars, potato books,
+// shards, essence perks) and one-way ones (recombobulator) never get overwritten, so they have no keys.
+// A new piece in a slot (not an upgrade of the old one) also overwrites every key on that slot.
+function stepFacts(prev, next) {
+  const facts = new Set();
+  const item = (slot, a, b) => {
+    if (a === b || !b) return;
+    if (!a || (a.id !== b.id && !upgradesInto(a.id, b.id))) { facts.add(`${slot}:piece`); return; }
+    if ((a.reforge ?? null) !== (b.reforge ?? null)) facts.add(`${slot}:reforge`);
+    if ((a.enrichment ?? null) !== (b.enrichment ?? null)) facts.add(`${slot}:enrichment`);
+    for (const k of new Set([...Object.keys(a.enchants ?? {}), ...Object.keys(b.enchants ?? {})])) {
+      if ((a.enchants?.[k] ?? 0) !== (b.enchants?.[k] ?? 0)) facts.add(`${slot}:enchant:${k}`);
+    }
+    const ga = a.gems?.slots ?? {};
+    const gb = b.gems?.slots ?? {};
+    for (const k of new Set([...Object.keys(ga), ...Object.keys(gb)])) {
+      if (JSON.stringify(ga[k] ?? null) !== JSON.stringify(gb[k] ?? null)) facts.add(`${slot}:gem:${k}`);
+    }
+  };
+  item('weapon', prev.weapon, next.weapon);
+  item('rag', prev.rag, next.rag);
+  for (const slot of ARMOR_SLOTS) item(slot, prev.armor?.[slot], next.armor?.[slot]);
+  for (const slot of EQUIPMENT_SLOTS) item(slot, prev.equipment?.[slot], next.equipment?.[slot]);
+  for (const [id, b] of next.accessories) {
+    const a = prev.accessories.get(id);
+    // A new accessory takes over its family (a ring after its talisman).
+    if (!a) facts.add(`acc:${accessoryFamily(id)}:piece`);
+    else if ((a.enrichment ?? null) !== (b.enrichment ?? null)) facts.add(`acc:${accessoryFamily(id)}:enrichment`);
+  }
+  for (const t of Object.keys(next.activePets ?? {})) {
+    const a = prev.activePets?.[t];
+    const b = next.activePets?.[t];
+    if (!b || a === b) continue;
+    if (a && a.type === b.type) { if (a.heldItem !== b.heldItem || a.tier !== b.tier) facts.add(`pet:${b.type}:item`); }
+    else facts.add(`activePet:${t}`);
+  }
+  for (const key of next.extras ?? []) {
+    if (prev.extras?.has(key)) continue;
+    const group = EXTRA_UPGRADES.find((e) => e.key === key)?.group;
+    if (group) facts.add(`extra:${group}`);
+  }
+  return facts;
+}
+
+// The gear slot a fact belongs to ("HELMET", "acc:<family>"), or null for pets and extras.
+const ITEM_SLOTS = new Set(['weapon', 'rag', ...ARMOR_SLOTS, ...EQUIPMENT_SLOTS]);
+function factSlot(fact) {
+  const parts = fact.split(':');
+  if (parts[0] === 'acc') return `acc:${parts[1]}`;
+  return ITEM_SLOTS.has(parts[0]) ? parts[0] : null;
+}
+
+// True when `later` overwrites something `earlier` set (the same key, or a new piece in that slot).
+function overwrites(later, earlier) {
+  for (const f of earlier) {
+    if (later.has(f)) return true;
+    const slot = factSlot(f);
+    if (slot && later.has(`${slot}:piece`)) return true;
+  }
+  return false;
+}
+
+// Steps overwritten within REPLACED_SOON_COINS that add REPLACED_SOON_MIN_GAIN% or less.
+function replacedSoon(steps) {
+  const out = [];
+  for (let i = 0; i < steps.length; i++) {
+    if (!steps[i].facts.size || steps[i].gain > REPLACED_SOON_MIN_GAIN) continue;
+    let coins = 0;
+    for (let j = i + 1; j < steps.length; j++) {
+      coins += steps[j].cost;
+      if (coins > REPLACED_SOON_COINS) break;
+      if (overwrites(steps[j].facts, steps[i].facts)) { out.push(steps[i].label); break; }
+    }
+  }
+  return out;
+}
+
+function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned = new Set()) {
   const steps = [];
   const spend = new Map();
   const parent = new Map();
@@ -674,7 +756,7 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
   for (let i = 0; i < limit; i++) {
     let best = null;
     for (const up of availableUpgrades(loadout, ctx, prices)) {
-      if (!(up.cost > 0)) continue;
+      if (!(up.cost > 0) || banned.has(up.label)) continue;
       const next = up.apply(loadout);
       const changes = pieceChanges(loadout, next);
       if (changes.some((c) => doomed.has(c.kind === 'upgrade' ? c.prevKey : c.key) && spent(c) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
@@ -685,13 +767,14 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
       if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after, changes };
     }
     if (!best) break;
-    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after });
+    const nextLoadout = selectPet(best.next, ctx, weights);
+    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after, facts: stepFacts(loadout, nextLoadout) });
     for (const c of best.changes) {
       spend.set(c.key, spent(c) + best.cost);
       if (c.kind === 'upgrade') parent.set(c.key, c.prevKey);
       if (c.kind === 'replace') replaced.add(c.prevKey);
     }
-    loadout = selectPet(best.next, ctx, weights);
+    loadout = nextLoadout;
     current = evaluate(loadout, ctx, weights);
   }
   // Pieces this plan replaces after spending the budget or more on them, with the ids they had before
@@ -707,15 +790,20 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed) {
 export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
   ctx.weights = weights;
   const doomed = new Set();
-  let plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed);
-  // Re-plan with the budget on every piece found overspent and later replaced, until none is left.
+  const banned = new Set();
+  let plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned);
+  // Re-plan until no piece is overspent before being replaced (25M budget) and no small step is overwritten
+  // within 10M coins.
   for (let round = 0; round < REPLAN_ROUNDS; round++) {
-    const fresh = plan.overspent.filter((key) => !doomed.has(key));
-    if (!fresh.length) break;
-    for (const key of fresh) doomed.add(key);
-    plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed);
+    const freshPieces = plan.overspent.filter((key) => !doomed.has(key));
+    const freshSteps = replacedSoon(plan.steps).filter((label) => !banned.has(label));
+    if (!freshPieces.length && !freshSteps.length) break;
+    for (const key of freshPieces) doomed.add(key);
+    for (const label of freshSteps) banned.add(label);
+    plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned);
   }
   const { overspent, ...rest } = plan;
+  rest.steps = rest.steps.map(({ facts, ...step }) => step);
   return rest;
 }
 
