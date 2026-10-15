@@ -23,11 +23,11 @@ export const PET_ITEMS = {
 export const PET_PERKS = {
   // Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
   // Dragon's Greed: +n[1]% strength per 5 Magic Find, max n[2]% (assumed maxed).
-  // Legendary Treasure: +n[3]% damage per million coins in the bank, max n[4]%.
+  // Legendary Treasure: counted at its max, n[4]% damage (250% at level 200), whatever the bank holds.
   GOLDEN_DRAGON: (n, p) => ({
     petStrength: 11.1 * Math.min(9, digits(p.goldCollection)),
     additiveStrength: (n[2] ?? 0) / 100,
-    additiveDamage: Math.min(n[4] ?? 0, (n[3] ?? 0) * (p.bank / 1e6)),
+    additiveDamage: n[4] ?? 0,
   }),
   // Wither Blood: +100% damage to Wither mobs (the wither bosses). Death's Touch: counted as one extra hit of
   // 67% of your hit every second (not RCM).

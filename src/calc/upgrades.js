@@ -453,7 +453,9 @@ export function availableUpgrades(loadout, ctx, prices) {
         const current = item.enchants?.[key] ?? 0;
         const maxLevel = enchantMaxLevel(ench);
         for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
-          pushItem(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
+          // Name the enchant it pushes off (First Strike replaces Triple Strike, Smite replaces Sharpness, ...).
+          const replaced = (ench.conflicts ?? []).filter((c) => item.enchants?.[c]).map((c) => ENCHANTS[c]?.name ?? titleCase(c.replace(/^ultimate_/, '')));
+          pushItem(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}${replaced.length ? ` (replaces ${replaced.join(', ')})` : ''}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });

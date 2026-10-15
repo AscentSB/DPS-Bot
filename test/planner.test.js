@@ -1340,3 +1340,12 @@ test('Fire Aspect burns withers only; Mage counts First Strike in Master Mode on
   assert.ok(bigPlain.wither >= 1e9);
   assert.ok(withWeapon(big({ first_strike: 5 })).wither > bigPlain.wither);
 });
+
+test('an enchant that pushes another off says so (First Strike replaces Triple Strike); Golden Dragon counts its full 250%', async () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const l = buildLoadout(profile(items([{ id: 'HYPERION', enchants: { triple_strike: 5 } }])), ctx, weightsFor('mage', null, 'lcm'));
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  assert.ok(availableUpgrades(l, ctx, p).some((u) => u.label === 'First Strike V on Hyperion (replaces Triple Strike)'));
+  const { petStats } = await import('../src/lib/pets.js');
+  close(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { bank: 0 }).stats.additiveDamage, 250);
+});
