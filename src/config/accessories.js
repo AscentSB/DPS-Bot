@@ -70,6 +70,20 @@ export const POWERS = {
   buttery: stone({ speed: 20, attackSpeed: 30 }, { attackSpeed: 5 }),
 };
 
+// Power stones: consumed at Maxwell to learn a power. Source: https://hypixelskyblock.minecraft.wiki/w/Accessory_Powers
+export const POWER_STONES = {
+  silky: 'LUXURIOUS_SPOOL', shaded: 'DARK_ORB', bloody: 'BEATING_HEART', bubba: 'BUBBA_BLISTER', sanguisuge: 'DISPLACED_LEECH',
+  bizarre: 'ECCENTRIC_PAINTING', sighted: 'ENDER_MONOCLE', adept: 'END_STONE_SHULKER', pleasant: 'PRECIOUS_PEARL',
+  hurtful: 'MAGMA_URCHIN', demonic: 'HORNS_OF_TORMENT', sweet: 'ROCK_CANDY', frozen: 'GLACITE_SHARD', slender: 'HAZMAT_ENDERMAN',
+  healthy: 'VITAMIN_DEATH', buttery: 'SUNFLOWER_BUTTER', crumbly: 'CHOCOLATE_CHIP', itchy: 'FURBALL', mythical: 'OBSIDIAN_TABLET',
+  forceful: 'ACACIA_BIRDHOUSE', scorching: 'SCORCHED_BOOKS', strong: 'MANDRAA',
+};
+// Starter and intermediate powers need no stone.
+export const FREE_POWERS = ['fortuitous', 'pretty', 'protected', 'simple', 'warrior', 'commando', 'disciplined', 'inspired', 'ominous', 'prepared'];
+
+// Accessory Enrichment Swapper: changes the enrichment on an accessory that already has one.
+export const ENRICHMENT_SWAPPER_ID = 'TALISMAN_ENRICHMENT_SWAPPER';
+
 // Power used when the profile has none selected or an unknown one.
 export const DEFAULT_POWER = { arch: 'silky', bers: 'silky', mage: 'sighted' };
 

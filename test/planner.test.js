@@ -229,7 +229,7 @@ test('a speed upgrade below 500 frees tuning points for crit; past 500 it does n
   const res = new Map([...resource, ['FAST_BOOTS', { id: 'FAST_BOOTS', name: 'Fast Boots', category: 'BOOTS', tier: 'COMMON', stats: { WALK_SPEED: 200 } }]]);
   const w = weightsFor('arch');
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning: { split: { critChance: 1 } } });
-  const loadout = buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('FAST_BOOTS', res)]), ctx, w);
+  const loadout = { ...buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('FAST_BOOTS', res)]), ctx, w), power: 'silky' };
   // Give the bag plenty of tuning points.
   loadout.accessories = new Map(Array.from({ length: 200 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
   const base = evaluate(loadout, ctx, w);
@@ -386,7 +386,7 @@ test("Ender Dragon's Superior perk raises attack speed, tuning points included",
   const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
   const c = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
-  const base = buildLoadout(profile([newItem('TERMINATOR', res)]), c, w);
+  const base = { ...buildLoadout(profile([newItem('TERMINATOR', res)]), c, w), power: 'silky' };
   const edPet = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
   const ed = evaluate({ ...base, activePets: { wither: edPet, dragon: edPet } }, c, w);
   const none = evaluate({ ...base, activePets: {} }, c, w);
@@ -458,7 +458,7 @@ test('Legion raises attack speed: 0.07% per level per player, 1 nearby player', 
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
   const legs = { ...newItem('POWER_WITHER_LEGGINGS', res), enchants: { ultimate_legion: 5 } };
-  const l = buildLoadout(profile([newItem('TERMINATOR', res), legs]), ctx, w);
+  const l = { ...buildLoadout(profile([newItem('TERMINATOR', res), legs]), ctx, w), power: 'silky' };
   // (Terminator 60 + Silky 5) x (1 + 5 x 0.0007 x 1)
   close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * (1 + 5 * 0.0007));
 });
@@ -800,6 +800,28 @@ test('a small step overwritten within 10M coins is skipped; one replaced later s
   // Duplex II for 20M: more than 10M later, so Duplex I stays.
   const late = plan(20e6);
   assert.ok(late.some((x) => x.startsWith('Duplex I ')), late.join(', '));
+});
+
+test('powers: the best learned power is used for free; unlearned ones are a stone purchase step', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
+  const w = weightsFor('mage', null, 'rcm');
+  const l = buildLoadout(profile([newItem('HYPERION', resource)], { unlockedPowers: [] }), ctx, w);
+  assert.ok(l.unlockedPowers.has('inspired'));
+  const p = { get: (id) => ({ price: 1e6, source: 'BZ', id }) };
+  const learn = availableUpgrades(l, ctx, p).find((u) => u.label.startsWith('Learn Bizarre power'));
+  assert.ok(learn);
+  const after = learn.apply(l);
+  assert.equal(after.power, 'bizarre');
+  assert.ok(evaluate(after, ctx, w).wither >= evaluate(l, ctx, w).wither);
+});
+
+test('an accessory with an enrichment can swap it with the Accessory Enrichment Swapper', () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
+  const w = weightsFor('arch');
+  const relic = { ...newItem('WITHER_RELIC', resource), enrichment: 'critical_chance' };
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource), relic]), ctx, w);
+  const labels = availableUpgrades(l, ctx, { get: (id) => ({ price: 1e6, source: 'BZ', id }) }).map((u) => u.label);
+  assert.ok(labels.some((x) => x.startsWith('Swap Wither Relic enrichment to Critical Damage')), labels.filter((x) => /Wither Relic/.test(x)).join(', '));
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {

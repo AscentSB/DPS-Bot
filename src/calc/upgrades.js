@@ -5,7 +5,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, ENRICHMENT_SWAPPER_ID, DEFAULT_POWER } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -93,6 +93,8 @@ function cloneLoadout(l) {
     perks: { ...l.perks },
     pets: [...(l.pets ?? [])],
     activePets: { ...(l.activePets ?? {}) },
+    power: l.power ?? null,
+    unlockedPowers: new Set(l.unlockedPowers ?? []),
   };
 }
 
@@ -155,10 +157,28 @@ export function buildLoadout(profile, ctx, weights) {
   }
 
   loadout = selectPet(loadout, ctx, weights);
+  // Powers you have learned are free to switch: use the best one.
+  // With no power on the profile (or a test context), the class default (DEFAULT_POWER) is assumed learned.
+  const current = ctx.power ?? DEFAULT_POWER[ctx.cls];
+  loadout.unlockedPowers = new Set([...FREE_POWERS, ...(profile.unlockedPowers ?? []), current]);
+  loadout.power = current;
+  loadout = selectPower(loadout, ctx, weights);
   // Tuning is free to change, so leftover points use the best split for this loadout (10% steps over the
   // class's damage stats), not whatever the profile has saved. Stored on ctx for the rest of the run.
   ctx.tuning = { ...(ctx.tuning ?? {}), split: bestTuningSplit(loadout, ctx, weights) };
   return selectPet(loadout, ctx, weights);
+}
+
+// Best learned power for the loadout (switching at Maxwell is free).
+export function selectPower(loadout, ctx, weights) {
+  let best = loadout.power;
+  let bestScore = -Infinity;
+  for (const power of loadout.unlockedPowers ?? []) {
+    if (!POWERS[power]) continue;
+    const s = score({ ...loadout, power }, ctx, weights);
+    if (s > bestScore) { bestScore = s; best = power; }
+  }
+  return best === loadout.power ? loadout : { ...loadout, power: best };
 }
 
 function bestTuningSplit(loadout, ctx, weights) {
@@ -370,6 +390,11 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (item.enrichment === kind) continue;
         push(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
+        // An accessory that already has an enrichment can swap it instead of taking a new one.
+        if (item.enrichment) {
+          push(`Swap ${name} enrichment to ${enrichmentName(kind)} (Accessory Enrichment Swapper)`, [{ id: ENRICHMENT_SWAPPER_ID }],
+            (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
+        }
       }
     }
   }
@@ -455,6 +480,17 @@ export function availableUpgrades(loadout, ctx, prices) {
     const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
     push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
       (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
+  }
+
+  // Power stones: learn a new power at Maxwell and switch to it.
+  for (const [power, stone] of Object.entries(POWER_STONES)) {
+    if (loadout.unlockedPowers?.has(power) || !POWERS[power]) continue;
+    push(`Learn ${titleCase(power)} power (${cleanName(resource.get(stone)?.name ?? stone)})`, [{ id: stone }], (l) => {
+      const next = cloneLoadout(l);
+      next.unlockedPowers.add(power);
+      next.power = power;
+      return next;
+    }, { group: 'power' });
   }
 
   // Pets (level 100, Golden Dragon 200) from the auction house. One active at a time.
@@ -767,7 +803,7 @@ function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned = 
       if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after, changes };
     }
     if (!best) break;
-    const nextLoadout = selectPet(best.next, ctx, weights);
+    const nextLoadout = selectPower(selectPet(best.next, ctx, weights), ctx, weights);
     steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after, facts: stepFacts(loadout, nextLoadout) });
     for (const c of best.changes) {
       spend.set(c.key, spent(c) + best.cost);

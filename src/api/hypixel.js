@@ -84,6 +84,7 @@ export function readMember(profile, uuid, resource) {
       : skillLevelFromXp(member.player_data.experience.SKILL_COMBAT, COMBAT_MAX_LEVEL),
     pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),
     power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
+    unlockedPowers: (bag.unlocked_powers ?? []).map((x) => String(x).toLowerCase()),
     tuning: readTuning(bag.tuning?.slot_0),
     shards: readShards(member.attributes),
     perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },

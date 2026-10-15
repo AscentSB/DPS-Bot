@@ -411,7 +411,7 @@ export function accessoryStats(loadout, ctx, extraTuningPoints = 0) {
     ap += accessoryPower(item, ctx.resource);
     addLoose(stats, accessoryItemStats(item, ctx));
   }
-  const power = POWERS[ctx.power] ?? POWERS[DEFAULT_POWER[ctx.cls]];
+  const power = POWERS[loadout.power ?? ctx.power] ?? POWERS[DEFAULT_POWER[ctx.cls]];
   const mult = powerMultiplier(ap);
   addLoose(stats, power.stats, mult);
   addLoose(stats, power.bonus);
