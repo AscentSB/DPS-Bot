@@ -138,10 +138,11 @@ export function applySoftCap(damage) {
 //   cc <= 100:       crit * cc/100 + noncrit * (1 - cc/100)
 //   100 < cc < 200:  crit * (2 - cc/100) + 1.5 * crit * (cc/100 - 1)     (overload)
 //   cc >= 200:       1.5 * crit
-export function expectedHit(s, defense) {
+// overload = false (Mage): crit chance stops at 100% and never overloads.
+export function expectedHit(s, defense, overload = true) {
   const nonCrit = s.damage * (1 + s.strength / 100) * (1 + s.additiveDamage / 100) * defenseMultiplier(defense);
   const crit = nonCrit * (1 + s.critDamage / 100);
-  const cc = s.critChance / 100;
+  const cc = overload ? s.critChance / 100 : Math.min(s.critChance / 100, 1);
   if (cc <= 1) return crit * cc + nonCrit * (1 - cc);
   if (cc < 2) return crit * (2 - cc) + OVERLOAD_MULTIPLIER * crit * (cc - 1);
   return OVERLOAD_MULTIPLIER * crit;
@@ -158,11 +159,11 @@ export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier =
   return applySoftCap(expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense) * multiplier);
 }
 
-// Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits and overload
-// included). Ability damage does not apply.
+// Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits included; Mage
+// gets no overload, so crit chance above 100% is worth nothing). Ability damage does not apply.
 // multiplier: multiplicative melee buffs (Fabled 1.075x, Necron's Blade 1.5x vs withers).
 export function mageDamage(s, defense, multiplier = 1) {
-  return applySoftCap(expectedHit(s, defense) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0)));
+  return applySoftCap(expectedHit(s, defense, false) * multiplier * (MAGE_BEAM_BASE + MAGE_BEAM_PER_INTELLIGENCE * (s.intelligence ?? 0)));
 }
 
 // Mage RCM: one Wither Impact cast. Base 10,000 x (1 + Catacombs stat boost), intelligence at 0.3 scaling,

@@ -90,3 +90,12 @@ test('RCM Wither Impact: 10,000 x cata boost x intelligence (0.3 scaling) x abil
   close(rcmDamage(s, 0, 4.85), 351000);
   close(rcmDamage({ intelligence: 20000, abilityDamage: 0 }, 0, 4.85), 1e6 + (10000 * 5.85 * 61 - 1e6) * 0.1);
 });
+
+test('mage gets no overload: crit chance above 100% adds nothing to the beam', () => {
+  const s = { damage: 100, critDamage: 500, strength: 1000, additiveDamage: 50, intelligence: 5000 };
+  close(mageDamage({ ...s, critChance: 150 }, 0), mageDamage({ ...s, critChance: 100 }, 0));
+  close(mageDamage({ ...s, critChance: 250 }, 0), mageDamage({ ...s, critChance: 100 }, 0));
+  assert.ok(mageDamage({ ...s, critChance: 100 }, 0) > mageDamage({ ...s, critChance: 90 }, 0));
+  // Archer still overloads.
+  assert.ok(archerDamage({ ...s, critChance: 150 }, 0) > archerDamage({ ...s, critChance: 100 }, 0));
+});
