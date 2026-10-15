@@ -397,6 +397,25 @@ function hasUsefulStats(id, resource, cls) {
   return [b.global, b.wither, b.dragon].some((s) => Object.values(s).some((v) => v !== 0 && v !== 1));
 }
 
+// Cheapest way to raise a combinable enchant from `from` to `to` one level at a time: at each level, add the book of
+// the current level (combine) or buy the next level's book. Returns { parts, cost, text } or null if a price is missing.
+function combineParts(book, from, to, prices) {
+  const parts = [];
+  const combined = [];
+  let cost = 0;
+  for (let lv = from; lv < to; lv++) {
+    const same = prices.get(book(lv))?.price;
+    const next = prices.get(book(lv + 1))?.price;
+    if (same == null && next == null) return null;
+    const combine = same != null && !(next <= same);
+    parts.push({ id: book(combine ? lv : lv + 1) });
+    cost += combine ? same : next;
+    if (combine) combined.push(roman(lv));
+  }
+  if (!combined.length) return null;
+  return { parts, cost, text: `combine: add ${combined.map((r) => `a ${r} book`).join(', ')}` };
+}
+
 // Everything on an item that a full copy of it costs (priced parts only): enchant books, potato books, The Art
 // of War, master stars, recombobulator, reforge, gems and Wither scrolls.
 function copyParts(item, prices) {
@@ -466,11 +485,18 @@ export function availableUpgrades(loadout, ctx, prices) {
         for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
           // Name the enchant it pushes off (First Strike replaces Triple Strike, Smite replaces Sharpness, ...).
           const replaced = (ench.conflicts ?? []).filter((c) => item.enchants?.[c]).map((c) => ENCHANTS[c]?.name ?? titleCase(c.replace(/^ultimate_/, '')));
-          pushItem(`${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}${replaced.length ? ` (replaces ${replaced.join(', ')})` : ''}`, [{ id: `ENCHANTMENT_${key.toUpperCase()}_${level}` }], (l) => {
+          const book = (lv) => `ENCHANTMENT_${key.toUpperCase()}_${lv}`;
+          const label = `${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}${replaced.length ? ` (replaces ${replaced.join(', ')})` : ''}`;
+          // Ultimate enchants combine: a book of the level already on the item raises it by one (Legion I on
+          // Legion I = Legion II), so each level up costs the cheaper of that book or the next level's book.
+          const chain = key.startsWith('ultimate_') && current > 0 ? combineParts(book, current, level, prices) : null;
+          const direct = prices.get(book(level))?.price;
+          const useChain = chain && !(direct <= chain.cost);
+          pushItem(useChain ? `${label} (${chain.text})` : label, useChain ? chain.parts : [{ id: book(level) }], (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });
-          }, { group: `${slot}:enchant:${key}` });
+          }, { group: `${slot}:enchant:${key}`, ...(useChain ? { stacksOn: `${slot}:enchant:${key}` } : {}) });
         }
       }
     }
@@ -1078,8 +1104,8 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     const banned = [...rules.banned];
     const scored = scorer ? await scorer({ loadout, current, banned, count: ups.length }) : scoreUpgrades(ups, loadout, current, ctx, weights, banned);
     return scored.map(({ index, changes, gain }) => {
-      const { label, cost, source, unverified, apply, bank } = ups[index];
-      return { label, cost, source, unverified, apply, bank, changes, gain, perMillion: gain / (cost / 1_000_000) };
+      const { label, cost, source, unverified, apply, bank, stacksOn } = ups[index];
+      return { label, cost, source, unverified, apply, bank, stacksOn, changes, gain, perMillion: gain / (cost / 1_000_000) };
     });
   };
 
@@ -1116,7 +1142,10 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
       const gain = weightedGain(state.current, now, weights);
       step = { ...step, label: `Put ${amount >= 1e9 ? `${+(amount / 1e9).toFixed(3)}B` : `${(amount / 1e6).toLocaleString('en-US')}M`} coins in the bank (Golden Dragon Legendary Treasure)`, cost: amount, gain, perMillion: gain / (amount / 1e6) };
     }
-    steps.push({ ...step, facts: stepFacts(state.loadout, loadout), choice: best, path });
+    const facts = stepFacts(state.loadout, loadout);
+    // A combined enchant level builds on the one before (nothing is wasted), so it does not overwrite it.
+    if (best.stacksOn) facts.delete(best.stacksOn);
+    steps.push({ ...step, facts, choice: best, path });
     const spend = new Map(path.spend);
     const parent = new Map(path.parent);
     const replaced = new Set(path.replaced);

@@ -802,16 +802,30 @@ test('a small step overwritten within 10M coins is skipped; one replaced later s
   const w = weightsFor('arch');
   const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
   const plan = async (second) => {
-    const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: second };
+    const book = { ENCHANTMENT_SNIPE_3: 1e6, ENCHANTMENT_SNIPE_4: second };
     return (await planUpgrades(l, ctx, { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) }, w, 5)).steps.map((s) => s.label);
   };
-  // Duplex II for 2.5M right after Duplex I (under 5% gain): Duplex I is skipped.
+  // Snipe IV for 2.5M right after Snipe III (under 5% gain): Snipe III is skipped.
   const soon = await plan(2.5e6);
-  assert.ok(!soon.some((x) => x.startsWith('Duplex I ')), soon.join(', '));
-  assert.ok(soon.some((x) => x.startsWith('Duplex II ')), soon.join(', '));
-  // Duplex II for 20M: more than 10M later, so Duplex I stays.
+  assert.ok(!soon.some((x) => x.startsWith('Snipe III ')), soon.join(', '));
+  assert.ok(soon.some((x) => x.startsWith('Snipe IV ')), soon.join(', '));
+  // Snipe IV for 20M: more than 10M later, so Snipe III stays.
   const late = await plan(20e6);
-  assert.ok(late.some((x) => x.startsWith('Duplex I ')), late.join(', '));
+  assert.ok(late.some((x) => x.startsWith('Snipe III ')), late.join(', '));
+});
+
+test('ultimate enchants combine: Legion II on Legion I costs one more Legion I book when that is cheaper, and is not an overwrite', async () => {
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
+  const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: 2.5e6 };
+  const p = { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) };
+  const withI = { ...l, weapon: { ...l.weapon, enchants: { ultimate_reiterate: 1 } } };
+  const step = availableUpgrades(withI, ctx, p).find((u) => u.label.startsWith('Duplex II on Terminator'));
+  assert.equal(step.label, 'Duplex II on Terminator (combine: add a I book)');
+  close(step.cost, 1e6);
+  const labels = (await planUpgrades(l, ctx, p, w, 5)).steps.map((s) => s.label);
+  assert.ok(labels.includes('Duplex I on Terminator') && labels.includes('Duplex II on Terminator (combine: add a I book)'), labels.join(', '));
 });
 
 test('powers: the best learned power is used for free; unlearned ones are a stone purchase step', () => {

@@ -270,7 +270,9 @@ export async function handleButton(interaction) {
   const missing = s.view === 'profile' ? !s.profile : !s.coins[s.upgradeMode];
   if (missing) {
     await interaction.deferUpdate();
-    // A calculation started here is stopped if the session goes inactive before it finishes.
+    // The user is waiting on this list, so the inactivity timer pauses until it shows (it restarts below).
+    // The AbortController still stops it if the session is dropped another way.
+    clearTimeout(s.timer);
     s.abort = new AbortController();
     const { signal } = s.abort;
     try {
@@ -282,7 +284,8 @@ export async function handleButton(interaction) {
       console.error(err);
       s.view = 'coins';
       s.upgradeMode = 'all';
-      await interaction.followUp({ content: err instanceof PlanTimeoutError ? PLAN_TOO_LONG : 'Could not work that list out. Try again in a minute.', ephemeral: true });
+      const what = action === 'levels' ? 'the max-level list' : 'that list';
+      await interaction.followUp({ content: `${err instanceof PlanTimeoutError ? `Working out ${what} took too long and was stopped.` : `Could not work out ${what}.`} Showing the every-level coin list instead. Try again in a minute.`, ephemeral: true });
     }
     // The session may have gone inactive while this ran; then its buttons stay removed.
     if (sessions.get(id) !== s) return;
