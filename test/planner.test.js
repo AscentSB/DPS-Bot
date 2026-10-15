@@ -89,10 +89,10 @@ test('only the next master star is offered, and only on owned items', () => {
   assert.ok(!labels.some((l) => /Master Star on Necron/.test(l)));
 });
 
-test('greedy plan is in dependency order and every step gains damage', () => {
+test('greedy plan is in dependency order and every step gains damage', async () => {
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
   const weights = weightsFor('mage');
-  const plan = planUpgrades(buildLoadout(profile([]), ctx, weights), ctx, prices, weights, 12);
+  const plan = await planUpgrades(buildLoadout(profile([]), ctx, weights), ctx, prices, weights, 12);
   const labels = plan.steps.map((s) => s.label);
   const buy = labels.indexOf('Buy Hyperion');
   const star = labels.indexOf('1st Master Star on Hyperion');
@@ -613,37 +613,37 @@ test('fragging an item marks the fragged id owned, so the planner never buys a s
   assert.ok(!availableUpgrades(after, ctx, p).some((u) => u.label.startsWith('Buy Adaptive Belt')));
 });
 
-test('enchant levels never lock: Duplex I can be followed by higher levels, each ranked by gain per million', () => {
+test('enchant levels never lock: Duplex I can be followed by higher levels, each ranked by gain per million', async () => {
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
   const w = weightsFor('arch');
   const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
   const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: 3e6, ENCHANTMENT_ULTIMATE_REITERATE_3: 6e6, ENCHANTMENT_ULTIMATE_REITERATE_4: 10e6, ENCHANTMENT_ULTIMATE_REITERATE_5: 15e6 };
   const p = { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) };
-  const labels = planUpgrades(l, ctx, p, w, 10).steps.map((s) => s.label);
+  const labels = (await planUpgrades(l, ctx, p, w, 10)).steps.map((s) => s.label);
   const duplex = labels.filter((x) => x.startsWith('Duplex'));
   assert.ok(duplex.length > 1, labels.join(', '));
   assert.ok(duplex.at(-1).startsWith('Duplex V '), duplex.join(', '));
 });
 
-test('a piece the plan later replaces gets less than 25M spent on it', () => {
+test('a piece the plan later replaces gets less than 25M spent on it', async () => {
   const res = new Map([...resource, ['OLD_LEGGINGS', { id: 'OLD_LEGGINGS', name: 'Old Leggings', category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }]]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
   const w = weightsFor('arch');
   const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('OLD_LEGGINGS', res)]), ctx, w);
-  const plan = (star) => {
+  const plan = async (star) => {
     const table = { FIRST_MASTER_STAR: star, POWER_WITHER_LEGGINGS: 3e9 };
-    return planUpgrades(l, ctx, { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) }, w, 5).steps.map((s) => s.label);
+    return (await planUpgrades(l, ctx, { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) }, w, 5)).steps.map((s) => s.label);
   };
   // 20M star: under the budget, kept before the Necron's Leggings buy.
-  const cheap = plan(20e6);
+  const cheap = await plan(20e6);
   assert.ok(cheap.indexOf('1st Master Star on Old Leggings') >= 0 && cheap.indexOf('1st Master Star on Old Leggings') < cheap.indexOf("Buy Necron's Leggings"), cheap.join(', '));
   // 30M star on leggings that get replaced: dropped.
-  const dear = plan(30e6);
+  const dear = await plan(30e6);
   assert.ok(dear.includes("Buy Necron's Leggings"), dear.join(', '));
   assert.ok(!dear.includes('1st Master Star on Old Leggings'), dear.join(', '));
 });
 
-test('Golden heads upgrade into Diamond heads and keep their upgrades; that is not a replacement', () => {
+test('Golden heads upgrade into Diamond heads and keep their upgrades; that is not a replacement', async () => {
   const res = new Map([...resource,
     ['GOLD_NECRON_HEAD', { id: 'GOLD_NECRON_HEAD', name: 'Golden Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }],
     ['DIAMOND_NECRON_HEAD', { id: 'DIAMOND_NECRON_HEAD', name: 'Diamond Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 31, CRITICAL_DAMAGE: 31 } }]]);
@@ -662,7 +662,7 @@ test('Golden heads upgrade into Diamond heads and keep their upgrades; that is n
   assert.equal(after.armor.HELMET.enchants.ultimate_legion, 5);
   assert.equal(after.armor.HELMET.reforge, 'ancient');
   // A 30M master star on the Golden head stays: upgrading the head keeps it, so the 25M cap does not apply.
-  const labels = planUpgrades(l, ctx, p, w, 6).steps.map((s) => s.label);
+  const labels = (await planUpgrades(l, ctx, p, w, 6)).steps.map((s) => s.label);
   assert.ok(labels.includes('1st Master Star on Golden Necron Head'), labels.join(', '));
   assert.ok(labels.some((x) => x.startsWith('Upgrade Golden Necron Head')), labels.join(', '));
 });
@@ -788,20 +788,20 @@ test('Normal Mode (Mage LCM only): no master stars, no Master Skull, withers onl
   close(itemContribution(skull, mm).global.multStrength, 1.1);
 });
 
-test('a small step overwritten within 10M coins is skipped; one replaced later stays', () => {
+test('a small step overwritten within 10M coins is skipped; one replaced later stays', async () => {
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource });
   const w = weightsFor('arch');
   const l = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
-  const plan = (second) => {
+  const plan = async (second) => {
     const book = { ENCHANTMENT_ULTIMATE_REITERATE_1: 1e6, ENCHANTMENT_ULTIMATE_REITERATE_2: second };
-    return planUpgrades(l, ctx, { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) }, w, 5).steps.map((s) => s.label);
+    return (await planUpgrades(l, ctx, { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) }, w, 5)).steps.map((s) => s.label);
   };
   // Duplex II for 2.5M right after Duplex I (under 5% gain): Duplex I is skipped.
-  const soon = plan(2.5e6);
+  const soon = await plan(2.5e6);
   assert.ok(!soon.some((x) => x.startsWith('Duplex I ')), soon.join(', '));
   assert.ok(soon.some((x) => x.startsWith('Duplex II ')), soon.join(', '));
   // Duplex II for 20M: more than 10M later, so Duplex I stays.
-  const late = plan(20e6);
+  const late = await plan(20e6);
   assert.ok(late.some((x) => x.startsWith('Duplex I ')), late.join(', '));
 });
 
@@ -853,20 +853,20 @@ test('Shadow Assassin Cloak gives LCM 1.1x only with all 3 Wither scrolls on a b
   close(evaluate(step.apply(l2), ctx, w).wither, d3);
 });
 
-test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor', () => {
+test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor', async () => {
   const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true,
     tiered_stats: { CRITICAL_DAMAGE: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] } }]]);
   const w = weightsFor('arch');
   const table = { FIRST_MASTER_STAR: 2e6, RECOMBOBULATOR_3000: 0.9e6 };
   const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
-  const labels = (cata) => {
+  const labels = async (cata) => {
     const ctx = makeContext({ cls: 'arch', cataLevel: cata, archerLevel: 50, resource: res });
     const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SKELETON_MASTER_CHESTPLATE', res)]), ctx, w);
-    return planUpgrades(l, ctx, p, w, 10).steps.map((s) => s.label);
+    return (await planUpgrades(l, ctx, p, w, 10)).steps.map((s) => s.label);
   };
-  const low = labels(30);
+  const low = await labels(30);
   assert.ok(!low.includes('1st Master Star on Skeleton Master Chestplate'), low.join(', '));
-  const high = labels(40);
+  const high = await labels(40);
   assert.ok(high.includes('1st Master Star on Skeleton Master Chestplate'), high.join(', '));
 });
 
@@ -967,11 +967,11 @@ test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier)
 test('runDps returns plain data for the worker (coin and profile menus); bows get arrow damage', async () => {
   const { runDps } = await import('../src/calc/run.js');
   const member = { ...profile(items([{ id: 'TERMINATOR' }])), cataLevel: 50, secrets: 0, archerLevel: 50, combatLevel: 60 };
-  const coins = runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'coins' });
+  const coins = await runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'coins' });
   assert.ok(Array.isArray(coins.plan.steps));
   assert.equal(typeof coins.plan.startDamage.wither, 'number');
   assert.deepEqual(structuredClone(coins), coins);
-  const prof = runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'profile' });
+  const prof = await runDps({ member, cls: 'arch', target: null, resource, prices, menu: 'profile' });
   assert.ok(Array.isArray(prof.profile.rows));
   // Nansorb arrows: +5 bow damage.
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
@@ -1015,7 +1015,7 @@ test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and i
   assert.ok(!availableUpgrades(low, mk(60, null), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
 });
 
-test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag as one step', () => {
+test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag as one step', async () => {
   const ids = ['ACC_A', 'ACC_B', 'ACC_C', 'ACC_D', 'ACC_E'];
   const res = new Map([...resource, ...ids.map((id) => [id, { id, name: id, category: 'ACCESSORY', tier: 'LEGENDARY' }])]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
@@ -1023,7 +1023,7 @@ test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag
   const accs = ids.map((id) => ({ ...newItem(id, res), enrichment: 'walk_speed' }));
   const l = buildLoadout(profile([newItem('TERMINATOR', res), ...accs]), ctx, w);
   const p = { get: (id) => (id === 'TALISMAN_ENRICHMENT_SWAPPER' ? { price: 1e5, source: 'BZ' } : null) };
-  const steps = planUpgrades(l, ctx, p, w, 10).steps;
+  const steps = (await planUpgrades(l, ctx, p, w, 10)).steps;
   const swap = steps.find((x) => /^Swap all enriched accessories \(5\)/.test(x.label));
   assert.ok(swap, steps.map((x) => x.label).join(', '));
   close(swap.cost, 1e5);

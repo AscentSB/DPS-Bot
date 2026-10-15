@@ -79,7 +79,8 @@ npm start
 - Node 20.10 or newer. The bot needs to stay running (a VPS, a home server or any Node host).
 - `DISCORD_TOKEN` and `CLIENT_ID` come from the Discord Developer Portal (Bot page and General Information). Invite the bot with the `applications.commands` and `bot` scopes. Without `GUILD_ID` the command registers globally and can take up to an hour to appear.
 - `HYPIXEL_API_KEY` reads profiles. A development key works for testing; a bot others use needs a production key from https://developer.hypixel.net. Bazaar and auction prices need no key.
-- The planner runs in a worker thread (`src/worker`), so long plans never block the Discord connection. The worker scans the whole auction house for prices on start and every few minutes after.
+- Threads (`src/worker`): the planner runs in a plan worker, so long plans never block the Discord connection. Prices download and decode in a separate price worker (one refresh per source at a time; auction pages 6 at a time with retries, and a page that still fails keeps the last full auction house). Candidate scoring spreads over an evaluation pool (up to 4 workers, `EVAL_WORKERS` to change or 0 to turn off) with the exact same results as one thread.
+- Planner speed: item, accessory, shard and pet stats are cached per (immutable) object; re-plans resume from the first step the new rules reject; every distinct loadout's scored candidates are cached by content.
 
 ## Where to edit
 

@@ -43,6 +43,10 @@ export function hasWitherImpact(item) {
 export function profileStatTotals(ctx) {
   const p = ctx.profileStats;
   if (!p) return {};
+  return memo(profileStore, p, ctx.player ?? profileStore, () => computeProfileStats(ctx, p));
+}
+
+function computeProfileStats(ctx, p) {
   const out = { critDamage: BASE_CRIT_DAMAGE };
   for (const [skill, { max, steps }] of Object.entries(SKILL_BONUSES)) {
     const level = Math.min(max, ctx.player?.skills?.[skill] ?? max);
@@ -57,6 +61,54 @@ export function profileStatTotals(ctx) {
   for (const song of p.harpSongs ?? []) addLoose(out, { intelligence: HARP_SONGS[song]?.intelligence ?? 0 });
   for (const cake of p.cakes ?? []) addLoose(out, { [cake.stat]: cake.amount });
   return out;
+}
+
+// ---------- Memo ----------
+// Items, pets and profile parts are never mutated (every change makes a new object), so a result cached by object
+// identity plus the context fields it reads stays valid. This keeps the planner from recomputing every unchanged
+// item on each of its thousands of evaluations.
+function memo(store, obj, key, compute) {
+  let cache = store.get(obj);
+  if (!cache) store.set(obj, (cache = new Map()));
+  let value = cache.get(key);
+  if (value === undefined) cache.set(key, (value = compute()));
+  return value;
+}
+const rawStore = new WeakMap();
+const contribStore = new WeakMap();
+const accStore = new WeakMap();
+const apStore = new WeakMap();
+const profileStore = new WeakMap();
+// The context fields item stats depend on, as one string, worked out once per context object.
+const resourceIds = new WeakMap();
+const ctxKeys = new WeakMap();
+function itemKey(ctx) {
+  let key = ctxKeys.get(ctx);
+  if (key === undefined) {
+    if (!resourceIds.has(ctx.resource)) resourceIds.set(ctx.resource, resourceIds.size + 1);
+    key = `${resourceIds.get(ctx.resource)}|${ctx.cls}|${ctx.cataLevel}|${ctx.floorMode}|${ctx.mode}|${ctx.secretDigit ?? 0}`;
+    ctxKeys.set(ctx, key);
+  }
+  return key;
+}
+
+// Content key of everything evaluate() reads from a loadout. Two loadouts with the same key score the same, even
+// when they are different objects (the planner reaches the same gear by different paths).
+const itemKeys = new WeakMap();
+const contentKey = (item) => {
+  if (!item) return '';
+  let key = itemKeys.get(item);
+  if (key === undefined) itemKeys.set(item, (key = JSON.stringify(item)));
+  return key;
+};
+export function loadoutKey(l) {
+  const slots = (group) => Object.keys(group ?? {}).sort().map((slot) => `${slot}=${contentKey(group[slot])}`).join(';');
+  return [
+    contentKey(l.weapon), contentKey(l.rag), contentKey(l.clearBoots), slots(l.armor), slots(l.equipment),
+    [...l.accessories.values()].map(contentKey).sort().join(';'), JSON.stringify(l.pets ?? []), JSON.stringify(l.activePets ?? {}),
+    JSON.stringify(l.shards ?? {}), JSON.stringify(l.perks ?? {}), [...(l.extras ?? [])].sort().join(','), l.power ?? '', l.bopBonus ?? '',
+    Boolean(l.witherImpact), l.owned?.has(HYPERION_ID), l.owned?.has(GENERAL_MEDALLION_ID),
+  ].join('\n');
 }
 
 export function isRcm(ctx) {
@@ -175,8 +227,9 @@ export function getReforge(name) {
   return REFORGE_OVERRIDES[key] ?? REFORGE_DATA[key] ?? null;
 }
 
+const ALL_REFORGES = { ...REFORGE_DATA, ...REFORGE_OVERRIDES };
 export function allReforges() {
-  return { ...REFORGE_DATA, ...REFORGE_OVERRIDES };
+  return ALL_REFORGES;
 }
 
 export function reforgeAppliesTo(reforge, item) {
@@ -201,7 +254,17 @@ export function isDungeon(item, resource) {
 
 // Base stats for an item id: API stats (case-insensitive) plus itemStats.js. tiered_stats use the highest floor
 // the player can enter (the top tier when cataLevel is unknown); floor-scaled dungeon armor gets its 50% boost.
+// Pure in (id, class, Catacombs level, floor mode) for one items resource, so cached by those.
+const baseStore = new WeakMap();
 export function baseItemStats(id, resource, cls, cataLevel = Infinity, floorMode = 'master') {
+  let cache = baseStore.get(resource);
+  if (!cache) baseStore.set(resource, (cache = new Map()));
+  const key = `${id}|${cls}|${cataLevel}|${floorMode}`;
+  if (!cache.has(key)) cache.set(key, computeBaseStats(id, resource, cls, cataLevel, floorMode));
+  return cache.get(key);
+}
+
+function computeBaseStats(id, resource, cls, cataLevel, floorMode) {
   const info = resource.get(id);
   const override = ITEM_STATS[id] ?? {};
   const classOk = !override.classes || !cls || override.classes.includes(cls);
@@ -259,7 +322,13 @@ function scaleBucket(stats, item, ctx, dungeon) {
 }
 
 // Unscaled stats of one item, split by target.
-export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
+export function itemRawStats(item, ctx, opts) {
+  // Chimera on a Ragnarock depends on the pets, so only the plain call is cached.
+  if (opts?.chimeraPetStrength) return computeItemRawStats(item, ctx, opts);
+  return memo(rawStore, item, itemKey(ctx), () => computeItemRawStats(item, ctx, {}));
+}
+
+function computeItemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
   const base = baseItemStats(item.id, ctx.resource, ctx.cls, ctx.cataLevel, ctx.floorMode);
   const out = { global: { ...base.global }, wither: { ...base.wither }, dragon: { ...base.dragon } };
   const rarity = statRarity(itemRarity(item));
@@ -309,6 +378,11 @@ export function itemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
 
 // Stats of one equipped item after dungeon scaling.
 export function itemContribution(item, ctx, opts) {
+  if (opts?.chimeraPetStrength) return computeContribution(item, ctx, opts);
+  return memo(contribStore, item, itemKey(ctx), () => computeContribution(item, ctx));
+}
+
+function computeContribution(item, ctx, opts) {
   const raw = itemRawStats(item, ctx, opts);
   const dungeon = isDungeon(item, ctx.resource);
   return { global: scaleBucket(raw.global, item, ctx, dungeon), wither: scaleBucket(raw.wither, item, ctx, dungeon), dragon: scaleBucket(raw.dragon, item, ctx, dungeon) };
@@ -385,6 +459,10 @@ function statRarityIndex(rarity) {
 }
 
 export function accessoryPower(item, resource) {
+  return memo(apStore, item, resource, () => computeAccessoryPower(item, resource));
+}
+
+function computeAccessoryPower(item, resource) {
   if (AP_OVERRIDES[item.id] !== undefined) return AP_OVERRIDES[item.id];
   let ap = AP_BY_RARITY[itemRarity(item)] ?? 0;
   if (resource.get(item.id)?.dungeon_item) ap *= DUNGEON_AP_MULTIPLIER;
@@ -425,6 +503,10 @@ export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_
 // One accessory's stats with its enrichment. Dungeon accessories get x (1 + cata boost) on every stat except
 // crit chance and attack speed (no stars or medallion on accessories).
 export function accessoryItemStats(item, ctx) {
+  return memo(accStore, item, itemKey(ctx), () => computeAccessoryStats(item, ctx));
+}
+
+function computeAccessoryStats(item, ctx) {
   const stats = { ...itemRawStats(item, ctx).global };
   const enrich = item.enrichment && ENRICHMENTS[item.enrichment];
   if (enrich) addLoose(stats, enrich.stats);
@@ -434,7 +516,13 @@ export function accessoryItemStats(item, ctx) {
   return stats;
 }
 
+// Bags are shared between loadouts until a step changes them, so the totals are cached per bag.
+const bagStore = new WeakMap();
 export function accessoryStats(loadout, ctx, extraTuningPoints = 0) {
+  return memo(bagStore, loadout.accessories, `${itemKey(ctx)}|${loadout.power ?? ctx.power}|${extraTuningPoints}`, () => computeBagStats(loadout, ctx, extraTuningPoints));
+}
+
+function computeBagStats(loadout, ctx, extraTuningPoints) {
   const counted = countedAccessories(loadout);
   const stats = {};
   let ap = 0;
@@ -456,7 +544,13 @@ export function shardLevel(loadout, id) {
   return Math.max(0, Math.min(10, loadout.shards?.[id] ?? 0));
 }
 
+// Shard levels are shared between loadouts until a step changes them, so totals are cached per shards object.
+const shardStore = new WeakMap();
 export function shardStats(loadout, ctx) {
+  return memo(shardStore, loadout.shards, ctx.cls, () => computeShardStats(loadout, ctx));
+}
+
+function computeShardStats(loadout, ctx) {
   const out = { global: {}, wither: {}, dragon: {}, tuningPoints: 0 };
   const level = (id) => shardLevel(loadout, id);
   const tiamat = 1 + (SHARDS.TIAMAT.perLevel.echo * level('TIAMAT'));
@@ -780,6 +874,11 @@ function evaluateWith(loadout, ctx, activeExtras) {
   return result;
 }
 
+function dominates(a, b) {
+  const keys = (e) => ['stats', 'wither', 'dragon'].flatMap((t) => Object.keys(e[t] ?? {}).map((k) => [t, k]));
+  return keys(b).every(([t, k]) => (a[t]?.[k] ?? 0) >= b[t][k]) && keys(a).some(([t, k]) => (a[t][k] ?? 0) > (b[t]?.[k] ?? 0));
+}
+
 // Owned extras that count right now. In each group, the member that gives the most damage wins.
 export function activeExtras(loadout, ctx, weights) {
   const owned = EXTRA_UPGRADES.filter((e) => loadout.extras.has(e.key) && extraAllowed(e, loadout, ctx.cls));
@@ -790,7 +889,9 @@ export function activeExtras(loadout, ctx, weights) {
     groups.get(e.group).push(e);
   }
   let active = [...fixed];
-  for (const members of groups.values()) {
+  for (const all of groups.values()) {
+    // A member at least as strong as another on every stat wins without scoring both (Weirder Tuba over Weird).
+    const members = all.filter((m) => !all.some((o) => o !== m && dominates(o, m)));
     let best = members[0];
     if (members.length > 1) {
       let bestScore = -Infinity;
@@ -831,6 +932,8 @@ export function selectPet(loadout, ctx, weights) {
   const candidates = [null, ...dpsPets(loadout.pets, ctx)];
   const activePets = { ...(loadout.activePets ?? {}) };
   for (const target of TARGETS) {
+    // RCM scores the clear only, so the dragon pet changes nothing (every pet ties, and ties keep none).
+    if (isRcm(ctx) && target === 'dragon') { activePets.dragon = null; continue; }
     // RCM has no phase pet: the best clear pet wins (Sheep, Golden Dragon, ...).
     const preferred = isRcm(ctx) ? null : PHASE_PETS[target]?.[ctx.cls];
     const pool = candidates.filter((p) => p && p.type === preferred);

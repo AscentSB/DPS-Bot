@@ -1,89 +1,84 @@
-import { getJson } from './http.js';
+import { Worker } from 'node:worker_threads';
 import { AUCTION_REFRESH_MS, BAZAAR_REFRESH_MS } from '../config/constants.js';
-import { decodeItems, toItemState } from '../lib/nbt.js';
-import { petLevel, maxPetLevel } from '../lib/pets.js';
 
-// Prices come only from the bazaar (instant buy) and the auction house (lowest BIN).
-// NPC prices are never used.
+// Price cache for the planner. Downloads run in a separate price worker (src/worker/priceWorker.js), and each
+// source has at most one refresh in flight: callers share it instead of starting another.
 
-const API = 'https://api.hypixel.net/v2/skyblock';
+const REFRESH_MS = { bazaar: BAZAAR_REFRESH_MS, auctions: AUCTION_REFRESH_MS };
+const tables = { bazaar: new Map(), auctions: new Map() };
+const loadedAt = { bazaar: 0, auctions: 0 };
+const inFlight = {};
+const pending = new Map();
+let worker = null;
+let nextId = 1;
 
-let bazaar = new Map();
-let auctions = new Map();
-let bazaarAt = 0;
-let auctionsAt = 0;
-let loading = null;
-
-async function refreshBazaar() {
-  const data = await getJson(`${API}/bazaar`);
-  if (!data?.success) throw new Error('Bazaar request failed.');
-  const next = new Map();
-  for (const [id, product] of Object.entries(data.products)) {
-    const price = product.quick_status?.buyPrice;
-    // Under 1 coin is a troll sell offer (e.g. 10 stones listed at 0.1), not a real price.
-    if (price >= 1) next.set(id, price);
-  }
-  bazaar = next;
-  bazaarAt = Date.now();
+function priceWorker() {
+  if (worker) return worker;
+  worker = new Worker(new URL('../worker/priceWorker.js', import.meta.url));
+  worker.unref();
+  worker.on('message', ({ id, entries, error }) => {
+    const job = pending.get(id);
+    pending.delete(id);
+    if (error) job?.reject(new Error(error));
+    else job?.resolve(entries);
+  });
+  worker.on('exit', () => {
+    for (const job of pending.values()) job.reject(new Error('Price worker stopped.'));
+    pending.clear();
+    worker = null;
+  });
+  return worker;
 }
 
-// Scan every auction page and keep the lowest BIN for each ITEM_ID.
-async function refreshAuctions() {
-  const first = await getJson(`${API}/auctions?page=0`);
-  if (!first?.success) throw new Error('Auction house request failed.');
-  const pages = [first];
-  const rest = await Promise.all(
-    Array.from({ length: first.totalPages - 1 }, (_, i) => getJson(`${API}/auctions?page=${i + 1}`).catch(() => null)),
-  );
-  pages.push(...rest.filter(Boolean));
-
-  const next = new Map();
-  for (const page of pages) {
-    for (const auction of page.auctions ?? []) {
-      if (!auction.bin) continue;
-      let item;
-      try {
-        item = toItemState(decodeItems(auction.item_bytes)[0]);
-      } catch {
-        continue;
-      }
-      if (!item?.id) continue;
-      const keys = [item.id];
-      // Max-level pets also get PET_<TYPE>_<TIER>_MAX (level 100, Golden Dragon 200).
-      if (item.pet && petLevel(item.pet.type, item.pet.tier, item.pet.exp) >= maxPetLevel(item.pet.type)) keys.push(`${item.id}_MAX`);
-      for (const key of keys) {
-        const prev = next.get(key);
-        if (prev === undefined || auction.starting_bid < prev) next.set(key, auction.starting_bid);
-      }
-    }
-  }
-  auctions = next;
-  auctionsAt = Date.now();
+function refresh(kind) {
+  inFlight[kind] ??= new Promise((resolve, reject) => {
+    const id = nextId++;
+    pending.set(id, { resolve, reject });
+    priceWorker().postMessage({ id, kind });
+  }).then((entries) => {
+    tables[kind] = new Map(entries);
+    loadedAt[kind] = Date.now();
+  }).finally(() => { delete inFlight[kind]; });
+  return inFlight[kind];
 }
 
-// Make sure prices are loaded and not stale. Safe to call often.
+// Make sure prices are loaded and not stale. Safe to call often: waits only until each source has loaded once,
+// later refreshes run in the background.
 export async function ensurePrices() {
-  const now = Date.now();
-  const tasks = [];
-  if (now - bazaarAt > BAZAAR_REFRESH_MS) tasks.push(refreshBazaar());
-  if (now - auctionsAt > AUCTION_REFRESH_MS) tasks.push(refreshAuctions());
-  if (tasks.length === 0) return;
-  if (!loading) loading = Promise.all(tasks).finally(() => { loading = null; });
-  // Only block when nothing has loaded yet. Otherwise refresh in the background.
-  if (bazaarAt === 0 || auctionsAt === 0) await loading;
-  else loading.catch((err) => console.error('Price refresh failed:', err.message));
+  const waits = [];
+  for (const kind of Object.keys(tables)) {
+    if (Date.now() - loadedAt[kind] <= REFRESH_MS[kind]) continue;
+    const job = refresh(kind);
+    if (loadedAt[kind] === 0) waits.push(job);
+    else job.catch((err) => console.error(`Price refresh (${kind}) failed:`, err.message));
+  }
+  await Promise.all(waits);
 }
 
 export function startPriceRefresh() {
-  ensurePrices().catch((err) => console.error('Initial price load failed:', err.message));
-  setInterval(() => ensurePrices().catch((err) => console.error('Price refresh failed:', err.message)), BAZAAR_REFRESH_MS).unref();
+  const tick = () => ensurePrices().catch((err) => console.error('Price load failed:', err.message));
+  tick();
+  setInterval(tick, BAZAAR_REFRESH_MS).unref();
 }
 
-// Price lookup used by the planner. Bazaar first, then auction house lowest BIN.
-export const prices = {
-  get(id) {
-    if (bazaar.has(id)) return { price: bazaar.get(id), source: 'BZ' };
-    if (auctions.has(id)) return { price: auctions.get(id), source: 'AH' };
-    return null;
-  },
-};
+// Price lookup over { bazaar, auctions }, read at lookup time (a refresh swaps the maps in place of the old ones).
+// Bazaar first, then auction house lowest BIN.
+export function priceLookup(t) {
+  return {
+    get(id) {
+      if (t.bazaar.has(id)) return { price: t.bazaar.get(id), source: 'BZ' };
+      if (t.auctions.has(id)) return { price: t.auctions.get(id), source: 'AH' };
+      return null;
+    },
+  };
+}
+
+// Live prices.
+export const prices = priceLookup(tables);
+
+// Prices frozen for one plan (a refresh swaps in new tables and never edits these), so every step and every
+// evaluation worker prices the same way.
+export function snapshotPrices() {
+  const snapshot = { bazaar: tables.bazaar, auctions: tables.auctions };
+  return { ...priceLookup(snapshot), tables: snapshot };
+}

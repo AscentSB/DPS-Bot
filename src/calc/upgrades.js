@@ -12,7 +12,7 @@ import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import {
-  evaluate, weightedGain, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
+  evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
   getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID } from '../config/pets.js';
@@ -92,11 +92,13 @@ function cloneLoadout(l) {
     equipment: { ...l.equipment },
     rag: l.rag,
     clearBoots: l.clearBoots ?? null,
-    accessories: new Map(l.accessories),
+    // Shared until a step changes the bag (copy on write), so unchanged bags keep their cached stats.
+    accessories: l.accessories,
     owned: new Set(l.owned),
     extras: new Set(l.extras),
-    shards: { ...l.shards },
-    perks: { ...l.perks },
+    // Shared until a step changes them (copy on write).
+    shards: l.shards,
+    perks: l.perks,
     pets: [...(l.pets ?? [])],
     activePets: { ...(l.activePets ?? {}) },
     power: l.power ?? null,
@@ -258,6 +260,7 @@ function replaceItem(loadout, oldItem, next) {
   for (const slot of Object.keys(l.armor)) if (l.armor[slot] === oldItem) l.armor[slot] = next;
   for (const slot of Object.keys(l.equipment)) if (l.equipment[slot] === oldItem) l.equipment[slot] = next;
   if (l.accessories.get(oldItem.id) === oldItem) {
+    l.accessories = new Map(l.accessories);
     if (next.id !== oldItem.id) l.accessories.delete(oldItem.id);
     l.accessories.set(next.id, next);
   }
@@ -449,7 +452,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       if (isWeapon && (!isRag || !next.weapon)) next.weapon = item;
       else if (isArmor) next.armor[cat] = item;
       else if (isEquip) next.equipment[equipSlot] = item;
-      else if (isAcc) next.accessories.set(id, item);
+      else if (isAcc) (next.accessories = new Map(next.accessories)).set(id, item);
       return next;
       }, { group: isAcc ? undefined : `buy:${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}` });
     };
@@ -493,7 +496,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const cum = SHARDS_CUMULATIVE[shard.rarity];
     const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
     push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
-      (l) => { const next = cloneLoadout(l); next.shards[id] = SHARD_MAX_LEVEL; return next; });
+      (l) => ({ ...cloneLoadout(l), shards: { ...l.shards, [id]: SHARD_MAX_LEVEL } }));
   }
 
   // Accessory Enrichment Swapper: one swapper changes every enriched accessory in the bag to the enrichment you pick.
@@ -637,7 +640,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         const qty = perk.costs.slice(current, level).reduce((a, b) => a + b, 0);
         push(`${perk.name} ${roman(level)} (${qty.toLocaleString('en-US')} ${titleCase(perk.essence.toLowerCase())} Essence)`,
           [{ id: `ESSENCE_${perk.essence}`, qty }],
-          (l) => { const next = cloneLoadout(l); next.perks[key] = level; return next; }, { group: `perk:${key}` });
+          (l) => ({ ...cloneLoadout(l), perks: { ...l.perks, [key]: level } }), { group: `perk:${key}` });
       }
     }
   }
@@ -735,9 +738,6 @@ function gemUpgrades(item, ctx) {
   return out;
 }
 
-// Greedy plan: take the upgrade with the best weighted % DPS per million coins, apply it, then recalculate every
-// option from the new stats and repeat. Nothing locks: Duplex I can be followed by Duplex II and later V, and a
-// later reforge or purchase can replace an earlier one, as long as each step adds damage.
 // Armor and equipment pieces a step touches. Same id = an upgrade on that piece; an id it upgrades into
 // (Golden -> Diamond head, Wither -> Necron's, fragging) = the same piece under a new id; any other id = a
 // buy that replaces the old piece.
@@ -759,10 +759,6 @@ function pieceChanges(prev, next) {
   return changes;
 }
 
-// Greedy plan: each step is the best % per million coins on the current loadout, applied before the next.
-// Pieces the plan later replaces ("doomed") get under REPLACED_PIECE_BUDGET coins in total (buy + upgrades,
-// carried through Golden -> Diamond and Wither -> Necron's upgrades), so the plan does not sink money into
-// armor or equipment it throws away.
 // What a step sets, as keys a later step can overwrite. Stacking upgrades (stars, master stars, potato books,
 // shards, essence perks) and one-way ones (recombobulator) never get overwritten, so they have no keys.
 // A new piece in a slot (not an upgrade of the old one) also overwrites every key on that slot.
@@ -840,69 +836,109 @@ function replacedSoon(steps) {
   return out;
 }
 
-function greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned = new Set()) {
-  const steps = [];
-  const spend = new Map();
-  const parent = new Map();
-  const replaced = new Set();
-  const spent = (c) => spend.get(c.kind === 'upgrade' ? c.prevKey : c.key) ?? 0;
-  let loadout = startLoadout;
-  let current = evaluate(loadout, ctx, weights);
-  const startDamage = current;
+// Scores candidates ups[i] for every i where i % parts === part (the evaluation workers split the list this way).
+// Returns { index, changes, gain } for the ones that pass the path-free rules and add damage.
+export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part = 0, parts = 1) {
+  const skip = new Set(banned);
+  const lowFloor = highestFloor(ctx.cataLevel) < MAX_FLOOR;
+  const out = [];
+  for (let index = part; index < ups.length; index += parts) {
+    const up = ups[index];
+    if (!(up.cost > 0) || skip.has(up.label)) continue;
+    const next = up.apply(loadout);
+    const changes = pieceChanges(loadout, next);
+    // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
+    if (lowFloor && up.cost > LOW_FLOOR_PIECE_MAX_STEP && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
+    const gain = weightedGain(current, evaluate(next, ctx, weights), weights);
+    if (gain > 1e-9) out.push({ index, changes, gain });
+  }
+  return out;
+}
 
-  for (let i = 0; i < limit; i++) {
+// Greedy plan: each step is the best % per million coins on the current loadout, applied before the next, then
+// every option is recalculated. Nothing locks: Duplex I can be followed by Duplex II and later V.
+// rules.doomed: pieces the plan replaces later, which get under REPLACED_PIECE_BUDGET coins in total (buy +
+// upgrades, carried through Golden -> Diamond and Wither -> Necron's upgrades). rules.banned: step labels that get
+// overwritten too soon. Both only ever remove candidates, so a re-plan (prev) keeps the previous plan up to the
+// first step the rules now reject and resumes there. rules.states caches every distinct loadout's scored
+// candidates by content, so a re-plan that reaches gear it has already scored (often in a different order) reuses
+// the scores instead of evaluating ~2000 candidates again.
+async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, prev) {
+  const pieceKey = (c) => (c.kind === 'upgrade' ? c.prevKey : c.key);
+  const allowed = (cand, spend) => !rules.banned.has(cand.label)
+    && !cand.changes.some((c) => rules.doomed.has(pieceKey(c)) && (spend.get(pieceKey(c)) ?? 0) + cand.cost >= REPLACED_PIECE_BUDGET);
+
+  // The scored state for a loadout, shared by every loadout with the same content (the candidate list also depends
+  // on what was ever owned, learned powers and blades, so they join the key).
+  const stateFor = (loadout) => {
+    const key = [loadoutKey(loadout), [...loadout.owned].sort(), [...(loadout.unlockedPowers ?? [])].sort(), JSON.stringify(loadout.blades ?? [])].join('\n');
+    if (!rules.states.has(key)) rules.states.set(key, { loadout, current: evaluate(loadout, ctx, weights), candidates: null });
+    return rules.states.get(key);
+  };
+  // Every upgrade from this loadout that adds damage, kept light (no loadouts): scored here or, with a scorer,
+  // across the evaluation workers. Only rules that do not depend on the path taken are applied while scoring; the
+  // spending budget is checked when picking.
+  const candidatesFor = async ({ loadout, current }) => {
+    const ups = availableUpgrades(loadout, ctx, prices);
+    const banned = [...rules.banned];
+    const scored = scorer ? await scorer({ loadout, current, banned, count: ups.length }) : scoreUpgrades(ups, loadout, current, ctx, weights, banned);
+    return scored.map(({ index, changes, gain }) => {
+      const { label, cost, source, unverified, apply } = ups[index];
+      return { label, cost, source, unverified, apply, changes, gain, perMillion: gain / (cost / 1_000_000) };
+    });
+  };
+
+  const keep = prev ? prev.steps.findIndex((st) => !allowed(st.choice, st.path.spend)) : 0;
+  if (keep < 0) return prev;
+  const steps = prev ? prev.steps.slice(0, keep) : [];
+  let path = prev ? prev.steps[keep].path : { state: stateFor(startLoadout), spend: new Map(), parent: new Map(), replaced: new Set() };
+  const startDamage = prev ? prev.startDamage : path.state.current;
+
+  while (steps.length < limit) {
+    const { state } = path;
+    state.candidates ??= await candidatesFor(state);
     let best = null;
-    for (const up of availableUpgrades(loadout, ctx, prices)) {
-      if (!(up.cost > 0) || banned.has(up.label)) continue;
-      const next = up.apply(loadout);
-      const changes = pieceChanges(loadout, next);
-      if (changes.some((c) => doomed.has(c.kind === 'upgrade' ? c.prevKey : c.key) && spent(c) + up.cost >= REPLACED_PIECE_BUDGET)) continue;
-      // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
-      if (up.cost > LOW_FLOOR_PIECE_MAX_STEP && highestFloor(ctx.cataLevel) < MAX_FLOOR && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
-      const after = evaluate(next, ctx, weights);
-      const gain = weightedGain(current, after, weights);
-      if (gain <= 1e-9) continue;
-      const perMillion = gain / (up.cost / 1_000_000);
-      if (!best || perMillion > best.perMillion) best = { ...up, gain, perMillion, next, after, changes };
-    }
+    for (const cand of state.candidates) if (allowed(cand, path.spend) && (!best || cand.perMillion > best.perMillion)) best = cand;
     if (!best) break;
-    const nextLoadout = selectPower(selectPet(best.next, ctx, weights), ctx, weights);
-    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, after: best.after, facts: stepFacts(loadout, nextLoadout) });
+    const loadout = selectPower(selectPet(best.apply(state.loadout), ctx, weights), ctx, weights);
+    steps.push({ label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion, facts: stepFacts(state.loadout, loadout), choice: best, path });
+    const spend = new Map(path.spend);
+    const parent = new Map(path.parent);
+    const replaced = new Set(path.replaced);
     for (const c of best.changes) {
-      spend.set(c.key, spent(c) + best.cost);
+      spend.set(c.key, (spend.get(pieceKey(c)) ?? 0) + best.cost);
       if (c.kind === 'upgrade') parent.set(c.key, c.prevKey);
       if (c.kind === 'replace') replaced.add(c.prevKey);
     }
-    loadout = nextLoadout;
-    current = evaluate(loadout, ctx, weights);
+    path = { state: stateFor(loadout), spend, parent, replaced };
   }
   // Pieces this plan replaces after spending the budget or more on them, with the ids they had before
   // being upgraded (so the budget also covers spending before the upgrade).
   const overspent = [];
-  for (const key of replaced) {
-    if ((spend.get(key) ?? 0) < REPLACED_PIECE_BUDGET) continue;
-    for (let k = key; k; k = parent.get(k)) overspent.push(k);
+  for (const key of path.replaced) {
+    if ((path.spend.get(key) ?? 0) < REPLACED_PIECE_BUDGET) continue;
+    for (let k = key; k; k = path.parent.get(k)) overspent.push(k);
   }
-  return { steps, startDamage, endDamage: current, loadout, overspent };
+  return { steps, startDamage, endDamage: path.state.current, loadout: path.state.loadout, overspent };
 }
 
-export function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED) {
+// scorer (optional): scores a state's candidates in parallel (src/worker/evalPool.js), same results as in-thread.
+export async function planUpgrades(startLoadout, ctx, prices, weights, limit = MAX_UPGRADES_LISTED, scorer = null) {
   ctx.weights = weights;
-  const doomed = new Set();
-  const banned = new Set();
-  let plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned);
+  const rules = { doomed: new Set(), banned: new Set(), states: new Map() };
+  let plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer);
   // Re-plan until no piece is overspent before being replaced (25M budget) and no small step is overwritten
-  // within 10M coins.
+  // within 10M coins. Each round resumes from the first step the new rules reject.
   for (let round = 0; round < REPLAN_ROUNDS; round++) {
-    const freshPieces = plan.overspent.filter((key) => !doomed.has(key));
-    const freshSteps = replacedSoon(plan.steps).filter((label) => !banned.has(label));
+    const freshPieces = plan.overspent.filter((key) => !rules.doomed.has(key));
+    const freshSteps = replacedSoon(plan.steps).filter((label) => !rules.banned.has(label));
     if (!freshPieces.length && !freshSteps.length) break;
-    for (const key of freshPieces) doomed.add(key);
-    for (const label of freshSteps) banned.add(label);
-    plan = greedyPlan(startLoadout, ctx, prices, weights, limit, doomed, banned);
+    for (const key of freshPieces) rules.doomed.add(key);
+    for (const label of freshSteps) rules.banned.add(label);
+    plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, plan);
   }
   const { overspent, ...rest } = plan;
-  rest.steps = rest.steps.map(({ facts, ...step }) => step);
+  rest.steps = rest.steps.map(({ facts, choice, path, ...step }) => step);
   return rest;
 }
 

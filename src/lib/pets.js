@@ -58,7 +58,16 @@ function lerp(a, b, t) {
 
 // Stats one pet gives: { stats: {...}, dragon: {...}, petStrength, potionBoost }.
 // pet: { type, tier, level, heldItem }. profile: { bank, goldCollection }.
+const petCache = new WeakMap();
+// Pets and the pet profile are never mutated, so stats are cached per pet object and profile object.
 export function petStats(pet, profile = {}) {
+  let byProfile = petCache.get(pet);
+  if (!byProfile) petCache.set(pet, (byProfile = new WeakMap()));
+  if (!byProfile.has(profile)) byProfile.set(profile, computePetStats(pet, profile));
+  return byProfile.get(profile);
+}
+
+function computePetStats(pet, profile) {
   const data = petData(pet.type, effectiveTier(pet));
   if (!data) return { stats: {}, dragon: {}, petStrength: 0, potionBoost: 0 };
   const t = progress(data, pet.type, pet.level ?? maxPetLevel(pet.type));
