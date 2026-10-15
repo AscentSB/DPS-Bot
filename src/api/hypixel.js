@@ -136,7 +136,9 @@ export function readMember(profile, uuid, resource) {
     },
     // Golden Dragon perks. Missing values count as maxed.
     petProfile: {
-      bank: profile.banking?.balance ?? undefined,
+      // Shared (co-op) bank plus the member's personal bank. Both hidden (bank API off): undefined.
+      bank: profile.banking?.balance == null && member.profile?.bank_account == null ? undefined
+        : (Number(profile.banking?.balance) || 0) + (Number(member.profile?.bank_account) || 0),
       goldCollection: member.collection?.GOLD_INGOT ?? undefined,
     },
   };

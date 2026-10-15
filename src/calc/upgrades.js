@@ -1127,6 +1127,10 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     if (!best) break;
     let loadout = selectPower(selectPet(best.apply(state.loadout), ctx, weights), ctx, weights);
     let step = { label: best.label, cost: best.cost, source: best.source, unverified: best.unverified, gain: best.gain, perMillion: best.perMillion };
+    // Deposits right after a deposit join the step before, so the plan shows one bank step.
+    const joined = best.bank && steps.at(-1)?.choice.bank ? steps.pop() : null;
+    const base = joined ? joined.path.state : state;
+    if (joined) path = joined.path;
     if (best.bank) {
       // Keep depositing 1M at a time while the next million still beats every other option, as one step.
       let next = null;
@@ -1140,11 +1144,11 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
         loadout = more;
         now = after;
       }
-      const amount = (loadout.bank ?? 0) - (state.loadout.bank ?? 0);
-      const gain = weightedGain(state.current, now, weights);
+      const amount = (loadout.bank ?? 0) - (base.loadout.bank ?? 0);
+      const gain = weightedGain(base.current, now, weights);
       step = { ...step, label: `Put ${amount >= 1e9 ? `${+(amount / 1e9).toFixed(3)}B` : `${(amount / 1e6).toLocaleString('en-US')}M`} coins in the bank (Golden Dragon Legendary Treasure)`, cost: amount, gain, perMillion: gain / (amount / 1e6) };
     }
-    const facts = stepFacts(state.loadout, loadout);
+    const facts = stepFacts(base.loadout, loadout);
     // A combined enchant level builds on the one before (nothing is wasted), so it does not overwrite it.
     if (best.stacksOn) facts.delete(best.stacksOn);
     steps.push({ ...step, facts, choice: best, path });

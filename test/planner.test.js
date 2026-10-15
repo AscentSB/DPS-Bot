@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import zlib from 'node:zlib';
 import nbt from 'prismarine-nbt';
 import { decodeItems, toItemState } from '../src/lib/nbt.js';
+import { readMember } from '../src/api/hypixel.js';
 import { makeContext, buildLoadout, planUpgrades, weightsFor, availableUpgrades, newItem } from '../src/calc/upgrades.js';
 import { evaluate, itemContribution, shardStats, totalAccessoryPower, accessoryStats } from '../src/calc/stats.js';
 
@@ -1394,4 +1395,24 @@ test('clear set: an owned Golden Dragon stays the pet with an empty bank, and no
   assert.ok(!ups.some((u) => /^Buy .* Pet/.test(u.label)));
   const noGd = buildLoadout(profile([scrolled(newItem('HYPERION', resource))]), ctx, w);
   assert.ok(!availableUpgrades(noGd, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) }).some((u) => /Pigman/.test(u.label)));
+});
+
+test('Golden Dragon bank: co-op bank plus personal bank, hidden when both are missing', () => {
+  const member = (extra) => ({ inventory: { inv_contents: { data: encode([{ id: 'HYPERION' }]) } }, ...extra });
+  const read = (profileExtra, memberExtra) => readMember({ members: { u: member(memberExtra) }, ...profileExtra }, 'u', resource).petProfile.bank;
+  assert.equal(read({ banking: { balance: 600e6 } }, { profile: { bank_account: 400e6 } }), 1e9);
+  assert.equal(read({ banking: { balance: 250e6 } }, {}), 250e6);
+  assert.equal(read({}, {}), undefined);
+});
+
+test('bank deposits never show as two steps in a row', async () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource, petProfile: { bank: 0 } });
+  const w = weightsFor('mage', null, 'lcm');
+  const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), ctx, w);
+  const plan = await planUpgrades(l, ctx, { get: () => ({ price: 50e6, source: 'BZ' }) }, w, 40);
+  const bank = plan.steps.map((st) => /in the bank/.test(st.label));
+  assert.ok(bank.some(Boolean));
+  assert.ok(!bank.some((b, i) => b && bank[i - 1]));
+  const total = plan.steps.filter((st) => /in the bank/.test(st.label)).reduce((a, st) => a + st.cost, 0);
+  assert.ok(total <= 1e9);
 });
