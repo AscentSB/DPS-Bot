@@ -1649,3 +1649,16 @@ test('First Strike V on a Prosecute weapon is never swapped for Triple Strike; F
   assert.equal(triple({ prosecute: 6, first_strike: 4 }), true);
   assert.equal(triple({ prosecute: 6 }), true);
 });
+
+test('Balloon Snake is never used in RCM (Jump Boost in the clear) but stays in LCM', () => {
+  const res = new Map([...resource, ['BALLOON_SNAKE', { id: 'BALLOON_SNAKE', name: 'Balloon Snake', category: 'NECKLACE', tier: 'LEGENDARY', stats: { INTELLIGENCE: 100, STRENGTH: 30 } }]]);
+  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
+  for (const [mode, used] of [['rcm', false], ['lcm', true]]) {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 50, mode, resource: res });
+    const w = weightsFor('mage', null, mode);
+    const worn = buildLoadout(profile([scrolled(newItem('HYPERION', res)), newItem('BALLOON_SNAKE', res)]), ctx, w);
+    assert.equal(worn.equipment.NECKLACE?.id === 'BALLOON_SNAKE', used, mode);
+    const bare = buildLoadout(profile([scrolled(newItem('HYPERION', res))]), ctx, w);
+    assert.equal(availableUpgrades(bare, ctx, p).some((u) => /Balloon Snake/.test(u.label)), used, mode);
+  }
+});

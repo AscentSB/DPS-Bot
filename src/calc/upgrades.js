@@ -82,8 +82,11 @@ function excludedItem(id, ctx) {
   if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(id)) return true;
   if (SKELETON_MASTER_CHEST_CLASSES.includes(ctx.cls) && (ctx.cataLevel ?? 0) >= SKELETON_MASTER_CHEST_CATA
     && ctx.resource?.get(id)?.category === 'CHESTPLATE' && !SKELETON_MASTER_CHESTS.includes(id)) return true;
+  // Balloon Snake's Jump Boost gets in the way in the clear (it does nothing in the boss, so LCM keeps it).
+  if (ctx.mode === 'rcm' && id === BALLOON_SNAKE_ID) return true;
   return ctx.cls === 'mage' && ctx.mode !== 'rcm' && /^(STARRED_)?SPEED_WITHER_BOOTS$/.test(id);
 }
+const BALLOON_SNAKE_ID = 'BALLOON_SNAKE';
 
 // Mage LCM (Master Mode) can swap to a second weapon, armor or equipment for the dragons. loadout.dragonGear
 // { weapon, armor, equipment } holds only the slots that differ from the main set (null when nothing does).
