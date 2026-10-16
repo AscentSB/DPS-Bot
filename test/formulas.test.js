@@ -92,8 +92,9 @@ test('mage gets no overload: crit chance above 100% adds nothing to the beam', (
   close(mageDamage({ ...s, critChance: 150 }, 0), mageDamage({ ...s, critChance: 100 }, 0));
   close(mageDamage({ ...s, critChance: 250 }, 0), mageDamage({ ...s, critChance: 100 }, 0));
   assert.ok(mageDamage({ ...s, critChance: 100 }, 0) > mageDamage({ ...s, critChance: 90 }, 0));
-  // Archer still overloads.
-  assert.ok(archerDamage({ ...s, critChance: 150 }, 0) > archerDamage({ ...s, critChance: 100 }, 0));
+  // Archer overloads only with the Overload enchant on the bow.
+  assert.ok(archerDamage({ ...s, critChance: 150 }, 0, 1, true) > archerDamage({ ...s, critChance: 100 }, 0, 1, true));
+  close(archerDamage({ ...s, critChance: 150 }, 0), archerDamage({ ...s, critChance: 100 }, 0));
 });
 
 test('blessing levels can be chosen within their limits; anything else keeps the default', async () => {

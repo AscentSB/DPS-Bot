@@ -134,7 +134,7 @@ export function defenseMultiplier(defense) {
 //   cc <= 100:       crit * cc/100 + noncrit * (1 - cc/100)
 //   100 < cc < 200:  crit * (2 - cc/100) + 1.5 * crit * (cc/100 - 1)     (overload)
 //   cc >= 200:       1.5 * crit
-// overload = false (Mage): crit chance stops at 100% and never overloads.
+// overload = false: crit chance stops at 100% and never overloads (Mage, and any weapon without the Overload enchant).
 export function expectedHit(s, defense, overload = true) {
   const nonCrit = s.damage * (1 + s.strength / 100) * (1 + s.additiveDamage / 100) * defenseMultiplier(defense);
   const crit = nonCrit * (1 + s.critDamage / 100);
@@ -146,13 +146,14 @@ export function expectedHit(s, defense, overload = true) {
 
 // Archer. stats: { damage, critDamage, strength, additiveDamage, critChance }. classMultiplier: the Archer class
 // arrow damage buff (multiplicative).
-export function archerDamage(s, defense, classMultiplier = 1) {
-  return expectedHit(s, defense) * classMultiplier;
+// overload: the bow has the Overload enchant (crit chance over 100% only counts then).
+export function archerDamage(s, defense, classMultiplier = 1, overload = false) {
+  return expectedHit(s, defense, overload) * classMultiplier;
 }
 
 // Berserker. Same formula as archer, with extra additive damage (class bonuses are added by the caller).
-export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier = 1) {
-  return expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense) * multiplier;
+export function berserkerDamage(s, defense, baseAdditiveDamage = 0, multiplier = 1, overload = false) {
+  return expectedHit({ ...s, additiveDamage: s.additiveDamage + baseAdditiveDamage }, defense, overload) * multiplier;
 }
 
 // Mage, scored as LCM: one mage beam deals (0.3 + 0.0009 x intelligence) of the melee hit (crits included; Mage

@@ -945,8 +945,10 @@ function evaluateWith(loadout, ctx, activeExtras) {
     }
     // Boss DPS for a set of final stats.
     const bossDps = (s) => {
-      const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m)
-        : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m)
+      // Crit chance over 100% (overload) only counts with the Overload enchant on the bow.
+      const overload = isBow(loadout.weapon) && (loadout.weapon.enchants?.overload ?? 0) > 0;
+      const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m, overload)
+        : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m, overload)
           : mageDamage(s, defense, m));
       let dmg = hitWith(fabled);
       // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
