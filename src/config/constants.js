@@ -306,6 +306,8 @@ export const NECRON_BOOTS_ID = 'POWER_WITHER_BOOTS';
 // Items a class never uses. Necron's armor (and Necron heads) is Archer and Berserker gear; Mage tops out at
 // Storm's armor.
 export const CLASS_EXCLUDED_ITEMS = {
+  // Archer keeps the Skeleton Master Chestplate (infinite arrows) over Necron's Chestplate.
+  arch: /^POWER_WITHER_CHESTPLATE$/,
   mage: /^(POWER_WITHER_(HELMET|CHESTPLATE|LEGGINGS|BOOTS)|DIAMOND_NECRON_HEAD|GOLD_NECRON_HEAD)$/,
 };
 

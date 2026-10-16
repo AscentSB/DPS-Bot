@@ -661,6 +661,14 @@ export function availableUpgrades(loadout, ctx, prices) {
         labels.push('Wither scrolls');
       }
       if (extra.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); labels.push('Recombobulator'); }
+      // Gem slots filled (unlocked when needed), so a piece with slots is not judged without the gems it will get.
+      if (extra.gems) {
+        const filled = fillGems({ ...base, recomb: Boolean(extra.recomb) }, ctx, prices);
+        if (!filled) return;
+        base.gems = filled.gems;
+        parts.push(...filled.parts);
+        labels.push(filled.label);
+      }
       if (extra.copy) {
         base.enchants = {};
         for (const [key, level] of Object.entries(src.enchants ?? {})) {
@@ -728,6 +736,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       buy(best.key, best.reforge, { full: !recombable });
       if (recombable) buy(best.key, best.reforge, { recomb: true, full: true });
     }
+    if (!isAcc && resource.get(id)?.gemstone_slots?.length) buy(best?.key ?? null, best?.reforge ?? null, { recomb: recombable, full: true, gems: true });
   }
 
   // Clear boots: any boots faster than your current clear boots, worn only during the clear.
@@ -947,6 +956,39 @@ function bestReforge(loadout, ctx, item) {
 }
 
 // Gem upgrades for one item: the best DPS gem at each upgrade quality, per slot.
+// Gems a class puts in a slot, best first (the first one the slot accepts is used).
+const GEM_PICKS = { arch: ['JASPER', 'ONYX'], bers: ['JASPER', 'ONYX'], mage: ['SAPPHIRE'] };
+
+// Every gem slot on a fresh item filled with the class's gem at the best priced quality (Perfect, else Flawless),
+// unlock costs included. Returns { gems, parts, label } or null when no slot can be filled.
+function fillGems(item, ctx, prices) {
+  const slots = ctx.resource.get(item.id)?.gemstone_slots;
+  if (!Array.isArray(slots) || !slots.length) return null;
+  const counts = {};
+  const gems = { slots: {}, unlocked: [] };
+  const parts = [];
+  const names = new Set();
+  for (const slot of slots) {
+    const type = slot.slot_type;
+    const key = `${type}_${counts[type] = (counts[type] ?? -1) + 1}`;
+    const gem = (GEM_PICKS[ctx.cls] ?? []).find((g) => (SLOT_GEMS[type] ?? [type]).includes(g) && GEMSTONES[g]);
+    const quality = gem && ['PERFECT', 'FLAWLESS'].find((q) => prices.get(`${q}_${gem}_GEM`));
+    if (!quality) continue;
+    gems.slots[key] = { gem, quality };
+    parts.push({ id: `${quality}_${gem}_GEM` });
+    if (slot.costs) {
+      gems.unlocked.push(key);
+      for (const c of slot.costs) {
+        if (c.type === 'COINS') parts.push({ coins: c.coins });
+        else if (c.type === 'ITEM') parts.push({ id: c.item_id, qty: c.amount });
+      }
+    }
+    names.add(`${titleCase(quality.toLowerCase())} ${titleCase(gem.toLowerCase())}`);
+  }
+  if (!parts.length) return null;
+  return { gems, parts, label: `${[...names].join(', ')} gems` };
+}
+
 function gemUpgrades(item, ctx) {
   const slots = ctx.resource.get(item.id)?.gemstone_slots;
   if (!Array.isArray(slots) || !slots.length) return [];
