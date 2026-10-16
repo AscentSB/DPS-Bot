@@ -579,6 +579,8 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (ench.items && !ench.items.includes(item.id)) continue;
         if (ench.classes && !ench.classes.includes(cls)) continue;
         if (ench.chimera && ctx.mode === 'rcm') continue;
+        // First Strike V on a Prosecute weapon stays: never swapped for Triple Strike (IV or less is).
+        if (key === 'triple_strike' && (item.enchants?.first_strike ?? 0) >= 5 && item.enchants?.prosecute) continue;
         const current = item.enchants?.[key] ?? 0;
         const maxLevel = enchantMaxLevel(ench);
         const first = Math.max(current + 1, ench.minLevel ?? 1);

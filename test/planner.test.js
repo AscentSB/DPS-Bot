@@ -1638,3 +1638,14 @@ test('floor-scaled dungeon weapons are priced and scored like the armor: fully b
   // The full boost raises the rarity one tier, like the armor.
   assert.equal(newItem('CRYPT_DREADLORD_SWORD', res).baseRarity, 'EPIC');
 });
+
+test('First Strike V on a Prosecute weapon is never swapped for Triple Strike; First Strike IV or none gets Triple Strike', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource });
+  const w = weightsFor('mage');
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const triple = (enchants) => availableUpgrades(buildLoadout(profile([{ ...newItem('HYPERION', resource), enchants }]), ctx, w), ctx, p)
+    .some((u) => /^Triple Strike/.test(u.label));
+  assert.equal(triple({ prosecute: 6, first_strike: 5 }), false);
+  assert.equal(triple({ prosecute: 6, first_strike: 4 }), true);
+  assert.equal(triple({ prosecute: 6 }), true);
+});
