@@ -1534,3 +1534,18 @@ test('a new bow for Archer comes with the current bow\'s enchants and potato boo
   assert.deepEqual(term.enchants, { power: 7, dragon_hunter: 5, ultimate_reiterate: 5 });
   assert.equal(term.hpb, 10);
 });
+
+test('armor bundles: pieces that each lose damage alone (breaking a set bonus) are bought together when that wins', async () => {
+  const slots = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'];
+  const sm = slots.map((s) => [`SKELETON_MASTER_${s}`, { id: `SKELETON_MASTER_${s}`, name: `Skeleton Master ${s}`, category: s, tier: 'EPIC', stats: { STRENGTH: 10 } }]);
+  const big = slots.map((s) => [`BIG_${s}`, { id: `BIG_${s}`, name: `Big ${s}`, category: s, tier: 'EPIC', stats: { STRENGTH: 70 } }]);
+  const res = new Map([['TERMINATOR', resource.get('TERMINATOR')], ...sm, ...big]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), ...sm.map(([id]) => newItem(id, res))]), ctx, w);
+  const p = { get: (id) => (id.startsWith('BIG_') ? { price: 1e6, source: 'AH' } : null) };
+  const single = availableUpgrades(l, ctx, p).find((u) => u.label === 'Buy Big HELMET');
+  assert.ok(evaluate(single.apply(l), ctx, w).wither < evaluate(l, ctx, w).wither);
+  const plan = await planUpgrades(l, ctx, p, w, 3);
+  assert.ok(plan.steps.some((st) => st.label === 'Armor bundle: Buy Big HELMET; Buy Big CHESTPLATE; Buy Big LEGGINGS; Buy Big BOOTS'), plan.steps.map((st) => st.label).join(' / '));
+});

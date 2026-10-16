@@ -28,6 +28,8 @@ import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../
 const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 // Most coins spent on an armor or equipment piece the plan later replaces (buy + upgrades, kept below this).
 export const REPLACED_PIECE_BUDGET = 25_000_000;
+// Armor bundles: the best this many single buys per armor slot are mixed into multi-piece steps.
+const ARMOR_BUNDLE_SHORTLIST = 3;
 const REPLAN_ROUNDS = 10;
 // A step the plan overwrites soon after (a reforge, enchant level, gem, enrichment, pet item, piece or pet that a
 // later step replaces with at most this many coins spent in between, the replacing step included) is skipped,
@@ -695,7 +697,8 @@ export function availableUpgrades(loadout, ctx, prices) {
       else if (isAcc) (next.accessories = new Map(next.accessories)).set(id, item);
       if (set === 'wither') setDragonSlot(next, slot, mainItem(l, slot));
       return next;
-      }, { group: isAcc ? undefined : `buy:${set === 'dragon' ? 'dragon:' : ''}${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}`, repick: isWeapon });
+      }, { group: isAcc ? undefined : `buy:${set === 'dragon' ? 'dragon:' : ''}${isRag ? 'rag' : isWeapon ? 'weapon' : equipSlot ?? cat}`, repick: isWeapon,
+        ...(isArmor && set === 'main' ? { armorSlot: cat, armorId: id } : {}) });
     };
     const fresh = newItem(id, resource);
     const recombable = canRecomb(fresh, resource);
@@ -1101,8 +1104,43 @@ export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part 
       gain = weightedGain(current, evaluate(next, ctx, weights), weights);
     }
     if (gain > 1e-9) out.push({ index, changes, gain });
+    // Armor buys that lose damage alone (they break a set bonus) can still win in a bundle: kept for the shortlist.
+    else if (up.armorSlot) out.push({ index, changes, gain, shortlistOnly: true });
   }
   return out;
+}
+
+// Armor bundles: several armor pieces bought as one step (any mix of slots and sets: Diamond Necron Head with
+// Skeleton Master pieces, 3 Frozen Blaze pieces, ...), so a set bonus never traps the plan. Each slot's shortlist
+// is its ARMOR_BUNDLE_SHORTLIST best single buys (by gain, even a loss), and every mix of 2 or more slots is tried.
+// singles: [{ up, gain }] for the main-set armor buys of one loadout.
+function armorBundles(singles) {
+  const bySlot = new Map();
+  for (const { up, gain } of singles) {
+    const slot = bySlot.get(up.armorSlot) ?? new Map();
+    const prev = slot.get(up.armorId);
+    if (!prev || gain > prev.gain) slot.set(up.armorId, { up, gain });
+    bySlot.set(up.armorSlot, slot);
+  }
+  const lists = ARMOR_SLOTS.map((slot) => [null, ...[...(bySlot.get(slot)?.values() ?? [])].sort((a, b) => b.gain - a.gain).slice(0, ARMOR_BUNDLE_SHORTLIST).map((x) => x.up)]);
+  const bundles = [];
+  const walk = (i, picked) => {
+    if (i === lists.length) {
+      if (picked.length < 2) return;
+      bundles.push({
+        label: `Armor bundle: ${picked.map((u) => u.label).join('; ')}`,
+        cost: picked.reduce((sum, u) => sum + u.cost, 0),
+        source: [...new Set(picked.flatMap((u) => String(u.source).split('+')))].join('+'),
+        unverified: picked.some((u) => u.unverified),
+        apply: (l) => picked.reduce((acc, u) => u.apply(acc), l),
+        repick: true,
+      });
+      return;
+    }
+    for (const up of lists[i]) walk(i + 1, up ? [...picked, up] : picked);
+  };
+  walk(0, []);
+  return bundles;
 }
 
 // Greedy plan: each step is the best % per million coins on the current loadout, applied before the next, then
@@ -1132,10 +1170,13 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     const ups = availableUpgrades(loadout, ctx, prices);
     const banned = [...rules.banned];
     const scored = scorer ? await scorer({ loadout, current, banned, count: ups.length }) : scoreUpgrades(ups, loadout, current, ctx, weights, banned);
-    return scored.map(({ index, changes, gain }) => {
-      const { label, cost, source, unverified, apply, bank, stacksOn } = ups[index];
+    const bundles = armorBundles(scored.filter((x) => ups[x.index].armorSlot).map((x) => ({ up: ups[x.index], gain: x.gain })));
+    const bundleScores = scoreUpgrades(bundles, loadout, current, ctx, weights, banned).filter((x) => !x.shortlistOnly);
+    const light = (list) => ({ index, changes, gain }) => {
+      const { label, cost, source, unverified, apply, bank, stacksOn } = list[index];
       return { label, cost, source, unverified, apply, bank, stacksOn, changes, gain, perMillion: gain / (cost / 1_000_000) };
-    });
+    };
+    return [...scored.filter((x) => !x.shortlistOnly).map(light(ups)), ...bundleScores.map(light(bundles))];
   };
 
   const keep = prev ? prev.steps.findIndex((st) => !allowed(st.choice, st.path.spend)) : 0;
