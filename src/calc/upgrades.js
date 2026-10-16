@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith, SKELETON_MASTER_CHEST_CLASSES, SKELETON_MASTER_CHESTS,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -81,6 +81,7 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
 // the boss only needs 450 speed (Storm's Boots win).
 function excludedItem(id, ctx) {
   if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(id)) return true;
+  if (SKELETON_MASTER_CHEST_CLASSES.includes(ctx.cls) && ctx.resource?.get(id)?.category === 'CHESTPLATE' && !SKELETON_MASTER_CHESTS.includes(id)) return true;
   return ctx.cls === 'mage' && ctx.mode !== 'rcm' && /^(STARRED_)?SPEED_WITHER_BOOTS$/.test(id);
 }
 
@@ -175,6 +176,8 @@ function cloneLoadout(l) {
     bank: l.bank ?? 0,
     witherImpact: Boolean(l.witherImpact),
     blades: l.blades ?? [],
+    spareBlades: l.spareBlades ?? [],
+    rcmBlade: l.rcmBlade ?? null,
     unlockedPowers: new Set(l.unlockedPowers ?? []),
   };
 }
@@ -217,6 +220,16 @@ export function buildLoadout(profile, ctx, weights) {
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
   // Necron's Blade variants you own, and whether any has Wither Impact (for the Shadow Assassin Cloak in LCM).
   loadout.blades = items.filter((i) => WITHER_IMPACT_WEAPONS.includes(i.id));
+  // Mage LCM with two or more Necron's Blades: the one built for the clear (Ultimate Wise, Giant Killer, Swarm) stays
+  // the RCM blade, and the boss set uses another one.
+  let rcmBlade = null;
+  if (ctx.cls === 'mage' && ctx.mode !== 'rcm' && loadout.blades.length >= 2) {
+    const rcm = loadout.blades.reduce((best, b) => (rcmBladeScore(b) > rcmBladeScore(best) ? b : best));
+    if (rcmBladeScore(rcm) > 0) {
+      rcmBlade = rcm;
+      bySlot.weapon = bySlot.weapon.filter((w) => w !== rcm);
+    }
+  }
   loadout.witherImpact = loadout.blades.some(hasWitherImpact);
   bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id, ctx.cls));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
@@ -265,6 +278,11 @@ export function buildLoadout(profile, ctx, weights) {
   }
 
   loadout = selectPet(loadout, ctx, weights);
+  // Blades left over (not the RCM one, not worn): they can become a dual-wield copy or another set's weapon for only
+  // the upgrades they are missing.
+  loadout.rcmBlade = rcmBlade;
+  loadout.spareBlades = items.filter((i) => (WITHER_IMPACT_WEAPONS.includes(i.id) || DUAL_WIELD_WEAPONS.includes(i.id))
+    && i !== rcmBlade && i !== loadout.weapon && i !== loadout.dragonGear?.weapon);
   // Powers you have learned are free to switch: use the best one.
   // With no power on the profile (or a test context), the class default (DEFAULT_POWER) is assumed learned.
   const current = ctx.power ?? DEFAULT_POWER[ctx.cls];
@@ -456,6 +474,46 @@ function combineParts(book, from, to, prices) {
 
 // Everything on an item that a full copy of it costs (priced parts only): enchant books, potato books, The Art
 // of War, master stars, recombobulator, reforge, gems and Wither scrolls.
+// How sure we are a blade is the RCM one: Ultimate Wise, Giant Killer and Swarm point to the clear; Titan Killer and
+// Ender Slayer point to the boss.
+function rcmBladeScore(b) {
+  const e = b.enchants ?? {};
+  return 3 * Boolean(e.ultimate_wise) + 2 * Boolean(e.giant_killer) + Boolean(e.ultimate_swarm) - 2 * Boolean(e.titan_killer) - Boolean(e.ender_slayer);
+}
+
+// A spare blade raised to match `src`: the enchants it lacks (only the levels missing), potato books, master stars,
+// The Art of War, recombobulator, reforge and Wither scrolls. Returns { item, parts }.
+function convertParts(spare, src, prices) {
+  const item = { ...spare, enchants: { ...spare.enchants }, scrolls: [...(spare.scrolls ?? [])] };
+  const parts = [];
+  for (const [key, level] of Object.entries(src.enchants ?? {})) {
+    const cur = item.enchants[key] ?? 0;
+    if (cur >= level) continue;
+    const way = enchantParts(key, level, cur, prices);
+    if (!way) continue;
+    parts.push(...way.parts);
+    // One ultimate enchant per item: a new one replaces the old (Ultimate Wise -> Chimera).
+    if (key.startsWith('ultimate_')) for (const k of Object.keys(item.enchants)) if (k.startsWith('ultimate_')) delete item.enchants[k];
+    for (const c of ENCHANTS[key]?.conflicts ?? []) delete item.enchants[c];
+    item.enchants[key] = level;
+  }
+  const hpb = Math.max(spare.hpb ?? 0, src.hpb ?? 0);
+  const hot = Math.max(0, Math.min(hpb, HOT_POTATO.max) - Math.min(spare.hpb ?? 0, HOT_POTATO.max));
+  const fuming = Math.max(0, Math.max(0, hpb - HOT_POTATO.max) - Math.max(0, (spare.hpb ?? 0) - HOT_POTATO.max));
+  if (hot) parts.push({ id: HOT_POTATO.id, qty: hot });
+  if (fuming) parts.push({ id: FUMING_POTATO.id, qty: fuming });
+  item.hpb = hpb;
+  if (src.artOfWar && !spare.artOfWar) { parts.push({ id: ART_OF_WAR.id }); item.artOfWar = true; }
+  if ((src.masterStars ?? 0) > (spare.masterStars ?? 0)) {
+    parts.push(...MASTER_STAR_IDS.slice(spare.masterStars ?? 0, src.masterStars).map((id) => ({ id })));
+    item.masterStars = src.masterStars;
+  }
+  if (src.recomb && !spare.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); item.recomb = true; }
+  if (src.reforge && src.reforge !== spare.reforge && getReforge(src.reforge)) { parts.push(...reforgeCost(getReforge(src.reforge), spare)); item.reforge = src.reforge; }
+  for (const x of src.scrolls ?? []) if (!item.scrolls.includes(x)) { parts.push({ id: x }); item.scrolls.push(x); }
+  return { item, parts };
+}
+
 function copyParts(item, prices) {
   const parts = [
     ...Object.entries(item.enchants ?? {}).flatMap(([k, level]) => enchantParts(k, level, 0, prices)?.parts ?? []),
@@ -494,9 +552,12 @@ export function availableUpgrades(loadout, ctx, prices) {
     // Dual wield (LCM): a second copy of a Prosecute Hyperion / Dark Claymore with Execute, swapped in once the boss
     // is low. Priced as the full first copy; counted as DUAL_WIELD_ADDITIVE more additive damage on average.
     if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)) {
-      const parts = [{ id: item.id }, ...copyParts(item, prices)];
-      push(`Dual wield ${name}: a second copy with Execute in place of Prosecute`, parts,
-        (l) => replaceItem(l, item, { ...item, dualWield: true }), { group: `${slot}:dualwield` });
+      // A spare copy you own only needs the upgrades it is missing.
+      const spare = (loadout.spareBlades ?? []).find((b) => b.id === item.id);
+      const parts = spare ? convertParts(spare, item, prices).parts : [{ id: item.id }, ...copyParts(item, prices)];
+      push(`Dual wield ${name}: a second copy with Execute in place of Prosecute${spare ? ' (your spare one, missing upgrades only)' : ''}`, parts.length ? parts : [{ coins: 1 }],
+        (l) => { const next = replaceItem(l, item, { ...item, dualWield: true }); if (spare) next.spareBlades = next.spareBlades.filter((b) => b !== spare); return next; },
+        { group: `${slot}:dualwield` });
     }
 
     // Master stars: next star only, dungeon gear with 5 regular stars.
@@ -593,6 +654,29 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (item.enrichment === kind) continue;
         pushItem(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
           (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
+      }
+    }
+  }
+
+  // Spare blades you own: made into the boss weapon (when it is a different blade) or the Mage dragon-set weapon, for
+  // only the upgrades they lack compared with the weapon they copy.
+  if (!isRcm(ctx)) {
+    for (const spare of loadout.spareBlades ?? []) {
+      if (!CLASS_WEAPON_CATEGORIES[cls].includes(spare.category)) continue;
+      const spareName = cleanName(spare.name ?? resource.get(spare.id)?.name ?? spare.id);
+      const targets = [];
+      if (loadout.weapon && loadout.weapon.id !== spare.id) targets.push(['main', loadout.weapon]);
+      if (hasDragonSet(ctx) && !loadout.dragonGear?.weapon && loadout.weapon) targets.push(['dragon', loadout.weapon]);
+      for (const [set, src] of targets) {
+        const { item, parts } = convertParts(spare, src, prices);
+        push(`Use your spare ${spareName}${set === 'dragon' ? ' as the dragon-set weapon' : ' as the boss weapon'} with ${cleanName(src.name ?? src.id)}'s upgrades (missing ones only)`,
+          parts.length ? parts : [{ coins: 1 }], (l) => {
+            const next = cloneLoadout(l);
+            next.spareBlades = next.spareBlades.filter((b) => b !== spare);
+            if (set === 'dragon') setDragonSlot(next, 'weapon', item);
+            else { next.spareBlades = [...next.spareBlades, l.weapon]; next.weapon = item; }
+            return next;
+          }, { group: `spare:${set}`, repick: true });
       }
     }
   }

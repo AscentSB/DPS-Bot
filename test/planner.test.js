@@ -1538,7 +1538,8 @@ test('a new bow for Archer comes with the current bow\'s enchants and potato boo
 test('armor bundles: pieces that each lose damage alone (breaking a set bonus) are bought together when that wins', async () => {
   const slots = ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS'];
   const sm = slots.map((s) => [`SKELETON_MASTER_${s}`, { id: `SKELETON_MASTER_${s}`, name: `Skeleton Master ${s}`, category: s, tier: 'EPIC', stats: { STRENGTH: 10 } }]);
-  const big = slots.map((s) => [`BIG_${s}`, { id: `BIG_${s}`, name: `Big ${s}`, category: s, tier: 'EPIC', stats: { STRENGTH: 70 } }]);
+  // Archer keeps the Skeleton Master Chestplate, so the bundle covers the other three slots.
+  const big = slots.filter((s) => s !== 'CHESTPLATE').map((s) => [`BIG_${s}`, { id: `BIG_${s}`, name: `Big ${s}`, category: s, tier: 'EPIC', stats: { STRENGTH: 80 } }]);
   const res = new Map([['TERMINATOR', resource.get('TERMINATOR')], ...sm, ...big]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
@@ -1547,7 +1548,7 @@ test('armor bundles: pieces that each lose damage alone (breaking a set bonus) a
   const single = availableUpgrades(l, ctx, p).find((u) => u.label === 'Buy Big HELMET');
   assert.ok(evaluate(single.apply(l), ctx, w).wither < evaluate(l, ctx, w).wither);
   const plan = await planUpgrades(l, ctx, p, w, 3);
-  assert.ok(plan.steps.some((st) => st.label === 'Armor bundle: Buy Big HELMET; Buy Big CHESTPLATE; Buy Big LEGGINGS; Buy Big BOOTS'), plan.steps.map((st) => st.label).join(' / '));
+  assert.ok(plan.steps.some((st) => st.label === 'Armor bundle: Buy Big HELMET; Buy Big LEGGINGS; Buy Big BOOTS'), plan.steps.map((st) => st.label).join(' / '));
 });
 
 test('Golden Necron Head is free (50 completions): a Claim step, then it upgrades into the Diamond head keeping its upgrades', () => {
@@ -1570,7 +1571,7 @@ test('Golden Necron Head is free (50 completions): a Claim step, then it upgrade
   assert.ok(availableUpgrades(withGold, ctx, p).some((u) => u.label.startsWith('Upgrade Golden Necron Head into Diamond Necron Head')));
 });
 
-test("Archer and Berserker never get Necron's Chestplate (Skeleton Master's infinite arrows); a piece with gem slots can come with them filled", () => {
+test("Archer and Berserker never get a chestplate other than Skeleton Master's (Necron's, Shadow Assassin, ...) (Skeleton Master's infinite arrows); a piece with gem slots can come with them filled", () => {
   const slots = [{ slot_type: 'JASPER', costs: [{ type: 'COINS', coins: 250000 }] }, { slot_type: 'COMBAT' }];
   const res = new Map([...resource,
     ['POWER_WITHER_CHESTPLATE', { id: 'POWER_WITHER_CHESTPLATE', name: "Necron's Chestplate", category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 40, CRITICAL_DAMAGE: 30 }, gemstone_slots: slots }],
@@ -1580,9 +1581,32 @@ test("Archer and Berserker never get Necron's Chestplate (Skeleton Master's infi
   const l = buildLoadout(profile([newItem('TERMINATOR', res)]), arch, weightsFor('arch'));
   const ups = availableUpgrades(l, arch, p);
   assert.ok(!ups.some((u) => /Necron's Chestplate/.test(u.label)));
+  const sa = new Map([...res, ['SHADOW_ASSASSIN_CHESTPLATE', { id: 'SHADOW_ASSASSIN_CHESTPLATE', name: 'Shadow Assassin Chestplate', category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 500 } }]]);
+  const saCtx = makeContext({ cls: 'arch', cataLevel: 50, resource: sa });
+  const worn = buildLoadout(profile([newItem('TERMINATOR', sa), newItem('SHADOW_ASSASSIN_CHESTPLATE', sa)]), saCtx, weightsFor('arch'));
+  assert.equal(worn.armor.CHESTPLATE, undefined);
+  assert.ok(!availableUpgrades(worn, saCtx, p).some((u) => /Shadow Assassin Chestplate/.test(u.label)));
   const gemmed = ups.find((u) => u.label.startsWith("Buy Necron's Boots") && /Perfect Jasper gems/.test(u.label));
   assert.ok(gemmed);
   assert.deepEqual(gemmed.apply(l).armor.BOOTS.gems.slots, { JASPER_0: { gem: 'JASPER', quality: 'PERFECT' }, COMBAT_0: { gem: 'JASPER', quality: 'PERFECT' } });
   const bers = makeContext({ cls: 'bers', cataLevel: 50, resource: res });
   assert.ok(!availableUpgrades(buildLoadout(profile([newItem('HYPERION', res)]), bers, weightsFor('bers')), bers, p).some((u) => /Necron's Chestplate/.test(u.label)));
+});
+
+test('Mage LCM: the RCM Hyperion (Ultimate Wise, Giant Killer) is kept for the clear; a spare Hyperion is upgraded for only what it lacks', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource });
+  const w = weightsFor('mage');
+  const rcm = { ...scrolled(newItem('HYPERION', resource)), enchants: { ultimate_wise: 5, giant_killer: 7, prosecute: 6, smite: 7 } };
+  const lcm = { ...scrolled(newItem('HYPERION', resource)), hpb: 15, enchants: { ultimate_chimera: 5, titan_killer: 7, prosecute: 6, smite: 7, critical: 6 } };
+  const clean = newItem('HYPERION', resource);
+  const l = buildLoadout(profile([rcm, clean, lcm]), ctx, w);
+  assert.equal(l.rcmBlade, rcm);
+  assert.equal(l.weapon, lcm);
+  assert.deepEqual(l.spareBlades, [clean]);
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const dual = availableUpgrades(l, ctx, p).find((u) => u.label.startsWith('Dual wield Hyperion'));
+  assert.ok(/your spare one, missing upgrades only/.test(dual.label));
+  // No Hyperion bought: only what the clean one lacks (5 books, 10 hot + 5 fuming potato books, 3 scrolls; 1M each).
+  assert.equal(dual.cost, 23e6);
+  assert.ok(!dual.apply(l).spareBlades.length);
 });
