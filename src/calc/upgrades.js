@@ -32,7 +32,9 @@ export const REPLACED_PIECE_BUDGET = 25_000_000;
 const ARMOR_BUNDLE_SHORTLIST = 3;
 // Free items (no coins): offered as a "Claim" step priced at 1 coin, so it ranks first when it helps and can join
 // armor bundles.
-export const FREE_ITEMS = { DIAMOND_NECRON_HEAD: 'free with 500 completions' };
+// Golden Necron Head: free with 50 completions; it then upgrades into the Diamond one (8 Enchanted Diamond Blocks),
+// keeping its upgrades.
+export const FREE_ITEMS = { GOLD_NECRON_HEAD: 'free with 50 completions' };
 const REPLAN_ROUNDS = 10;
 // A step the plan overwrites soon after (a reforge, enchant level, gem, enrichment, pet item, piece or pet that a
 // later step replaces with at most this many coins spent in between, the replacing step included) is skipped,
@@ -601,7 +603,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     if (excludedItem(id, ctx)) continue;
     // Never buy a fresh copy of what an item you wear upgrades into (the upgrade keeps its stars, gems, etc.).
-    if (worn.some((it) => upgradesInto(it.id, id)) && !FREE_ITEMS[id]) continue;
+    if (worn.some((it) => upgradesInto(it.id, id))) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
