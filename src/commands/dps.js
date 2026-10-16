@@ -4,6 +4,7 @@ import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
 import { pricesReady } from '../api/prices.js';
+import { usage } from '../lib/usage.js';
 
 // A /dps message goes inactive after this long without a button press (its buttons are removed, its data freed and
 // any calculation it started is stopped). Change it here.
@@ -223,6 +224,7 @@ export async function execute(interaction) {
   }
   if (!pricesReady()) return interaction.reply({ content: PRICES_LOADING, ephemeral: true });
   await interaction.deferReply();
+  usage.record().catch((err) => console.error('Usage count failed:', err.message));
 
   try {
     let account;
