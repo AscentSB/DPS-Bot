@@ -1570,7 +1570,7 @@ test('Golden Necron Head is free (50 completions): a Claim step, then it upgrade
   assert.ok(availableUpgrades(withGold, ctx, p).some((u) => u.label.startsWith('Upgrade Golden Necron Head into Diamond Necron Head')));
 });
 
-test("Archer never gets Necron's Chestplate (Skeleton Master's infinite arrows); a piece with gem slots can come with them filled", () => {
+test("Archer and Berserker never get Necron's Chestplate (Skeleton Master's infinite arrows); a piece with gem slots can come with them filled", () => {
   const slots = [{ slot_type: 'JASPER', costs: [{ type: 'COINS', coins: 250000 }] }, { slot_type: 'COMBAT' }];
   const res = new Map([...resource,
     ['POWER_WITHER_CHESTPLATE', { id: 'POWER_WITHER_CHESTPLATE', name: "Necron's Chestplate", category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 40, CRITICAL_DAMAGE: 30 }, gemstone_slots: slots }],
@@ -1584,5 +1584,5 @@ test("Archer never gets Necron's Chestplate (Skeleton Master's infinite arrows);
   assert.ok(gemmed);
   assert.deepEqual(gemmed.apply(l).armor.BOOTS.gems.slots, { JASPER_0: { gem: 'JASPER', quality: 'PERFECT' }, COMBAT_0: { gem: 'JASPER', quality: 'PERFECT' } });
   const bers = makeContext({ cls: 'bers', cataLevel: 50, resource: res });
-  assert.ok(availableUpgrades(buildLoadout(profile([newItem('HYPERION', res)]), bers, weightsFor('bers')), bers, p).some((u) => /Necron's Chestplate/.test(u.label)));
+  assert.ok(!availableUpgrades(buildLoadout(profile([newItem('HYPERION', res)]), bers, weightsFor('bers')), bers, p).some((u) => /Necron's Chestplate/.test(u.label)));
 });
