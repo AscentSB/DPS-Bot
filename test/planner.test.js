@@ -1561,7 +1561,11 @@ test('Golden Necron Head is free (50 completions): a Claim step, then it upgrade
   const ups = availableUpgrades(l, ctx, p);
   const claim = ups.find((u) => u.label === 'Claim Golden Necron Head (free with 50 completions)');
   assert.equal(claim?.cost, 1);
-  assert.ok(!ups.some((u) => /Diamond Necron Head/.test(u.label)));
+  // Claimed and upgraded in one step (8 Enchanted Diamond Blocks), never a Diamond head bought on its own.
+  const both = ups.find((u) => u.label === 'Claim Golden Necron Head (free with 50 completions) and upgrade it into Diamond Necron Head (8 Enchanted Diamond Blocks)');
+  assert.equal(both?.cost, 1 + 320e6);
+  assert.equal(both.apply(l).armor.HELMET.id, 'DIAMOND_NECRON_HEAD');
+  assert.ok(!ups.some((u) => u.label.startsWith('Buy Diamond Necron Head')));
   const withGold = claim.apply(l);
   assert.ok(availableUpgrades(withGold, ctx, p).some((u) => u.label.startsWith('Upgrade Golden Necron Head into Diamond Necron Head')));
 });
