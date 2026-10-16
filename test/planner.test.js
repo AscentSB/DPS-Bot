@@ -4,7 +4,7 @@ import zlib from 'node:zlib';
 import nbt from 'prismarine-nbt';
 import { decodeItems, toItemState } from '../src/lib/nbt.js';
 import { readMember } from '../src/api/hypixel.js';
-import { makeContext, buildLoadout, planUpgrades, weightsFor, availableUpgrades, newItem } from '../src/calc/upgrades.js';
+import { makeContext, buildLoadout, planUpgrades, weightsFor, availableUpgrades, newItem, enchantParts, profileUpgrades } from '../src/calc/upgrades.js';
 import { evaluate, itemContribution, shardStats, totalAccessoryPower, accessoryStats, saCloakMultiplier } from '../src/calc/stats.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} != ${b}`);
@@ -1447,4 +1447,62 @@ test('Shadow Assassin Cloak: one 1.1x hit per 3s (less Mage cooldown reduction),
   close(saCloakMultiplier(4, { cls: 'bers' }), 1 + 0.1 / 12);
   // Never more than every hit.
   close(saCloakMultiplier(0.1, { cls: 'bers' }), 1.1);
+});
+
+test('enchant books the bazaar does not sell: enchanting table (1 Grand Experience Bottle, 2 at 75 levels), Severed Hand / End Stone Idol', () => {
+  const table = { ENCHANTMENT_SMITE_6: 100e3, SEVERED_HAND: 14e6, ENDSTONE_IDOL: 50e6, GRAND_EXP_BOTTLE: 5e3, ENCHANTMENT_ENDER_SLAYER_6: 150e3 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
+  assert.deepEqual(enchantParts('prosecute', 5, 0, p), { parts: [{ id: 'GRAND_EXP_BOTTLE', qty: 1 }], note: 'enchanting table' });
+  assert.deepEqual(enchantParts('first_strike', 4, 0, p).parts, [{ id: 'GRAND_EXP_BOTTLE', qty: 2 }]);
+  // Smite VII on Smite VI: only the hand, and it builds on the VI.
+  assert.deepEqual(enchantParts('smite', 7, 6, p), { parts: [{ id: 'SEVERED_HAND' }], note: 'add a Severed Hand', stacks: true });
+  // From Smite V: the VI book, then the hand.
+  assert.deepEqual(enchantParts('smite', 7, 5, p).parts, [{ id: 'ENCHANTMENT_SMITE_6' }, { id: 'SEVERED_HAND' }]);
+  assert.deepEqual(enchantParts('ender_slayer', 7, 6, p), { parts: [{ id: 'ENDSTONE_IDOL' }], note: 'add an End Stone Idol', stacks: true });
+  // A level with no source is not offered.
+  assert.equal(enchantParts('prosecute', 6, 5, p), null);
+});
+
+test('The One: +0.2 strength per maxed collection at V; profile lists each unmaxed collection while worn', () => {
+  const res = new Map([...resource, ['PLAIN_NECKLACE', { id: 'PLAIN_NECKLACE', name: 'Plain Necklace', category: 'NECKLACE', tier: 'LEGENDARY', stats: { STRENGTH: 1 } }]]);
+  const collections = { maxed: 40, unmaxed: [{ id: 'GOLD_INGOT', name: 'Gold Ingot', amount: 5, max: 400000 }, { id: 'SAND', name: 'Sand', amount: 1, max: 5000 }] };
+  const ctx = makeContext({ cls: 'bers', cataLevel: 50, resource: res, collections });
+  const neck = { ...newItem('PLAIN_NECKLACE', res), enchants: { ultimate_the_one: 5 } };
+  close(itemContribution(neck, ctx).global.strength - itemContribution(newItem('PLAIN_NECKLACE', res), ctx).global.strength, 0.2 * 40);
+  const w = weightsFor('bers');
+  const l = buildLoadout(profile([newItem('HYPERION', res), neck]), ctx, w);
+  const rows = profileUpgrades(l, ctx, w).rows.filter((r) => /The One/.test(r.label));
+  assert.deepEqual(rows.map((r) => r.label).sort(), ['Max Gold Ingot collection (5 / 400,000; The One: +0.2 strength)', 'Max Sand collection (1 / 5,000; The One: +0.2 strength)']);
+  // Not worn: no collection rows.
+  const bare = buildLoadout(profile([newItem('HYPERION', res)]), ctx, w);
+  assert.ok(!profileUpgrades(bare, ctx, w).rows.some((r) => /collection \(/.test(r.label) && /The One/.test(r.label)));
+});
+
+test('Gold collection: the next digit is a profile upgrade for a Golden Dragon owner', () => {
+  const ctx = makeContext({ cls: 'bers', cataLevel: 50, resource, petProfile: { bank: 0, goldCollection: 54321 } });
+  const w = weightsFor('bers');
+  const l = buildLoadout(profile([newItem('HYPERION', resource)], { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), ctx, w);
+  assert.ok(profileUpgrades(l, ctx, w).rows.some((r) => r.label === 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)'));
+  const none = buildLoadout(profile([newItem('HYPERION', resource)]), ctx, w);
+  assert.ok(!profileUpgrades(none, ctx, w).rows.some((r) => /Gold collection/.test(r.label)));
+});
+
+test('free quest accessories go in profile upgrades, only when magical power rises (next Campfire badge that changes rarity); IQ Points show +% intelligence', () => {
+  const acc = (id, name, tier, extra = {}) => [id, { id, name, category: 'ACCESSORY', tier, soulbound: 'SOLO', ...extra }];
+  const res = new Map([...resource,
+    acc('CAMPFIRE_TALISMAN_1', 'Campfire Initiate Badge I', 'COMMON'), acc('CAMPFIRE_TALISMAN_2', 'Campfire Initiate Badge II', 'COMMON'),
+    acc('CAMPFIRE_TALISMAN_3', 'Campfire Initiate Badge III', 'COMMON'), acc('CAMPFIRE_TALISMAN_4', 'Campfire Adept Badge I', 'UNCOMMON'),
+    acc('CAMPFIRE_TALISMAN_5', 'Campfire Adept Badge II', 'UNCOMMON'), acc('TWO_IQ_POINT', '2 IQ Points', 'UNCOMMON'),
+    acc('PRICED_TALISMAN', 'Priced Talisman', 'RARE')]);
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
+  const w = weightsFor('mage');
+  const l = buildLoadout(profile([newItem('HYPERION', res), newItem('CAMPFIRE_TALISMAN_1', res)]), ctx, w);
+  const p = { get: (id) => (id === 'PRICED_TALISMAN' ? { price: 1e6, source: 'AH' } : null) };
+  const labels = profileUpgrades(l, ctx, w, p).rows.map((r) => r.label);
+  assert.ok(labels.includes('Campfire Adept Badge I (free quest accessory: +2 magical power)'));
+  assert.ok(!labels.some((x) => /Initiate Badge (II|III)|Adept Badge II|Priced/.test(x)));
+  assert.ok(labels.includes('2 IQ Points (free quest accessory: +5 magical power, +2% intelligence)'));
+  // 2 IQ Points: +2% total intelligence, additive with the other percent bonuses.
+  const iq = evaluate({ ...l, accessories: new Map(l.accessories).set('TWO_IQ_POINT', newItem('TWO_IQ_POINT', res)) }, ctx, w);
+  assert.ok(iq.stats.wither.intelligence > evaluate(l, ctx, w).stats.wither.intelligence);
 });

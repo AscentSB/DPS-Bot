@@ -140,6 +140,8 @@ export const ULTIMATE_WITHER_SCROLL = 'ULTIMATE_WITHER_SCROLL';
 // Shadow Assassin Cloak: the next hit after a teleport deals 10% more, once every SA_CLOAK_COOLDOWN_S seconds
 // (shortened by Mage cooldown reduction). Averaged over every hit: 1 + 0.1 / (hits per cooldown). Needs a Wither
 // Impact blade in hand (all 3 scrolls) to teleport. 2 of 3 scrolls does nothing.
+// The One counts maxed collections. With no collection data, every collection counts as maxed.
+export const DEFAULT_MAXED_COLLECTIONS = 90;
 export const SA_CLOAK_IDS = ['SHADOW_ASSASSIN_CLOAK', 'STARRED_SHADOW_ASSASSIN_CLOAK'];
 export const SA_CLOAK_MULTIPLIER = 1.1;
 export const SA_CLOAK_COOLDOWN_S = 3;

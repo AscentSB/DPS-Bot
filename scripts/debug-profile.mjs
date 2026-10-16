@@ -4,7 +4,7 @@
 import 'dotenv/config';
 import fs from 'node:fs';
 import { getMinecraftProfile, isValidIgn } from '../src/api/mojang.js';
-import { getItemsResource, getSelectedProfile, readMember, activeMembers } from '../src/api/hypixel.js';
+import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember, activeMembers } from '../src/api/hypixel.js';
 import { ensurePrices, snapshotPrices } from '../src/api/prices.js';
 import { runDps } from '../src/calc/run.js';
 
@@ -15,13 +15,13 @@ try {
   const account = await getMinecraftProfile(ign);
   if (!account) throw new Error('No Minecraft account with that name.');
   stage = 'Hypixel profile and item list';
-  const [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]);
+  const [resource, profile, collections] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid), getCollectionsResource().catch(() => null)]);
   if (!profile) throw new Error('No SkyBlock profiles.');
   const file = `debug-${account.name}.json`;
   fs.writeFileSync(file, JSON.stringify({ uuid: account.uuid, profile }));
   console.log(`Saved the raw profile to ${file}`);
   stage = 'reading the profile (readMember)';
-  const member = readMember(profile, account.uuid, resource);
+  const member = readMember(profile, account.uuid, resource, collections);
   console.log(`Read ${member.items.length} items, Catacombs ${member.cataLevel}, bank ${member.petProfile?.bank ?? 'not shared (bank API off)'}.`);
   const me = profile.members?.[account.uuid];
   console.log(`Bank: shared ${profile.banking?.balance ?? 'hidden'}, personal ${me?.profile?.bank_account ?? 'hidden'}, purse ${me?.currencies?.coin_purse ?? 'hidden'}, members ${Object.keys(profile.members ?? {}).length} (${activeMembers(profile)} still on the profile). Golden Dragon uses ${member.petProfile?.bank ?? 'none (bank API off)'}.`);

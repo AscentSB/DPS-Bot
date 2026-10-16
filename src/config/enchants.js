@@ -63,6 +63,33 @@ export const ENCHANTS = {
   // Chimera copies CHIMERA_PER_LEVEL of your active pet's stats per level onto the sword (constants.js).
   // On a Ragnarock it boosts the ability's strength; on a Mage weapon the copied stats get the dungeon boost.
   ultimate_chimera: { categories: SWORDS, target: 'global', chimera: true, maxLevel: 5, conflicts: ['ultimate_swarm'] },
+  // The One (necklace): +0.1 (IV) / +0.2 (V) strength per maxed collection. Only IV and V exist (Riftstalker
+  // Bloodfiend, bazaar).
+  ultimate_the_one: { name: 'The One', categories: ['NECKLACE'], target: 'global', theOne: [0, 0, 0, 0.1, 0.2], minLevel: 4, maxLevel: 5 },
+};
+
+// Enchanting table: XP levels for each level it sells (NEU enchants_xp_cost, up to max_xp_table_levels). A level
+// the bazaar does not sell costs 1 Grand Experience Bottle, or 2 when it costs ENCHANT_TABLE_TWO_BOTTLES levels.
+export const GRAND_EXP_BOTTLE_ID = 'GRAND_EXP_BOTTLE';
+export const ENCHANT_TABLE_TWO_BOTTLES = 75;
+export const TABLE_ENCHANT_XP = {
+  sharpness: [10, 15, 20, 25, 30],
+  smite: [10, 15, 20, 25, 30],
+  giant_killer: [10, 20, 30, 40, 50],
+  titan_killer: [10, 20, 30, 40, 50],
+  critical: [10, 20, 30, 40, 50],
+  first_strike: [20, 30, 40, 75],
+  triple_strike: [20, 30, 40, 75],
+  ender_slayer: [10, 20, 25, 30, 40],
+  thunderlord: [20, 25, 30, 40, 50],
+  prosecute: [20, 25, 30, 40, 50],
+  power: [10, 20, 30, 40, 50],
+};
+
+// Bazaar items (Item Upgrades) that raise an enchant from VI to VII once.
+export const ENCHANT_UPGRADE_ITEMS = {
+  smite: { level: 7, id: 'SEVERED_HAND', name: 'Severed Hand' },
+  ender_slayer: { level: 7, id: 'ENDSTONE_IDOL', name: 'End Stone Idol' },
 };
 
 export function enchantMaxLevel(ench) {

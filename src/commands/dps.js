@@ -1,7 +1,7 @@
 import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { CLASSES, BLESSING_LIMITS, blessingsWith } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
-import { getItemsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
+import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
 import { pricesReady } from '../api/prices.js';
 
@@ -225,9 +225,10 @@ export async function execute(interaction) {
     if (!account) return interaction.editReply('No Minecraft account has that username.');
     let resource;
     let profile;
-    try { [resource, profile] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid)]); } catch (err) { console.error(err); return interaction.editReply(hypixelError(err)); }
+    let collections = null;
+    try { [resource, profile, collections] = await Promise.all([getItemsResource(), getSelectedProfile(account.uuid), getCollectionsResource().catch(() => null)]); } catch (err) { console.error(err); return interaction.editReply(hypixelError(err)); }
     if (!profile) return interaction.editReply(`**${escapeMarkdown(account.name)}** has no SkyBlock profiles.`);
-    const member = readMember(profile, account.uuid, resource);
+    const member = readMember(profile, account.uuid, resource, collections);
 
     // The planner runs in a worker thread so the bot stays connected while it works.
     const coins = { all: await runInWorker({ ...job, upgradeMode: 'all', member, menu: 'coins', limit: PLAN_STEPS }) };

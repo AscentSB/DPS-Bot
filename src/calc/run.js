@@ -9,7 +9,7 @@ export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 
     cls, cataLevel: member.cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning,
     profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel,
     berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel,
-    skills: member.skills, slayers: member.slayers, profileStats: member.profileStats, upgradeMode, mode, floorMode, blessings, resource,
+    skills: member.skills, slayers: member.slayers, collections: member.collections, profileStats: member.profileStats, upgradeMode, mode, floorMode, blessings, resource,
   });
   const weights = weightsFor(cls, target, mode, ctx.floorMode);
   const loadout = buildLoadout(member, ctx, weights);
@@ -20,7 +20,7 @@ export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 
   }]));
   const damage = (d) => ({ wither: d.wither, dragon: d.dragon, ap: d.ap, tuning: d.tuning, stats: stats(d) });
   if (menu === 'profile') {
-    const { rows, damage: now } = profileUpgrades(loadout, ctx, weights);
+    const { rows, damage: now } = profileUpgrades(loadout, ctx, weights, prices);
     return { weights, menu, floorMode: ctx.floorMode, profile: { rows, damage: damage(now) } };
   }
   const plan = await planUpgrades(loadout, ctx, prices, weights, limit, pool && prices.tables ? pool.scorer(ctx, weights, prices.tables) : null, isCancelled);

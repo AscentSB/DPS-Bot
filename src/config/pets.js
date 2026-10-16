@@ -22,13 +22,15 @@ export const PET_ITEMS = {
 // Pets not listed here count their base stats only.
 // Golden Dragon's Legendary Treasure maxes out at this much in the bank (0.25% per million, max 250%).
 export const GOLDEN_DRAGON_BANK_CAP = 1e9;
+// Shining Scales counts up to this many digits of Gold collection.
+export const GOLD_COLLECTION_DIGITS = 9;
 
 export const PET_PERKS = {
   // Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
   // Dragon's Greed: +n[1]% strength per 5 Magic Find, max n[2]% (assumed maxed).
   // Legendary Treasure: +n[3]% damage per million coins in the bank (0.25% at level 200), max n[4]% (250%, at 1B).
   GOLDEN_DRAGON: (n, p) => ({
-    petStrength: 11.1 * Math.min(9, digits(p.goldCollection)),
+    petStrength: 11.1 * Math.min(GOLD_COLLECTION_DIGITS, digits(p.goldCollection)),
     additiveStrength: (n[2] ?? 0) / 100,
     additiveDamage: Math.min(n[4] ?? 0, (n[3] ?? 0) * ((p.bank ?? 0) / 1e6)),
   }),

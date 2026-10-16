@@ -45,6 +45,11 @@ export const ITEM_STATS = {
   SCYLLA: { perCataLevel: { damage: 1, critDamage: 1 } },
   ASTRAEA: { perCataLevel: { damage: 1 } },
 
+  // IQ Points (Rift, free): +1% / +2% total intelligence, added to the other percent intelligence bonuses.
+  // note: shown next to the item's name in upgrade lists.
+  IQ_POINT: { stats: { additiveIntelligence: 0.01 }, note: '+1% intelligence' },
+  TWO_IQ_POINT: { stats: { additiveIntelligence: 0.02 }, note: '+2% intelligence' },
+
   // Necron heads: 2x stats on The Catacombs Floor VII.
   DIAMOND_NECRON_HEAD: { statMultiplier: 2 },
   GOLD_NECRON_HEAD: { statMultiplier: 2 },

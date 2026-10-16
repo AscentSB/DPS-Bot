@@ -32,6 +32,46 @@ export async function getItemsResource() {
   return itemsLoading;
 }
 
+let collectionsCache = { map: null, fetchedAt: 0 };
+let collectionsLoading = null;
+
+// Collections resource: Map id -> { name, max } (amount needed for the last tier). Same caching as the items list.
+export async function getCollectionsResource() {
+  if (collectionsCache.map && Date.now() - collectionsCache.fetchedAt < ITEMS_REFRESH_MS) return collectionsCache.map;
+  collectionsLoading ??= (async () => {
+    const data = await getJson(`${API}/resources/skyblock/collections`);
+    if (!data?.success) throw new Error('Could not load the SkyBlock collections resource.');
+    const map = new Map();
+    for (const category of Object.values(data.collections ?? {})) {
+      for (const [id, c] of Object.entries(category.items ?? {})) {
+        const max = Math.max(0, ...(c.tiers ?? []).map((t) => t.amountRequired ?? 0));
+        if (max > 0) map.set(id, { name: c.name ?? id, max });
+      }
+    }
+    collectionsCache = { map, fetchedAt: Date.now() };
+    return map;
+  })().finally(() => { collectionsLoading = null; });
+  if (collectionsCache.map) {
+    collectionsLoading.catch((err) => console.error('Collections refresh failed:', err.message));
+    return collectionsCache.map;
+  }
+  return collectionsLoading;
+}
+
+// Maxed and unmaxed collections ({ maxed, unmaxed: [{ id, name, amount, max }] }), or null when the collections
+// API is off or the resource is not loaded.
+export function readCollections(member, collections) {
+  if (!collections?.size || !member?.collection) return null;
+  const unmaxed = [];
+  let maxed = 0;
+  for (const [id, c] of collections) {
+    const amount = Number(member.collection[id]) || 0;
+    if (amount >= c.max) maxed++;
+    else unmaxed.push({ id, name: c.name, amount, max: c.max });
+  }
+  return { maxed, unmaxed };
+}
+
 // Selected profiles by UUID: { at, profile } once loaded, or { promise } while loading (callers share one request).
 const profileCache = new Map();
 
@@ -84,7 +124,8 @@ function inventoryBlobs(member) {
 }
 
 // Pull the player's items, Catacombs level and other DPS-relevant data from one profile response.
-export function readMember(profile, uuid, resource) {
+// collections (optional): getCollectionsResource() output, for The One.
+export function readMember(profile, uuid, resource, collections = null) {
   const member = profile?.members?.[uuid];
   if (!member) throw new Error('Player is not a member of this profile.');
   const blobs = inventoryBlobs(member);
@@ -115,6 +156,7 @@ export function readMember(profile, uuid, resource) {
     // Combat skill (base crit chance). Skills API off: assume maxed.
     combatLevel: member.player_data?.experience?.SKILL_COMBAT == null ? COMBAT_MAX_LEVEL
       : skillLevelFromXp(member.player_data.experience.SKILL_COMBAT, COMBAT_MAX_LEVEL),
+    collections: readCollections(member, collections),
     pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),
     power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
     unlockedPowers: (bag.unlocked_powers ?? []).map((x) => String(x).toLowerCase()),

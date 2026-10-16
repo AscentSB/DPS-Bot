@@ -3,7 +3,7 @@ import {
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
   MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith,
 } from '../config/constants.js';
-import { ENCHANTS, enchantMaxLevel } from '../config/enchants.js';
+import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
 import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, ENRICHMENT_SWAPPER_ID, DEFAULT_POWER } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
@@ -11,11 +11,12 @@ import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
 import FRAGGED from '../data/fragged.json' with { type: 'json' };
 import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
+import { ITEM_STATS } from '../config/itemStats.js';
 import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, accessoryChainPosition, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
 } from './stats.js';
-import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP } from '../config/pets.js';
+import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
@@ -111,16 +112,17 @@ function dragonItems(l) {
 // profile: { cataLevel, secrets, power, tuning } from readMember.
 // petProfile: { bank, goldCollection } for Golden Dragon perks (no bank data counts as an empty bank; a missing Gold
 // collection counts as maxed).
+// collections: { maxed, unmaxed } from readCollections (The One), or null (counts every collection as maxed).
 // skills / slayers: the player's levels for item requirement checks (omit to treat every requirement as met).
 // floorMode: 'master' (Master Mode: Titan Killer, Triple-Strike) or 'normal' (F7: First Strike, no master stars,
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, collections = null, resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
   // The Normal Mode toggle is for Mage only, boss set and clear set (F7 Archer / Berserker damage is scored in Master Mode).
   const floor = cls === 'mage' ? floorMode : 'master';
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), collections, resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -399,6 +401,32 @@ function hasUsefulStats(id, resource, cls) {
 
 // Cheapest way to raise a combinable enchant from `from` to `to` one level at a time: at each level, add the book of
 // the current level (combine) or buy the next level's book. Returns { parts, cost, text } or null if a price is missing.
+// Cheapest way to get an enchant to `level` from `current`: its book (bazaar / auction house), the enchanting table
+// (Grand Experience Bottles), an upgrade item on the level below (Severed Hand, End Stone Idol), or combining
+// ultimate books. Returns { parts, note, stacks } or null when none is priced.
+export function enchantParts(key, level, current, prices) {
+  const book = (lv) => `ENCHANTMENT_${key.toUpperCase()}_${lv}`;
+  const ways = [{ parts: [{ id: book(level) }] }];
+  const xp = TABLE_ENCHANT_XP[key]?.[level - 1];
+  if (xp != null) ways.push({ parts: [{ id: GRAND_EXP_BOTTLE_ID, qty: xp >= ENCHANT_TABLE_TWO_BOTTLES ? 2 : 1 }], note: 'enchanting table' });
+  const upgrade = ENCHANT_UPGRADE_ITEMS[key];
+  if (upgrade?.level === level) {
+    const below = current >= level - 1 ? { parts: [] } : enchantParts(key, level - 1, current, prices);
+    if (below) ways.push({ parts: [...below.parts, { id: upgrade.id }], note: `add ${/^[AEIOU]/.test(upgrade.name) ? 'an' : 'a'} ${upgrade.name}`, stacks: current >= level - 1 });
+  }
+  if (key.startsWith('ultimate_') && current > 0) {
+    const chain = combineParts(book, current, level, prices);
+    if (chain) ways.push({ parts: chain.parts, note: chain.text, stacks: true });
+  }
+  let best = null;
+  let bestCost = Infinity;
+  for (const way of ways) {
+    const cost = priceParts(way.parts, prices)?.cost;
+    if (cost != null && cost < bestCost) { best = way; bestCost = cost; }
+  }
+  return best;
+}
+
 function combineParts(book, from, to, prices) {
   const parts = [];
   const combined = [];
@@ -420,7 +448,7 @@ function combineParts(book, from, to, prices) {
 // of War, master stars, recombobulator, reforge, gems and Wither scrolls.
 function copyParts(item, prices) {
   const parts = [
-    ...Object.entries(item.enchants ?? {}).map(([k, level]) => ({ id: `ENCHANTMENT_${k.toUpperCase()}_${level}` })),
+    ...Object.entries(item.enchants ?? {}).flatMap(([k, level]) => enchantParts(k, level, 0, prices)?.parts ?? []),
     ...(item.hpb ? [{ id: HOT_POTATO.id, qty: Math.min(item.hpb, HOT_POTATO.max) }] : []),
     ...(item.hpb > HOT_POTATO.max ? [{ id: FUMING_POTATO.id, qty: item.hpb - HOT_POTATO.max }] : []),
     ...(item.artOfWar ? [{ id: ART_OF_WAR.id }] : []),
@@ -482,21 +510,18 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (ench.chimera && ctx.mode === 'rcm') continue;
         const current = item.enchants?.[key] ?? 0;
         const maxLevel = enchantMaxLevel(ench);
-        for (let level = ctx.upgradeMode === 'max' ? Math.max(current + 1, maxLevel) : current + 1; level <= maxLevel; level++) {
+        const first = Math.max(current + 1, ench.minLevel ?? 1);
+        for (let level = ctx.upgradeMode === 'max' ? Math.max(first, maxLevel) : first; level <= maxLevel; level++) {
           // Name the enchant it pushes off (First Strike replaces Triple Strike, Smite replaces Sharpness, ...).
           const replaced = (ench.conflicts ?? []).filter((c) => item.enchants?.[c]).map((c) => ENCHANTS[c]?.name ?? titleCase(c.replace(/^ultimate_/, '')));
-          const book = (lv) => `ENCHANTMENT_${key.toUpperCase()}_${lv}`;
           const label = `${ench.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)} on ${name}${replaced.length ? ` (replaces ${replaced.join(', ')})` : ''}`;
-          // Ultimate enchants combine: a book of the level already on the item raises it by one (Legion I on
-          // Legion I = Legion II), so each level up costs the cheaper of that book or the next level's book.
-          const chain = key.startsWith('ultimate_') && current > 0 ? combineParts(book, current, level, prices) : null;
-          const direct = prices.get(book(level))?.price;
-          const useChain = chain && !(direct <= chain.cost);
-          pushItem(useChain ? `${label} (${chain.text})` : label, useChain ? chain.parts : [{ id: book(level) }], (l) => {
+          const way = enchantParts(key, level, current, prices);
+          if (!way) continue;
+          pushItem(way.note ? `${label} (${way.note})` : label, way.parts, (l) => {
             const enchants = { ...item.enchants, [key]: level };
             for (const c of ench.conflicts ?? []) delete enchants[c];
             return replaceItem(l, item, { ...item, enchants });
-          }, { group: `${slot}:enchant:${key}`, ...(useChain ? { stacksOn: `${slot}:enchant:${key}` } : {}) });
+          }, { group: `${slot}:enchant:${key}`, ...(way.stacks ? { stacksOn: `${slot}:enchant:${key}` } : {}) });
         }
       }
     }
@@ -625,11 +650,11 @@ export function availableUpgrades(loadout, ctx, prices) {
         base.enchants = {};
         for (const [key, level] of Object.entries(src.enchants ?? {})) {
           const ench = ENCHANTS[key];
-          const book = `ENCHANTMENT_${key.toUpperCase()}_${level}`;
-          const price = prices.get(book)?.price;
+          const way = enchantParts(key, level, 0, prices);
+          const price = way && priceParts(way.parts, prices)?.cost;
           if (!ench?.categories.includes(cat) || (ench.items && !ench.items.includes(id)) || !price || (extra.copy === 'cheap' && price > COPY_BOOK_MAX)) continue;
           base.enchants[key] = level;
-          parts.push({ id: book });
+          parts.push(...way.parts);
         }
         const hpb = src.hpb ?? 0;
         base.hpb = hpb;
@@ -1202,12 +1227,17 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
 // Profile upgrades (no coins): the next level of each profile stat source, ranked by % damage gained.
 const CLASS_LEVEL_KEY = { arch: 'archerLevel', bers: 'berserkLevel', mage: 'mageLevel' };
 const CLASS_NAME = { arch: 'Archer', bers: 'Berserk', mage: 'Mage' };
-export function profileUpgrades(loadout, ctx, weights) {
+// prices (optional): accessories with no price that cannot be traded (quest / free talismans) are listed here.
+export function profileUpgrades(loadout, ctx, weights, prices = null) {
   const base = evaluate(loadout, ctx, weights);
   const rows = [];
   const tryCtx = (label, changes) => {
     const next = { ...ctx, ...changes };
     const gain = weightedGain(base, evaluate(loadout, next, weights), weights);
+    if (gain > 1e-9) rows.push({ label, gain });
+  };
+  const tryLoadout = (label, next) => {
+    const gain = weightedGain(base, evaluate(selectPet(next, ctx, weights), ctx, weights), weights);
     if (gain > 1e-9) rows.push({ label, gain });
   };
   const withPlayer = (patch) => ({ player: { ...(ctx.player ?? {}), ...patch } });
@@ -1238,6 +1268,47 @@ export function profileUpgrades(loadout, ctx, weights) {
     tryCtx(`SkyBlock level ${p.sbLevel} → ${target}`, { profileStats: { ...p, sbLevel: target } });
     for (const [key, song] of Object.entries(HARP_SONGS)) {
       if (!(p.harpSongs ?? []).includes(key)) tryCtx(`Melody's Harp: ${song.name} (perfect)`, { profileStats: { ...p, harpSongs: [...(p.harpSongs ?? []), key] } });
+    }
+  }
+  // Golden Dragon's Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
+  const gold = ctx.petProfile?.goldCollection;
+  if (gold != null && loadout.pets.some((pet) => pet.type === 'GOLDEN_DRAGON')) {
+    const digits = String(Math.max(0, Math.floor(gold))).length;
+    if (digits < GOLD_COLLECTION_DIGITS) {
+      const target = 10 ** digits;
+      tryCtx(`Gold collection to ${target.toLocaleString('en-US')} (Golden Dragon: +11.1 strength)`, { petProfile: { ...ctx.petProfile, goldCollection: target } });
+    }
+  }
+  // The One on a worn necklace: each collection maxed adds its strength.
+  const necklaces = [loadout.equipment?.NECKLACE, loadout.dragonGear?.equipment?.NECKLACE].filter(Boolean);
+  const theOne = Math.max(0, ...necklaces.map((n) => n.enchants?.ultimate_the_one ?? 0));
+  if (theOne >= (ENCHANTS.ultimate_the_one.minLevel ?? 1) && ctx.collections) {
+    const per = ENCHANTS.ultimate_the_one.theOne[theOne - 1];
+    for (const c of ctx.collections.unmaxed) {
+      tryCtx(`Max ${c.name} collection (${c.amount.toLocaleString('en-US')} / ${c.max.toLocaleString('en-US')}; The One: +${per} strength)`,
+        { collections: { ...ctx.collections, maxed: ctx.collections.maxed + 1 } });
+    }
+  }
+  // Free quest accessories (soulbound, no price): only the ones that raise accessory (magical) power. In an upgrade
+  // chain, only the next tier that does (a Campfire badge that stays the same rarity is skipped).
+  if (prices) {
+    const { resource } = ctx;
+    const accIds = new Set(loadout.accessories.keys());
+    const apNow = totalAccessoryPower(loadout, resource);
+    const best = new Map();
+    for (const [id, info] of resource) {
+      if (info.category !== ACCESSORY_CATEGORY || !info.soulbound || loadout.accessories.has(id) || prices.get(id)) continue;
+      if (accessorySuperseded(id, accIds, resource) || !meetsRequirements(info, ctx.player)) continue;
+      const next = { ...loadout, accessories: new Map(loadout.accessories).set(id, newItem(id, resource)) };
+      const ap = totalAccessoryPower(next, resource) - apNow;
+      if (!(ap > 0)) continue;
+      const family = accessoryFamily(id) ?? id;
+      const prev = best.get(family);
+      if (!prev || accessoryChainPosition(id) < accessoryChainPosition(prev.id)) best.set(family, { id, info, next, ap });
+    }
+    for (const { id, info, next, ap } of best.values()) {
+      const note = ITEM_STATS[id]?.note;
+      tryLoadout(`${cleanName(info.name ?? id)} (free quest accessory: +${ap} magical power${note ? `, ${note}` : ''})`, next);
     }
   }
   return { rows: rows.sort((a, b) => b.gain - a.gain), damage: base };

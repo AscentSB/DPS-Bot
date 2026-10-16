@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, DEFAULT_MAXED_COLLECTIONS, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -86,7 +86,7 @@ function itemKey(ctx) {
   let key = ctxKeys.get(ctx);
   if (key === undefined) {
     if (!resourceIds.has(ctx.resource)) resourceIds.set(ctx.resource, resourceIds.size + 1);
-    key = `${resourceIds.get(ctx.resource)}|${ctx.cls}|${ctx.cataLevel}|${ctx.floorMode}|${ctx.mode}|${ctx.secretDigit ?? 0}`;
+    key = `${resourceIds.get(ctx.resource)}|${ctx.cls}|${ctx.cataLevel}|${ctx.floorMode}|${ctx.mode}|${ctx.secretDigit ?? 0}|${maxedCollections(ctx)}`;
     ctxKeys.set(ctx, key);
   }
   return key;
@@ -143,6 +143,11 @@ export function saCloakMultiplier(hitsPerSecond, ctx) {
   const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * Math.min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0)) : 0;
   const hitsPerCooldown = Math.max(1, SA_CLOAK_COOLDOWN_S * (1 - reduction / 100) * hitsPerSecond);
   return 1 + (SA_CLOAK_MULTIPLIER - 1) / hitsPerCooldown;
+}
+
+// Maxed collections for The One. Unknown (collections API off or not loaded): all of them.
+export function maxedCollections(ctx) {
+  return ctx?.collections?.maxed ?? DEFAULT_MAXED_COLLECTIONS;
 }
 
 export function isRcm(ctx) {
@@ -392,6 +397,10 @@ function computeItemRawStats(item, ctx, { chimeraPetStrength = 0 } = {}) {
       continue;
     }
     if (ench.legion || ench.thunder) continue;
+    if (ench.theOne) {
+      addLoose(out.global, { strength: (ench.theOne[Math.min(level, ench.theOne.length) - 1] ?? 0) * maxedCollections(ctx) });
+      continue;
+    }
     // Master Mode / Normal Mode enchants (Titan Killer, Triple-Strike vs First Strike). The clear set has its own
     // list (RCM_ENCHANTS) that works on both floors.
     if (ench.floorMode && !isRcm(ctx) && ench.floorMode !== (ctx.floorMode ?? 'master')) continue;
@@ -449,6 +458,11 @@ const CHAIN_POSITION = new Map();
 
 export function isHatcessory(id) {
   return HATCESSORY.test(id);
+}
+
+// Position in its accessory upgrade chain (0 for the first tier or no chain).
+export function accessoryChainPosition(id) {
+  return CHAIN_POSITION.get(id) ?? 0;
 }
 
 export function accessoryFamily(id) {
