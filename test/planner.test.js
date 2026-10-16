@@ -1506,3 +1506,17 @@ test('free quest accessories go in profile upgrades, only when magical power ris
   const iq = evaluate({ ...l, accessories: new Map(l.accessories).set('TWO_IQ_POINT', newItem('TWO_IQ_POINT', res)) }, ctx, w);
   assert.ok(iq.stats.wither.intelligence > evaluate(l, ctx, w).stats.wither.intelligence);
 });
+
+test('collections count for the whole co-op (The One, Gold collection); members who left do not count', () => {
+  const inv = { inventory: { inv_contents: { data: encode([{ id: 'HYPERION' }]) } } };
+  const collections = new Map([['SULPHUR', { name: 'Gunpowder', max: 200000 }], ['GOLD_INGOT', { name: 'Gold Ingot', max: 400000 }]]);
+  const p = { members: {
+    u: { ...inv, collection: { SULPHUR: 50, GOLD_INGOT: 1000 } },
+    v: { collection: { SULPHUR: 200000, GOLD_INGOT: 99000 } },
+    w: { profile: { deletion_notice: { timestamp: 1 } }, collection: { GOLD_INGOT: 1e9 } },
+  } };
+  const m = readMember(p, 'u', resource, collections);
+  assert.equal(m.collections.maxed, 1);
+  assert.deepEqual(m.collections.unmaxed.map((c) => [c.id, c.amount]), [['GOLD_INGOT', 100000]]);
+  assert.equal(m.petProfile.goldCollection, 100000);
+});

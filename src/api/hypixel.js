@@ -58,14 +58,15 @@ export async function getCollectionsResource() {
   return collectionsLoading;
 }
 
-// Maxed and unmaxed collections ({ maxed, unmaxed: [{ id, name, amount, max }] }), or null when the collections
-// API is off or the resource is not loaded.
-export function readCollections(member, collections) {
-  if (!collections?.size || !member?.collection) return null;
+// Maxed and unmaxed collections ({ maxed, unmaxed: [{ id, name, amount, max }] }) for the co-op, or null when the
+// collections API is off or the resource is not loaded.
+// collection: amounts by id (coopCollection output).
+export function readCollections(collection, collections) {
+  if (!collections?.size || !collection) return null;
   const unmaxed = [];
   let maxed = 0;
   for (const [id, c] of collections) {
-    const amount = Number(member.collection[id]) || 0;
+    const amount = Number(collection[id]) || 0;
     if (amount >= c.max) maxed++;
     else unmaxed.push({ id, name: c.name, amount, max: c.max });
   }
@@ -156,7 +157,7 @@ export function readMember(profile, uuid, resource, collections = null) {
     // Combat skill (base crit chance). Skills API off: assume maxed.
     combatLevel: member.player_data?.experience?.SKILL_COMBAT == null ? COMBAT_MAX_LEVEL
       : skillLevelFromXp(member.player_data.experience.SKILL_COMBAT, COMBAT_MAX_LEVEL),
-    collections: readCollections(member, collections),
+    collections: readCollections(coopCollection(profile, member), collections),
     pets: (member.pets_data?.pets ?? []).map((p) => ({ type: p.type, tier: p.tier, heldItem: p.heldItem ?? null })),
     power: typeof bag.selected_power === 'string' ? bag.selected_power.toLowerCase() : null,
     unlockedPowers: (bag.unlocked_powers ?? []).map((x) => String(x).toLowerCase()),
@@ -179,7 +180,7 @@ export function readMember(profile, uuid, resource, collections = null) {
     // Golden Dragon perks. Missing values count as maxed.
     petProfile: {
       bank: bankBalance(profile, member),
-      goldCollection: member.collection?.GOLD_INGOT ?? undefined,
+      goldCollection: coopCollection(profile, member)?.GOLD_INGOT ?? undefined,
     },
   };
 }
@@ -187,8 +188,22 @@ export function readMember(profile, uuid, resource, collections = null) {
 // Members still on the profile. A member who left keeps an entry with profile.deletion_notice, and an invite not
 // yet accepted has coop_invitation.confirmed false. Neither counts.
 export function activeMembers(profile) {
+  return activeMemberList(profile).length;
+}
+
+function activeMemberList(profile) {
   return Object.values(profile?.members ?? {}).filter((m) => !m?.profile?.deletion_notice && m?.profile?.coop_invitation?.confirmed !== false
-    && m?.coop_invitation?.confirmed !== false).length;
+    && m?.coop_invitation?.confirmed !== false);
+}
+
+// Collections count for the whole co-op (The One, Golden Dragon's Gold collection): every member still on the
+// profile adds their amounts. null when no member shares collections (collections API off).
+export function coopCollection(profile, member) {
+  const shared = [member, ...activeMemberList(profile).filter((m) => m !== member)].filter((m) => m?.collection);
+  if (!shared.length) return null;
+  const total = {};
+  for (const m of shared) for (const [id, amount] of Object.entries(m.collection)) total[id] = (total[id] ?? 0) + (Number(amount) || 0);
+  return total;
 }
 
 // Coins in the bank for Golden Dragon. A co-op whose other members all left counts as solo. A co-op counts the co-op bank only (never a personal bank). A solo profile
