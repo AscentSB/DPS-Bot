@@ -180,7 +180,8 @@ export function readMember(profile, uuid, resource, collections = null) {
     // Golden Dragon perks. Missing values count as maxed.
     petProfile: {
       bank: bankBalance(profile, member),
-      goldCollection: coopCollection(profile, member)?.GOLD_INGOT ?? undefined,
+      // Golden Dragon counts the player's own Gold collection only.
+      goldCollection: member.collection?.GOLD_INGOT ?? undefined,
     },
   };
 }
@@ -196,10 +197,10 @@ function activeMemberList(profile) {
     && m?.coop_invitation?.confirmed !== false);
 }
 
-// Collections count for the whole co-op (The One, Golden Dragon's Gold collection): every member still on the
-// profile adds their amounts. null when no member shares collections (collections API off).
+// Collections for The One count for the whole co-op: every member adds their amounts, members who left included.
+// null when no member shares collections (collections API off).
 export function coopCollection(profile, member) {
-  const shared = [member, ...activeMemberList(profile).filter((m) => m !== member)].filter((m) => m?.collection);
+  const shared = [member, ...Object.values(profile?.members ?? {}).filter((m) => m !== member)].filter((m) => m?.collection);
   if (!shared.length) return null;
   const total = {};
   for (const m of shared) for (const [id, amount] of Object.entries(m.collection)) total[id] = (total[id] ?? 0) + (Number(amount) || 0);
