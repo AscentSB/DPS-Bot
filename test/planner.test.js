@@ -1520,3 +1520,17 @@ test('The One counts co-op collections, members who left included; Golden Dragon
   assert.deepEqual(m.collections.unmaxed.map((c) => [c.id, c.amount]), [['GOLD_INGOT', 300000]]);
   assert.equal(m.petProfile.goldCollection, 1000);
 });
+
+test('a new bow for Archer comes with the current bow\'s enchants and potato books, so it is not judged bare', () => {
+  const res = new Map([...resource, ['JUJU_SHORTBOW', { id: 'JUJU_SHORTBOW', name: 'Juju Shortbow', category: 'BOW', tier: 'EPIC', stats: { DAMAGE: 310, STRENGTH: 40, CRITICAL_DAMAGE: 110 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const juju = { ...newItem('JUJU_SHORTBOW', res), hpb: 10, enchants: { power: 7, dragon_hunter: 5, ultimate_reiterate: 5 } };
+  const l = buildLoadout(profile([juju]), ctx, w);
+  const ups = availableUpgrades(l, ctx, { get: () => ({ price: 1e6, source: 'BZ' }) });
+  const copy = ups.find((u) => /^Buy Terminator/.test(u.label) && /all enchants, master stars and potato books like Juju Shortbow/.test(u.label));
+  assert.ok(copy);
+  const term = copy.apply(l).weapon;
+  assert.deepEqual(term.enchants, { power: 7, dragon_hunter: 5, ultimate_reiterate: 5 });
+  assert.equal(term.hpb, 10);
+});

@@ -620,10 +620,11 @@ export function availableUpgrades(loadout, ctx, prices) {
       sets.push('dragon');
       if (mainItem(loadout, slot) && !dragonItem(loadout, slot)) sets.push('wither');
     }
-    // Mage weapons also come with the current weapon's enchants and potato books (priced as books), so a new
-    // blade is not judged bare against an enchanted one: every enchant, or only books up to COPY_BOOK_MAX each
-    // (the pricey ones then come as their own steps).
-    const src = cls === 'mage' && isWeapon && !isRag && loadout.weapon?.id !== id ? loadout.weapon : null;
+    // A new weapon or armor piece also comes with the enchants and potato books of the one it replaces (priced as
+    // books), so it is not judged bare against an enchanted one: every enchant, or only books up to COPY_BOOK_MAX
+    // each (the pricey ones then come as their own steps).
+    const current = isWeapon && !isRag ? loadout.weapon : isArmor ? loadout.armor[cat] : null;
+    const src = current && current.id !== id && (Object.keys(current.enchants ?? {}).length || (isWeapon && current.hpb)) ? current : null;
     const buy = (reforgeKeyName, reforge, extra = {}) => {
       for (const set of sets) {
         // The dragon-set versions come only in the fullest bundle too.
@@ -656,7 +657,8 @@ export function availableUpgrades(loadout, ctx, prices) {
           base.enchants[key] = level;
           parts.push(...way.parts);
         }
-        const hpb = src.hpb ?? 0;
+        // Potato books only matter on weapons.
+        const hpb = isWeapon ? src.hpb ?? 0 : 0;
         base.hpb = hpb;
         if (hpb) parts.push({ id: HOT_POTATO.id, qty: Math.min(hpb, HOT_POTATO.max) });
         if (hpb > HOT_POTATO.max) parts.push({ id: FUMING_POTATO.id, qty: hpb - HOT_POTATO.max });
@@ -671,7 +673,7 @@ export function availableUpgrades(loadout, ctx, prices) {
           parts.push(...WITHER_SCROLLS.map((x) => ({ id: x })));
           labels.push('Wither scrolls (Shadow Assassin Cloak ability)');
         }
-        labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'} and potato books like ${cleanName(src.name ?? src.id)}`);
+        labels.push(`${extra.copy === 'cheap' ? 'enchants (books up to 10M)' : 'all enchants, master stars'}${isWeapon ? ' and potato books' : ''} like ${cleanName(src.name ?? src.id)}`);
         // Replacing a dual-wielded weapon: the full copy comes as a dual-wield pair too (two copies, Execute on one),
         // so the new blade is not judged against the old pair as a single weapon.
         if (extra.copy === 'all' && src.dualWield && DUAL_WIELD_WEAPONS.includes(id) && base.enchants.prosecute) {
@@ -971,21 +973,21 @@ function gemUpgrades(item, ctx) {
   return out;
 }
 
-// Armor and equipment pieces a step touches. Same id = an upgrade on that piece; an id it upgrades into
+// Weapon, armor and equipment pieces a step touches. Same id = an upgrade on that piece; an id it upgrades into
 // (Golden -> Diamond head, Wither -> Necron's, fragging) = the same piece under a new id; any other id = a
 // buy that replaces the old piece.
 function pieceChanges(prev, next) {
   const changes = [];
   const seen = new Set();
   // A piece moved from the main set to the dragon set is still worn, so it is not replaced.
-  const wornAfter = new Set(['wither', 'dragon'].flatMap((t) => { const g = gearView(next, t); return [...Object.values(g.armor), ...Object.values(g.equipment)]; }));
+  const wornAfter = new Set(['wither', 'dragon'].flatMap((t) => { const g = gearView(next, t); return [g.weapon, ...Object.values(g.armor), ...Object.values(g.equipment)]; }));
   for (const t of ['wither', 'dragon']) {
     const before = gearView(prev, t);
     const after = gearView(next, t);
-    for (const [group, slots] of [['armor', ARMOR_SLOTS], ['equipment', EQUIPMENT_SLOTS]]) {
+    for (const [group, slots] of [['weapon', ['weapon']], ['armor', ARMOR_SLOTS], ['equipment', EQUIPMENT_SLOTS]]) {
       for (const slot of slots) {
-        const a = before[group]?.[slot];
-        const b = after[group]?.[slot];
+        const a = group === 'weapon' ? before.weapon : before[group]?.[slot];
+        const b = group === 'weapon' ? after.weapon : after[group]?.[slot];
         if (!b || a === b) continue;
         const key = `${slot}:${b.id}`;
         if (seen.has(key)) continue;
