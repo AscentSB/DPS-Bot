@@ -1,12 +1,12 @@
-import { ARMOR_SLOTS, RARITIES, DUNGEON_FLOOR_CATA, DUNGEON_DROP_BOOST } from '../config/constants.js';
+import { RARITIES, DUNGEON_FLOOR_CATA, DUNGEON_DROP_BOOST } from '../config/constants.js';
 
-// Floor-scaled dungeon armor (tiered_stats in the items resource, e.g. Skeleton Master).
-// Every piece is assumed dropped from the highest floor the player can enter, with the full 50% stat
-// boost. The boost also raises the piece one rarity (an Epic Skeleton Master Chestplate becomes Legendary,
-// Mythic once recombobulated).
+// Floor-scaled dungeon items (tiered_stats in the items resource): armor like Skeleton Master and weapons like the
+// Crypt Dreadlord Sword, Ice Spray Wand or Machine Gun Bow. Every piece is assumed dropped from the highest floor
+// the player can enter, with the full 50% stat boost, and is priced that way. The boost also raises the piece one
+// rarity (an Epic Skeleton Master Chestplate becomes Legendary, Mythic once recombobulated).
 export function isFloorDrop(id, resource) {
   const info = resource?.get(id);
-  return Boolean(info?.tiered_stats && info.dungeon_item && ARMOR_SLOTS.includes(info.category));
+  return Boolean(info?.tiered_stats && info.dungeon_item);
 }
 
 // Highest floor (1-10) the player's Catacombs level allows.

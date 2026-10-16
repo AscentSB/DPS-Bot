@@ -1626,3 +1626,14 @@ test('floor-scaled armor buys use the fully boosted price for the highest floor 
   const lowUps = availableUpgrades(buildLoadout(profile([newItem('TERMINATOR', res)]), low, weightsFor('arch')), low, p);
   assert.ok(lowUps.some((u) => /Shadow Assassin/.test(u.label)));
 });
+
+test('floor-scaled dungeon weapons are priced and scored like the armor: fully boosted, highest floor you can enter', () => {
+  const res = new Map([...resource, ['CRYPT_DREADLORD_SWORD', { id: 'CRYPT_DREADLORD_SWORD', name: 'Dreadlord Sword', category: 'SWORD', tier: 'RARE', dungeon_item: true, tiered_stats: { DAMAGE: [30, 40, 50, 60, 70, 80, 90, 100, 110, 120] } }]]);
+  const table = { CRYPT_DREADLORD_SWORD: 5e3, CRYPT_DREADLORD_SWORD_FLOOR10: 3e6 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) };
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
+  const ups = availableUpgrades(buildLoadout(profile([]), ctx, weightsFor('mage')), ctx, p);
+  assert.equal(ups.find((u) => u.label === 'Buy Dreadlord Sword')?.cost, 3e6);
+  // The full boost raises the rarity one tier, like the armor.
+  assert.equal(newItem('CRYPT_DREADLORD_SWORD', res).baseRarity, 'EPIC');
+});
