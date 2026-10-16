@@ -887,21 +887,22 @@ test('Shadow Assassin Cloak gives 1.1x only while holding a blade with all 3 Wit
   close(evaluate({ ...l3, weapon: gs }, ctx, w).wither, evaluate({ ...l2, weapon: gs }, ctx, w).wither);
 });
 
-test('below floor 10 (cata < 36), no step over 1M on floor-scaled dungeon armor', async () => {
+test('below floor 10 (cata < 36), a floor-scaled drop gets under 25M in total (it is replaced by the floor 10 one later)', async () => {
   const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true,
     tiered_stats: { CRITICAL_DAMAGE: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] } }]]);
   const w = weightsFor('arch');
-  const table = { FIRST_MASTER_STAR: 2e6, RECOMBOBULATOR_3000: 0.9e6 };
+  const table = { FIRST_MASTER_STAR: 2e6, SECOND_MASTER_STAR: 15e6, THIRD_MASTER_STAR: 30e6, RECOMBOBULATOR_3000: 0.9e6 };
   const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
   const labels = async (cata) => {
     const ctx = makeContext({ cls: 'arch', cataLevel: cata, archerLevel: 50, resource: res });
     const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('SKELETON_MASTER_CHESTPLATE', res)]), ctx, w);
-    return (await planUpgrades(l, ctx, p, w, 10)).steps.map((s) => s.label);
+    return (await planUpgrades(l, ctx, p, w, 12)).steps.map((s) => s.label);
   };
-  const low = await labels(30);
-  assert.ok(!low.includes('1st Master Star on Skeleton Master Chestplate'), low.join(', '));
+  const low = await labels(34);
+  assert.ok(low.includes('2nd Master Star on Skeleton Master Chestplate'), low.join(', '));
+  assert.ok(!low.includes('3rd Master Star on Skeleton Master Chestplate'), low.join(', '));
   const high = await labels(40);
-  assert.ok(high.includes('1st Master Star on Skeleton Master Chestplate'), high.join(', '));
+  assert.ok(high.includes('3rd Master Star on Skeleton Master Chestplate'), high.join(', '));
 });
 
 test('profile stats: base crit damage, skills, slayers, SkyBlock level, Harp; profile upgrades rank the next levels', async () => {

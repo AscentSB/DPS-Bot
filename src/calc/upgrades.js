@@ -45,7 +45,6 @@ const REPLAN_ROUNDS = 10;
 export const REPLACED_SOON_COINS = 10_000_000;
 export const REPLACED_SOON_MIN_GAIN = 5;
 // Floor-scaled dungeon armor from below floor 10: steps on it (buy included) stay at or under this.
-export const LOW_FLOOR_PIECE_MAX_STEP = 1_000_000;
 const MAX_FLOOR = 10;
 // The Mage clear set always goes Swarm + Golden Dragon: Chimera (which Swarm wipes) and the Crow / Sheep pets
 // it would copy are never suggested there.
@@ -1225,7 +1224,6 @@ function replacedSoon(steps) {
 // Returns { index, changes, gain } for the ones that pass the path-free rules and add damage.
 export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part = 0, parts = 1) {
   const skip = new Set(banned);
-  const lowFloor = highestFloor(ctx.cataLevel) < MAX_FLOOR;
   const out = [];
   for (let index = part; index < ups.length; index += parts) {
     const up = ups[index];
@@ -1235,8 +1233,6 @@ export function scoreUpgrades(ups, loadout, current, ctx, weights, banned, part 
     // that loses damage before it is not worth the extra work.)
     let next = up.apply(loadout);
     const changes = pieceChanges(loadout, next);
-    // Floor-scaled armor below floor 10 gets replaced once you can enter floor 10: no step over 1M on it.
-    if (lowFloor && up.cost > LOW_FLOOR_PIECE_MAX_STEP && changes.some((c) => isFloorDrop(c.item.id, ctx.resource))) continue;
     let gain = weightedGain(current, evaluate(next, ctx, weights), weights);
     if (up.repick && gain > 1e-9) {
       next = selectPower(selectPet(next, ctx, weights), ctx, weights);
@@ -1292,8 +1288,12 @@ function armorBundles(singles) {
 // the scores instead of evaluating ~2000 candidates again.
 async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, prev, isCancelled) {
   const pieceKey = (c) => (c.kind === 'upgrade' ? c.prevKey : c.key);
+  // A floor-scaled drop from below floor 10 is replaced by the floor 10 one once you can enter floor 10 (a floor 9
+  // Skeleton Master Chestplate by a floor 10 one), so it is doomed from the start: under the 25M budget, buy included.
+  const lowFloor = highestFloor(ctx.cataLevel) < MAX_FLOOR;
+  const doomed = (c) => rules.doomed.has(pieceKey(c)) || (lowFloor && isFloorDrop(c.item.id, ctx.resource));
   const allowed = (cand, spend) => !rules.banned.has(cand.label)
-    && !cand.changes.some((c) => rules.doomed.has(pieceKey(c)) && (spend.get(pieceKey(c)) ?? 0) + cand.cost >= REPLACED_PIECE_BUDGET);
+    && !cand.changes.some((c) => doomed(c) && (spend.get(pieceKey(c)) ?? 0) + cand.cost >= REPLACED_PIECE_BUDGET);
 
   // The scored state for a loadout, shared by every loadout with the same content (the candidate list also depends
   // on what was ever owned, learned powers and blades, so they join the key).
