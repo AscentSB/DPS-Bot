@@ -5,8 +5,8 @@ import nbt from 'prismarine-nbt';
 import { fetchAuctions, smoothLowest } from '../src/api/priceFetch.js';
 import { priceLookup } from '../src/api/prices.js';
 
-const itemBytes = (id) => {
-  const tag = nbt.comp({ ExtraAttributes: nbt.comp({ id: nbt.string(id) }) });
+const itemBytes = (id, extra = {}) => {
+  const tag = nbt.comp({ ExtraAttributes: nbt.comp({ id: nbt.string(id), ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, nbt.int(v)])) }) });
   const root = nbt.comp({ i: nbt.list(nbt.comp([{ id: nbt.short(1), Count: nbt.byte(1), tag }])) }, '');
   return zlib.gzipSync(nbt.writeUncompressed(root)).toString('base64');
 };
@@ -63,4 +63,19 @@ test('price lookups read the current tables, so a refresh that swaps them in is 
   const lookup = priceLookup(tables);
   tables.bazaar = new Map([['X', 5]]);
   assert.deepEqual(lookup.get('X'), { price: 5, source: 'BZ' });
+});
+
+test('floor-scaled armor is priced only from fully boosted (50%) listings, by the floor it dropped on', async () => {
+  const listings = [
+    [40e3, { item_tier: 6, baseStatBoostPercentage: 4 }],
+    [2e6, { item_tier: 10, baseStatBoostPercentage: 27 }],
+    [95e6, { item_tier: 10, baseStatBoostPercentage: 50 }],
+    [3e6, { item_tier: 7, baseStatBoostPercentage: 50 }],
+  ];
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ success: true, totalPages: 1, lastUpdated: 1,
+    auctions: listings.map(([price, extra]) => ({ bin: true, starting_bid: price, item_bytes: itemBytes('SKELETON_MASTER_CHESTPLATE', extra) })) }) });
+  const entries = new Map((await fetchAuctions()).entries);
+  assert.equal(entries.get('SKELETON_MASTER_CHESTPLATE_FLOOR10'), 95e6);
+  assert.equal(entries.get('SKELETON_MASTER_CHESTPLATE_FLOOR7'), 3e6);
+  assert.equal(entries.get('SKELETON_MASTER_CHESTPLATE_FLOOR8'), 95e6);
 });

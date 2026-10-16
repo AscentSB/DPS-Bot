@@ -69,6 +69,8 @@ export function toItemState(nbtItem, resource) {
     enrichment: extra.talisman_enrichment ?? null,
     scrolls: Array.isArray(extra.ability_scroll) ? [...extra.ability_scroll] : [],
     pet: petInfo(extra),
+    // Floor-scaled dungeon armor: the floor it dropped on (item_tier) and its stat boost (0-50%). Pricing only.
+    ...(extra.item_tier != null ? { floor: Number(extra.item_tier), statBoost: Number(extra.baseStatBoostPercentage ?? 0) } : {}),
   };
 }
 

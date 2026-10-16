@@ -1,7 +1,7 @@
 import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
-  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith, SKELETON_MASTER_CHEST_CLASSES, SKELETON_MASTER_CHESTS,
+  MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith, SKELETON_MASTER_CHEST_CLASSES, SKELETON_MASTER_CHESTS, SKELETON_MASTER_CHEST_CATA,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -19,7 +19,7 @@ import {
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
 import { cleanName } from '../lib/nbt.js';
-import { dropBaseRarity, isFloorDrop, highestFloor } from '../lib/drops.js';
+import { dropBaseRarity, isFloorDrop, highestFloor, buyPriceId } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
 import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL } from '../config/profile.js';
 import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
@@ -81,7 +81,8 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
 // the boss only needs 450 speed (Storm's Boots win).
 function excludedItem(id, ctx) {
   if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(id)) return true;
-  if (SKELETON_MASTER_CHEST_CLASSES.includes(ctx.cls) && ctx.resource?.get(id)?.category === 'CHESTPLATE' && !SKELETON_MASTER_CHESTS.includes(id)) return true;
+  if (SKELETON_MASTER_CHEST_CLASSES.includes(ctx.cls) && (ctx.cataLevel ?? 0) >= SKELETON_MASTER_CHEST_CATA
+    && ctx.resource?.get(id)?.category === 'CHESTPLATE' && !SKELETON_MASTER_CHESTS.includes(id)) return true;
   return ctx.cls === 'mage' && ctx.mode !== 'rcm' && /^(STARRED_)?SPEED_WITHER_BOOTS$/.test(id);
 }
 
@@ -616,7 +617,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const frag = FRAGGED[item.id];
     if (frag && resource.has(frag.id)) {
       const info = resource.get(frag.id);
-      pushItem(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, frag.parts,
+      pushItem(`Frag ${name} (${frag.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}${p.qty > 1 ? 's' : ''}`).join(', ')})`, frag.parts,
         (l) => replaceItem(l, item, { ...item, id: frag.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: info.tier ?? item.baseRarity }));
     }
 
@@ -624,7 +625,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     for (const up of ITEM_UPGRADES[item.id] ?? []) {
       const info = resource.get(up.id);
       if (!info || loadout.owned.has(up.id) || excludedItem(up.id, ctx) || !meetsRequirements(info, ctx.player)) continue;
-      pushItem(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}`).join(', ')})`, up.parts,
+      pushItem(`Upgrade ${name} into ${cleanName(info.name ?? up.id)} (${up.parts.map((p) => `${p.qty} ${titleCase(p.id.toLowerCase())}${p.qty > 1 ? 's' : ''}`).join(', ')})`, up.parts,
         (l) => replaceItem(l, item, { ...item, id: up.id, name: cleanName(info.name ?? item.name), category: info.category ?? item.category, baseRarity: dropBaseRarity(up.id, resource) }));
     }
 
@@ -733,7 +734,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       const free = FREE_ITEMS[id];
       const freeUp = FREE_UPGRADES[id];
       const fromName = freeUp && cleanName(resource.get(freeUp.from)?.name ?? freeUp.from);
-      const parts = [...(free ? [{ coins: 1 }] : freeUp ? [{ coins: 1 }, ...freeUp.parts] : [{ id }]), ...(reforge ? reforgeCost(reforge, base) : [])];
+      const parts = [...(free ? [{ coins: 1 }] : freeUp ? [{ coins: 1 }, ...freeUp.parts] : [{ id: buyPriceId(id, resource, ctx.cataLevel) }]), ...(reforge ? reforgeCost(reforge, base) : [])];
       const labels = [`${freeUp ? `Claim ${fromName} (${FREE_ITEMS[freeUp.from]}) and upgrade it into ${cleanName(info.name ?? id)} (${freeUp.parts.map((x) => `${x.qty} ${titleCase(x.id.toLowerCase())}${x.qty > 1 ? 's' : ''}`).join(', ')})`
         : `${free ? 'Claim' : 'Buy'} ${cleanName(info.name ?? id)}${free ? ` (${free})` : ''}`}${set === 'dragon' ? ' (dragon set)'
         : set === 'wither' ? ` (for withers, keep ${cleanName(mainItem(loadout, slot).name ?? mainItem(loadout, slot).id)} for dragons)` : ''}`,
@@ -829,7 +830,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (info.category !== 'BOOTS' || loadout.owned.has(id) || !meetsRequirements(info, ctx.player)) continue;
     const boots = newItem(id, resource);
     if (bootsSpeed(boots, ctx) <= clearSpeed) continue;
-    push(`Buy ${cleanName(info.name ?? id)} (clear boots for speed)`, [{ id }],
+    push(`Buy ${cleanName(info.name ?? id)} (clear boots for speed)`, [{ id: buyPriceId(id, resource, ctx.cataLevel) }],
       (l) => { const next = cloneLoadout(l); next.owned.add(id); next.clearBoots = boots; return next; }, { group: 'buy:clearBoots' });
   }
 

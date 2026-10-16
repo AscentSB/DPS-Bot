@@ -30,3 +30,17 @@ export function dropBaseRarity(id, resource) {
   const i = RARITIES.indexOf(tier);
   return i >= 0 && i < RARITIES.length - 1 ? RARITIES[i + 1] : tier;
 }
+
+// Floor-scaled armor counts as fully boosted (50%), and is priced only from fully boosted listings.
+export const FULL_STAT_BOOST = 50;
+
+// Price id for a fully boosted floor-scaled piece from at least this floor (filled in by the auction download).
+export function floorDropKey(id, floor) {
+  return `${id}_FLOOR${floor}`;
+}
+
+// The price id a buy uses: floor-scaled armor is priced as the fully boosted piece from the highest floor the
+// player can enter; everything else as itself.
+export function buyPriceId(id, resource, cataLevel) {
+  return isFloorDrop(id, resource) ? floorDropKey(id, Math.max(1, highestFloor(cataLevel))) : id;
+}

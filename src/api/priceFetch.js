@@ -1,3 +1,4 @@
+import { floorDropKey, FULL_STAT_BOOST } from '../lib/drops.js';
 import { getJson } from './http.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { petLevel, maxPetLevel } from '../lib/pets.js';
@@ -57,6 +58,10 @@ export async function fetchAuctions(since = null) {
       const keys = [item.id];
       // Max-level pets also get PET_<TYPE>_<TIER>_MAX (level 100, Golden Dragon 200).
       if (item.pet && petLevel(item.pet.type, item.pet.tier, item.pet.exp) >= maxPetLevel(item.pet.type)) keys.push(`${item.id}_MAX`);
+      // Floor-scaled dungeon armor with the full stat boost also gets <ID>_FLOOR<n> for every floor up to the one it
+      // dropped on, so the bot prices the piece it scores (highest floor you can enter, full boost), never a cheap
+      // low-floor or low-boost one.
+      if (item.floor != null && item.statBoost >= FULL_STAT_BOOST) for (let f = 1; f <= item.floor; f++) keys.push(floorDropKey(item.id, f));
       for (const key of keys) if (!(lowest.get(key) <= auction.starting_bid)) lowest.set(key, auction.starting_bid);
     }
   }

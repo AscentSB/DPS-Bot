@@ -687,7 +687,7 @@ test("Wither armor upgrades into Necron's / Storm's with 8 fragments; Mage never
     return availableUpgrades(l, ctx, p).map((u) => u.label);
   };
   const arch = labels('arch', 'TERMINATOR');
-  assert.ok(arch.includes("Upgrade Wither Leggings into Necron's Leggings (8 Giant Fragment Diamond)"), arch.join(', '));
+  assert.ok(arch.includes("Upgrade Wither Leggings into Necron's Leggings (8 Giant Fragment Diamonds)"), arch.join(', '));
   assert.ok(!arch.some((x) => x.startsWith("Buy Necron's Leggings")));
   const mage = labels('mage', 'HYPERION');
   assert.ok(mage.some((x) => x.startsWith("Upgrade Wither Leggings into Storm's Leggings")));
@@ -1609,4 +1609,20 @@ test('Mage LCM: the RCM Hyperion (Ultimate Wise, Giant Killer) is kept for the c
   // No Hyperion bought: only what the clean one lacks (5 books, 10 hot + 5 fuming potato books, 3 scrolls; 1M each).
   assert.equal(dual.cost, 23e6);
   assert.ok(!dual.apply(l).spareBlades.length);
+});
+
+test('floor-scaled armor buys use the fully boosted price for the highest floor you can enter; Skeleton Master chest rule starts at Catacombs 36', () => {
+  const sm = ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true, tiered_stats: { CRITICAL_DAMAGE: [22, 23, 25, 27, 30, 32, 35, 38, 41, 45] } }];
+  const sa = ['SHADOW_ASSASSIN_CHESTPLATE', { id: 'SHADOW_ASSASSIN_CHESTPLATE', name: 'Shadow Assassin Chestplate', category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 500 } }];
+  const res = new Map([...resource, sm, sa]);
+  const table = { SKELETON_MASTER_CHESTPLATE: 40e3, SKELETON_MASTER_CHESTPLATE_FLOOR10: 95e6, SHADOW_ASSASSIN_CHESTPLATE: 1e6 };
+  const p = { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) };
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
+  const ups = availableUpgrades(l, ctx, p);
+  assert.equal(ups.find((u) => u.label === 'Buy Skeleton Master Chestplate')?.cost, 95e6);
+  assert.ok(!ups.some((u) => /Shadow Assassin/.test(u.label)));
+  const low = makeContext({ cls: 'arch', cataLevel: 30, resource: res });
+  const lowUps = availableUpgrades(buildLoadout(profile([newItem('TERMINATOR', res)]), low, weightsFor('arch')), low, p);
+  assert.ok(lowUps.some((u) => /Shadow Assassin/.test(u.label)));
 });
