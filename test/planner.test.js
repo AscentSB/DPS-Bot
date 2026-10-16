@@ -1549,3 +1549,17 @@ test('armor bundles: pieces that each lose damage alone (breaking a set bonus) a
   const plan = await planUpgrades(l, ctx, p, w, 3);
   assert.ok(plan.steps.some((st) => st.label === 'Armor bundle: Buy Big HELMET; Buy Big CHESTPLATE; Buy Big LEGGINGS; Buy Big BOOTS'), plan.steps.map((st) => st.label).join(' / '));
 });
+
+test('Diamond Necron Head is free (500 completions): a Claim step at no real cost, also when wearing a Golden one', () => {
+  const res = new Map([...resource,
+    ['GOLD_NECRON_HEAD', { id: 'GOLD_NECRON_HEAD', name: 'Golden Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }],
+    ['DIAMOND_NECRON_HEAD', { id: 'DIAMOND_NECRON_HEAD', name: 'Diamond Necron Head', category: 'HELMET', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 31, CRITICAL_DAMAGE: 31 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const p = { get: () => null };
+  for (const items of [[newItem('TERMINATOR', res)], [newItem('TERMINATOR', res), newItem('GOLD_NECRON_HEAD', res)]]) {
+    const l = buildLoadout(profile(items), ctx, w);
+    const claim = availableUpgrades(l, ctx, p).find((u) => u.label === 'Claim Diamond Necron Head (free with 500 completions)');
+    assert.equal(claim?.cost, 1);
+  }
+});

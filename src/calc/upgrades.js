@@ -30,6 +30,9 @@ const UNBUYABLE_TIERS = new Set(['UNOBTAINABLE', 'ADMIN']);
 export const REPLACED_PIECE_BUDGET = 25_000_000;
 // Armor bundles: the best this many single buys per armor slot are mixed into multi-piece steps.
 const ARMOR_BUNDLE_SHORTLIST = 3;
+// Free items (no coins): offered as a "Claim" step priced at 1 coin, so it ranks first when it helps and can join
+// armor bundles.
+export const FREE_ITEMS = { DIAMOND_NECRON_HEAD: 'free with 500 completions' };
 const REPLAN_ROUNDS = 10;
 // A step the plan overwrites soon after (a reforge, enchant level, gem, enrichment, pet item, piece or pet that a
 // later step replaces with at most this many coins spent in between, the replacing step included) is skipped,
@@ -598,7 +601,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     if (excludedItem(id, ctx)) continue;
     // Never buy a fresh copy of what an item you wear upgrades into (the upgrade keeps its stars, gems, etc.).
-    if (worn.some((it) => upgradesInto(it.id, id))) continue;
+    if (worn.some((it) => upgradesInto(it.id, id)) && !FREE_ITEMS[id]) continue;
     const cat = info.category;
     const isRag = id === RAGNAROCK_ID;
     const isWeapon = weaponCats.includes(cat);
@@ -638,8 +641,9 @@ export function availableUpgrades(loadout, ctx, prices) {
     };
     const buyInto = (set, reforgeKeyName, reforge, extra) => {
       const base = { ...newItem(id, resource), reforge: reforgeKeyName ?? null };
-      const parts = [{ id }, ...(reforge ? reforgeCost(reforge, base) : [])];
-      const labels = [`Buy ${cleanName(info.name ?? id)}${set === 'dragon' ? ' (dragon set)'
+      const free = FREE_ITEMS[id];
+      const parts = [free ? { coins: 1 } : { id }, ...(reforge ? reforgeCost(reforge, base) : [])];
+      const labels = [`${free ? 'Claim' : 'Buy'} ${cleanName(info.name ?? id)}${free ? ` (${free})` : ''}${set === 'dragon' ? ' (dragon set)'
         : set === 'wither' ? ` (for withers, keep ${cleanName(mainItem(loadout, slot).name ?? mainItem(loadout, slot).id)} for dragons)` : ''}`,
       ...(reforge ? [`${reforge.name} reforge`] : [])];
       // RCM: a bought blade comes with the 3 Wither scrolls.

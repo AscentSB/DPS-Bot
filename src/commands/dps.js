@@ -60,6 +60,9 @@ function tuningText(tuning, split) {
   return parts.join(' · ') || 'none';
 }
 
+// Steps under this many coins are free (claimed items).
+const FREE_STEP_COINS = 1000;
+
 export function formatCoins(n) {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
@@ -120,7 +123,9 @@ export function buildEmbed(s) {
   }
   const { plan } = s.coins[s.upgradeMode];
   const steps = plan.steps.slice(first, first + PAGE_SIZE);
-  const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(5) : st.perMillion.toFixed(6)}% per 1M`);
+  // A free step (a claimed item, priced at 1 coin so it ranks first) says free instead of a per-1M number.
+  const price = (st) => (st.cost < FREE_STEP_COINS ? 'free' : `${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(5) : st.perMillion.toFixed(6)}% per 1M`);
+  const lines = steps.map((st, i) => `**${first + i + 1}. ${st.label}**\n+${st.gain.toFixed(2)}% DPS · ${price(st)}`);
   const unverified = plan.steps.some((st) => st.unverified);
   return new EmbedBuilder()
     .setTitle(`${title(s)} · Coin upgrades`)
