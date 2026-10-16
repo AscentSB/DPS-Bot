@@ -76,11 +76,18 @@ export function weightsFor(cls, target, mode, floorMode = 'master') {
   return { ...CLASSES[cls].weights };
 }
 
+// Archer / Berserker at the cata gate keep the Skeleton Master Chestplate (infinite arrows) unless the /dps
+// button turns the rule off (ctx.anyChest).
+export function skeletonMasterChestRule(cls, cataLevel) {
+  return SKELETON_MASTER_CHEST_CLASSES.includes(cls) && (cataLevel ?? 0) >= SKELETON_MASTER_CHEST_CATA;
+}
+const skeletonMasterChestForced = (ctx) => !ctx.anyChest && skeletonMasterChestRule(ctx.cls, ctx.cataLevel);
+
 // Items a class never uses. The Mage boss set also never uses Maxor's Boots: the clear is done in the RCM set, and
 // the boss only needs 450 speed (Storm's Boots win).
 function excludedItem(id, ctx) {
   if (CLASS_EXCLUDED_ITEMS[ctx.cls]?.test(id)) return true;
-  if (SKELETON_MASTER_CHEST_CLASSES.includes(ctx.cls) && (ctx.cataLevel ?? 0) >= SKELETON_MASTER_CHEST_CATA
+  if (skeletonMasterChestForced(ctx)
     && ctx.resource?.get(id)?.category === 'CHESTPLATE' && !SKELETON_MASTER_CHESTS.includes(id)) return true;
   // Balloon Snake's Jump Boost gets in the way in the clear (it does nothing in the boss, so LCM keeps it).
   if (ctx.mode === 'rcm' && id === BALLOON_SNAKE_ID) return true;
@@ -132,11 +139,11 @@ function dragonItems(l) {
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, collections = null, resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, collections = null, anyChest = false, resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
   // The Normal Mode toggle is for Mage only, boss set and clear set (F7 Archer / Berserker damage is scored in Master Mode).
   const floor = cls === 'mage' ? floorMode : 'master';
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), collections, resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), collections, anyChest: Boolean(anyChest), resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.

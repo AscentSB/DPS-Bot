@@ -1662,3 +1662,16 @@ test('Balloon Snake is never used in RCM (Jump Boost in the clear) but stays in 
     assert.equal(availableUpgrades(bare, ctx, p).some((u) => /Balloon Snake/.test(u.label)), used, mode);
   }
 });
+
+test('Skeleton Master chest rule: other chestplates are offered only with the button turned off (anyChest)', () => {
+  const res = new Map([...resource, ['SHADOW_ASSASSIN_CHESTPLATE', { id: 'SHADOW_ASSASSIN_CHESTPLATE', name: 'Shadow Assassin Chestplate', category: 'CHESTPLATE', tier: 'LEGENDARY', stats: { STRENGTH: 100, CRITICAL_DAMAGE: 50 } }]]);
+  const w = weightsFor('arch');
+  const p = { get: (id) => (id === 'SHADOW_ASSASSIN_CHESTPLATE' ? { price: 5e6, source: 'AH' } : null) };
+  const offered = (anyChest) => {
+    const ctx = makeContext({ cls: 'arch', cataLevel: 40, archerLevel: 50, anyChest, resource: res });
+    const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, w);
+    return availableUpgrades(l, ctx, p).some((u) => /Shadow Assassin Chestplate/.test(u.label));
+  };
+  assert.equal(offered(false), false);
+  assert.equal(offered(true), true);
+});

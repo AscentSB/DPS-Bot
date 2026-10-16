@@ -2,6 +2,7 @@ import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, Bu
 import { CLASSES, BLESSING_LIMITS, blessingsWith } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
+import { skeletonMasterChestRule } from '../calc/upgrades.js';
 import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
 import { pricesReady } from '../api/prices.js';
 import { usage } from '../lib/usage.js';
@@ -104,8 +105,13 @@ function title(s) {
   return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
 }
 
+// Coin plans are cached per level mode and per Skeleton Master chest setting.
+const planKey = (s) => `${s.upgradeMode}${s.anyChest ? ':anyChest' : ''}`;
+// The Skeleton Master chest button shows only where the rule applies (Archer / Berserker at the cata gate).
+const chestToggle = (s) => skeletonMasterChestRule(s.cls, s.member?.cataLevel);
+
 export function pageCount(s) {
-  const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.[s.upgradeMode]?.plan.steps ?? [];
+  const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.[planKey(s)]?.plan.steps ?? [];
   return Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
 }
 
@@ -122,7 +128,7 @@ export function buildEmbed(s) {
       .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · Skills, slayers, class and Catacombs levels, SkyBlock level and Harp songs. No coins.`, blessingText(s)].filter(Boolean).join('\n') })
       .setColor(0x2e86c1);
   }
-  const { plan } = s.coins[s.upgradeMode];
+  const { plan } = s.coins[planKey(s)];
   const steps = plan.steps.slice(first, first + PAGE_SIZE);
   // A free step (a claimed item, priced at 1 coin so it ranks first) says free instead of a per-1M number.
   const price = (st) => (st.cost < FREE_STEP_COINS ? 'free' : `${formatCoins(st.cost)} coins · ${st.perMillion >= 1 ? st.perMillion.toFixed(5) : st.perMillion.toFixed(6)}% per 1M`);
@@ -134,22 +140,28 @@ export function buildEmbed(s) {
     .addFields(
       { name: 'Damage now', value: damageText(plan.startDamage, rcm), inline: true },
       { name: `After all ${plan.steps.length}`, value: damageText(plan.endDamage, rcm), inline: true },
-      { name: `Stats (now → after all ${plan.steps.length})`, value: statsText(s, plan.startDamage.stats, plan.endDamage.stats, s.coins[s.upgradeMode].weights) },
-      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[s.upgradeMode].tuningSplit) },
+      { name: `Stats (now → after all ${plan.steps.length})`, value: statsText(s, plan.startDamage.stats, plan.endDamage.stats, s.coins[planKey(s)].weights) },
+      { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[planKey(s)].tuningSplit) },
     )
-    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, blessingText(s), unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
+    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, blessingText(s), chestToggle(s) && s.anyChest ? 'Any chestplate allowed (Skeleton Master Chestplate not forced).' : null, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
     .setColor(0x8e44ad);
 }
 
 function buttons(id, s) {
   const pages = pageCount(s);
-  return [new ActionRowBuilder().addComponents(
+  const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`dps:${id}:prev`).setLabel('◀ Back').setStyle(ButtonStyle.Secondary).setDisabled(s.page === 0),
     new ButtonBuilder().setCustomId(`dps:${id}:next`).setLabel('Next ▶').setStyle(ButtonStyle.Secondary).setDisabled(s.page >= pages - 1),
     new ButtonBuilder().setCustomId(`dps:${id}:coins`).setLabel('Coin upgrades').setStyle(s.view === 'coins' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'coins'),
     new ButtonBuilder().setCustomId(`dps:${id}:profile`).setLabel('Profile upgrades').setStyle(s.view === 'profile' ? ButtonStyle.Primary : ButtonStyle.Secondary).setDisabled(s.view === 'profile'),
     // All levels lists Duplex I, II, ... separately; max levels jumps straight to the max level at its cost.
     new ButtonBuilder().setCustomId(`dps:${id}:levels`).setLabel(s.upgradeMode === 'all' ? 'Show max levels' : 'Show every level').setStyle(ButtonStyle.Secondary).setDisabled(s.view !== 'coins'),
+  );
+  if (!chestToggle(s)) return [row];
+  // Archer / Berserker: on (default) keeps the Skeleton Master Chestplate as the only chestplate.
+  return [row, new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`dps:${id}:chest`).setLabel(s.anyChest ? 'Skeleton Master chest: off' : 'Skeleton Master chest: forced')
+      .setStyle(s.anyChest ? ButtonStyle.Secondary : ButtonStyle.Primary).setDisabled(s.view !== 'coins'),
   )];
 }
 
@@ -217,7 +229,7 @@ export async function execute(interaction) {
   // Blessing levels: Discord enforces the ranges; blessingsWith falls back to the defaults for anything else.
   const chosen = blessingsWith({ power: interaction.options.getInteger?.('power') ?? undefined, wisdom: interaction.options.getInteger?.('wisdom') ?? undefined, time: interaction.options.getInteger?.('time') ?? undefined });
   const blessings = { power: chosen.power.level, wisdom: chosen.wisdom.level, time: chosen.time.level };
-  const job = { cls, target: interaction.options.getString('target'), mode, floorMode, blessings };
+  const job = { cls, target: interaction.options.getString('target'), mode, floorMode, blessings, anyChest: false };
   // Replies never repeat the typed IGN or raw error text, so user input cannot reach the message.
   if (!isValidIgn(name)) {
     return interaction.reply({ content: 'That is not a valid Minecraft username (2 to 16 letters, digits or underscores).', ephemeral: true });
@@ -260,7 +272,7 @@ export async function execute(interaction) {
 // For tests: the session store and timer start.
 export const testing = { sessions, startTimer };
 
-// Back / Next / Coin upgrades / Profile upgrades.
+// Back / Next / Coin upgrades / Profile upgrades / levels / Skeleton Master chest.
 export async function handleButton(interaction) {
   const [, id, action] = interaction.customId.split(':');
   const s = sessions.get(id);
@@ -273,9 +285,10 @@ export async function handleButton(interaction) {
   if (action === 'next') s.page = Math.min(pageCount(s) - 1, s.page + 1);
   if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
   if (action === 'levels') { s.upgradeMode = s.upgradeMode === 'all' ? 'max' : 'all'; s.page = 0; }
+  if (action === 'chest' && chestToggle(s)) { s.anyChest = !s.anyChest; s.page = 0; }
   // Profile upgrades and the max-level plan are worked out the first time they are opened.
-  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, blessings: s.blessings, member: s.member };
-  const missing = s.view === 'profile' ? !s.profile : !s.coins[s.upgradeMode];
+  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, blessings: s.blessings, anyChest: s.anyChest, member: s.member };
+  const missing = s.view === 'profile' ? !s.profile : !s.coins[planKey(s)];
   if (missing) {
     await interaction.deferUpdate();
     // The user is waiting on this list, so the inactivity timer pauses until it shows (it restarts below).
@@ -285,13 +298,14 @@ export async function handleButton(interaction) {
     const { signal } = s.abort;
     try {
       if (s.view === 'profile') s.profile = (await runInWorker({ ...job, menu: 'profile' }, { signal })).profile;
-      else s.coins[s.upgradeMode] = await runInWorker({ ...job, upgradeMode: s.upgradeMode, menu: 'coins', limit: PLAN_STEPS }, { signal });
+      else s.coins[planKey(s)] = await runInWorker({ ...job, upgradeMode: s.upgradeMode, menu: 'coins', limit: PLAN_STEPS }, { signal });
     } catch (err) {
       // Stopped because the session went inactive: the message already says so.
       if (err instanceof PlanCancelledError || sessions.get(id) !== s) return;
       console.error(err);
       s.view = 'coins';
       s.upgradeMode = 'all';
+      s.anyChest = false;
       const what = action === 'levels' ? 'the max-level list' : 'that list';
       await interaction.followUp({ content: `${err instanceof PlanTimeoutError ? `Working out ${what} took too long and was stopped.` : `Could not work out ${what}.`} Showing the every-level coin list instead. Try again in a minute.`, ephemeral: true });
     }

@@ -66,3 +66,23 @@ test('/dps sessions go inactive after INACTIVITY_MS: buttons removed, data freed
   await new Promise(setImmediate);
   assert.equal(testing.sessions.has('C'), false);
 });
+
+test('the Skeleton Master chest button shows for Archer / Berserker at cata 36+ only and switches plans', async () => {
+  const { testing, handleButton } = await import('../src/commands/dps.js');
+  const damage = { wither: 1, dragon: 1, tuning: {} };
+  const plan = (label) => ({ plan: { steps: [{ label, cost: 1e6, gain: 1, perMillion: 1 }], startDamage: damage, endDamage: damage }, tuningSplit: null });
+  const session = (cls, cataLevel) => ({ cls, mode: 'lcm', floorMode: 'master', name: 'x', view: 'coins', page: 0, upgradeMode: 'all', owner: 'u', anyChest: false,
+    member: { cataLevel }, coins: { all: plan('forced'), 'all:anyChest': plan('any') }, usedAt: Date.now() });
+  const updates = [];
+  const click = (id, action) => handleButton({ customId: `dps:${id}:${action}`, user: { id: 'u' }, update: async (m) => updates.push(m) });
+  const ids = (m) => m.components.flatMap((r) => r.toJSON().components.map((c) => c.custom_id.split(':')[2]));
+  for (const [id, cls, cata, shown] of [['c1', 'arch', 40, true], ['c2', 'bers', 36, true], ['c3', 'mage', 40, false], ['c4', 'arch', 35, false]]) {
+    testing.sessions.set(id, session(cls, cata));
+    await click(id, 'next');
+    assert.equal(ids(updates.at(-1)).includes('chest'), shown, `${cls} c${cata}`);
+  }
+  await click('c1', 'chest');
+  assert.equal(testing.sessions.get('c1').anyChest, true);
+  assert.match(updates.at(-1).embeds[0].toJSON().description, /any/);
+  for (const id of ['c1', 'c2', 'c3', 'c4']) { clearTimeout(testing.sessions.get(id).timer); testing.sessions.delete(id); }
+});
