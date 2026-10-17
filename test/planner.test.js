@@ -1606,10 +1606,23 @@ test('Mage LCM: the RCM Hyperion (Ultimate Wise, Giant Killer) is kept for the c
   assert.deepEqual(l.spareBlades, [clean]);
   const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
   const dual = availableUpgrades(l, ctx, p).find((u) => u.label.startsWith('Dual wield Hyperion'));
-  assert.ok(/your spare one, missing upgrades only/.test(dual.label));
+  // The label lists what the spare needs as one bundle (Prosecute shown as Execute on the second copy).
+  assert.ok(dual.label.startsWith('Dual wield Hyperion: your spare one with Execute in place of Prosecute + '), dual.label);
+  for (const want of ['Titan Killer VII', 'Execute VI', 'Smite VII', 'Critical VI', '10 Hot Potato Books', '5 Fuming Potato Books']) assert.ok(dual.label.includes(want), `${want} missing: ${dual.label}`);
+  assert.ok(!/Prosecute VI/.test(dual.label));
   // No Hyperion bought: only what the clean one lacks (5 books, 10 hot + 5 fuming potato books, 3 scrolls; 1M each).
   assert.equal(dual.cost, 23e6);
   assert.ok(!dual.apply(l).spareBlades.length);
+
+  // A spare that already has some of them (Execute, Smite VII, a lower Titan Killer, 10 potato books): only what is
+  // still to buy is listed and priced.
+  const half = { ...newItem('HYPERION', resource), hpb: 10, enchants: { execute: 6, smite: 7, titan_killer: 6 } };
+  const l2 = buildLoadout(profile([rcm, half, lcm]), ctx, w);
+  const dual2 = availableUpgrades(l2, ctx, p).find((u) => u.label.startsWith('Dual wield Hyperion'));
+  for (const want of ['Chimera V', 'Titan Killer VII', 'Critical VI', '5 Fuming Potato Books']) assert.ok(dual2.label.includes(want), `${want} missing: ${dual2.label}`);
+  for (const owned of ['Execute VI', 'Smite', 'Hot Potato']) assert.ok(!dual2.label.includes(owned), `${owned} listed: ${dual2.label}`);
+  // 3 books, 5 fuming potato books, 3 scrolls.
+  assert.equal(dual2.cost, 11e6);
 });
 
 test('floor-scaled armor buys use the fully boosted price for the highest floor you can enter; Skeleton Master chest rule starts at Catacombs 36', () => {

@@ -492,16 +492,21 @@ function rcmBladeScore(b) {
 }
 
 // A spare blade raised to match `src`: the enchants it lacks (only the levels missing), potato books, master stars,
-// The Art of War, recombobulator, reforge and Wither scrolls. Returns { item, parts }.
-function convertParts(spare, src, prices) {
+// The Art of War, recombobulator, reforge and Wither scrolls. Returns { item, parts, names } (names: only what still
+// has to be bought, for the label). `swap` puts another enchant in place of one of src's (a dual-wield copy has
+// Execute where src has Prosecute): the spare's level of that one counts, priced as src's book.
+function convertParts(spare, src, prices, swap = {}) {
   const item = { ...spare, enchants: { ...spare.enchants }, scrolls: [...(spare.scrolls ?? [])] };
   const parts = [];
-  for (const [key, level] of Object.entries(src.enchants ?? {})) {
+  const names = [];
+  for (const [srcKey, level] of Object.entries(src.enchants ?? {})) {
+    const key = swap[srcKey] ?? srcKey;
     const cur = item.enchants[key] ?? 0;
     if (cur >= level) continue;
-    const way = enchantParts(key, level, cur, prices);
+    const way = enchantParts(srcKey, level, cur, prices);
     if (!way) continue;
     parts.push(...way.parts);
+    names.push(`${ENCHANTS[key]?.name ?? titleCase(key.replace(/^ultimate_/, ''))} ${roman(level)}${way.note ? ` (${way.note})` : ''}`);
     // One ultimate enchant per item: a new one replaces the old (Ultimate Wise -> Chimera).
     if (key.startsWith('ultimate_')) for (const k of Object.keys(item.enchants)) if (k.startsWith('ultimate_')) delete item.enchants[k];
     for (const c of ENCHANTS[key]?.conflicts ?? []) delete item.enchants[c];
@@ -510,18 +515,24 @@ function convertParts(spare, src, prices) {
   const hpb = Math.max(spare.hpb ?? 0, src.hpb ?? 0);
   const hot = Math.max(0, Math.min(hpb, HOT_POTATO.max) - Math.min(spare.hpb ?? 0, HOT_POTATO.max));
   const fuming = Math.max(0, Math.max(0, hpb - HOT_POTATO.max) - Math.max(0, (spare.hpb ?? 0) - HOT_POTATO.max));
-  if (hot) parts.push({ id: HOT_POTATO.id, qty: hot });
-  if (fuming) parts.push({ id: FUMING_POTATO.id, qty: fuming });
+  if (hot) { parts.push({ id: HOT_POTATO.id, qty: hot }); names.push(`${hot} Hot Potato Book${hot > 1 ? 's' : ''}`); }
+  if (fuming) { parts.push({ id: FUMING_POTATO.id, qty: fuming }); names.push(`${fuming} Fuming Potato Book${fuming > 1 ? 's' : ''}`); }
   item.hpb = hpb;
-  if (src.artOfWar && !spare.artOfWar) { parts.push({ id: ART_OF_WAR.id }); item.artOfWar = true; }
-  if ((src.masterStars ?? 0) > (spare.masterStars ?? 0)) {
-    parts.push(...MASTER_STAR_IDS.slice(spare.masterStars ?? 0, src.masterStars).map((id) => ({ id })));
+  if (src.artOfWar && !spare.artOfWar) { parts.push({ id: ART_OF_WAR.id }); names.push('The Art of War'); item.artOfWar = true; }
+  const from = spare.masterStars ?? 0;
+  if ((src.masterStars ?? 0) > from) {
+    parts.push(...MASTER_STAR_IDS.slice(from, src.masterStars).map((id) => ({ id })));
+    names.push(src.masterStars - from > 1 ? `${ordinal(from + 1)}–${ordinal(src.masterStars)} Master Stars` : `${ordinal(src.masterStars)} Master Star`);
     item.masterStars = src.masterStars;
   }
-  if (src.recomb && !spare.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); item.recomb = true; }
-  if (src.reforge && src.reforge !== spare.reforge && getReforge(src.reforge)) { parts.push(...reforgeCost(getReforge(src.reforge), spare)); item.reforge = src.reforge; }
-  for (const x of src.scrolls ?? []) if (!item.scrolls.includes(x)) { parts.push({ id: x }); item.scrolls.push(x); }
-  return { item, parts };
+  if (src.recomb && !spare.recomb) { parts.push({ id: RECOMBOBULATOR_ID }); names.push('Recombobulator'); item.recomb = true; }
+  if (src.reforge && src.reforge !== spare.reforge && getReforge(src.reforge)) {
+    parts.push(...reforgeCost(getReforge(src.reforge), spare));
+    names.push(`${getReforge(src.reforge).name} reforge`);
+    item.reforge = src.reforge;
+  }
+  for (const x of src.scrolls ?? []) if (!item.scrolls.includes(x)) { parts.push({ id: x }); names.push(titleCase(x.toLowerCase())); item.scrolls.push(x); }
+  return { item, parts, names };
 }
 
 function copyParts(item, prices) {
@@ -562,10 +573,13 @@ export function availableUpgrades(loadout, ctx, prices) {
     // Dual wield (LCM): a second copy of a Prosecute Hyperion / Dark Claymore with Execute, swapped in once the boss
     // is low. Priced as the full first copy; counted as DUAL_WIELD_ADDITIVE more additive damage on average.
     if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)) {
-      // A spare copy you own only needs the upgrades it is missing.
+      // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle.
       const spare = (loadout.spareBlades ?? []).find((b) => b.id === item.id);
-      const parts = spare ? convertParts(spare, item, prices).parts : [{ id: item.id }, ...copyParts(item, prices)];
-      push(`Dual wield ${name}: a second copy with Execute in place of Prosecute${spare ? ' (your spare one, missing upgrades only)' : ''}`, parts.length ? parts : [{ coins: 1 }],
+      const conv = spare && convertParts(spare, item, prices, { prosecute: 'execute' });
+      const parts = conv ? conv.parts : [{ id: item.id }, ...copyParts(item, prices)];
+      const label = !conv ? `Dual wield ${name}: a second copy with Execute in place of Prosecute`
+        : `Dual wield ${name}: your spare one with Execute in place of Prosecute${conv.names.length ? ` + ${conv.names.join(', ')}` : ' (nothing missing)'}`;
+      push(label, parts.length ? parts : [{ coins: 1 }],
         (l) => { const next = replaceItem(l, item, { ...item, dualWield: true }); if (spare) next.spareBlades = next.spareBlades.filter((b) => b !== spare); return next; },
         { group: `${slot}:dualwield` });
     }
