@@ -1,0 +1,50 @@
+# DPS Bot: notes for Claude
+
+Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a player's profile and ranks DPS upgrades by weighted % DPS per million coins. README.md covers setup, commands, threads and caches. This file holds the game rules the owner settled, so later work keeps them.
+
+## Working on the code
+
+- Node ESM, discord.js 14, worker threads, `node:test`. Run `npm test` before every push (all tests must pass).
+- Never write the Hypixel API key or Discord token into files, tests or commits. `.env` is ignored by git.
+- Prices come only from bazaar and auction house lowest BIN. No NPC or guessed prices unless a rule below says so.
+- Match the code around you: short comments that say why, config values in `src/config/*`, tests in `test/planner.test.js` for planner rules.
+- Scratch profile dumps: `npm run debug-profile <ign>` (needs `HYPIXEL_API_KEY`).
+
+## Layout
+
+- `src/commands/dps.js`: slash command, buttons, sessions (30s inactivity), run counter (`src/lib/usage.js`, DMs the owner at each new digit).
+- `src/calc/stats.js`: damage model (`evaluate`), pets, Legion, SA cloak, Dungeon potion and Jellyfish.
+- `src/calc/formulas.js`: hit formulas (`archerDamage`, `berserkerDamage`, Mage).
+- `src/calc/upgrades.js`: candidates (`availableUpgrades`), scoring, greedy planner (`planUpgrades`), profile upgrades (`profileUpgrades`).
+- `src/api/*`: Hypixel, Mojang, price fetch (price worker). `src/worker/*`: plan workers and eval pool (eval workers rebuild the same candidate list, so candidate code must stay deterministic).
+- `src/lib/drops.js`: floor-scaled dungeon drop pricing.
+
+## Damage model rules
+
+- Defense: Withers 9000, dragons 12500. Archer and Berserker use arrows per volley and attack speed.
+- Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
+- Legion: 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
+- Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (level/2 %, max 25, doubled solo), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
+- Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). The owner was asked whether it should double instead; unconfirmed.
+- The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
+- Golden Dragon strength uses gold collection digits (the player's own gold only) and the bank: co-op bank on co-ops, the one bank on solo profiles. Members with a deletion notice count as gone.
+
+## Planner rules
+
+- If an item will later be replaced, do not put many coins into it (25M doomed cap per replaced piece). Replacing early items is fine.
+- Floor-scaled dungeon drops are priced from fully boosted (50%) listings at the highest floor the player can enter: c36+ F10, c34-35 F9, c32-33 F8. Drops below F10 follow the 25M cap.
+- Archer and Berserker at cata 36+: Skeleton Master Chestplate is the only chestplate (infinite arrows), unless the reply's "Skeleton Master chest" button is turned off. Necron's legs and boots should win the other slots.
+- Golden Necron Head is free at 50 completions ("Claim" step). Diamond Necron Head = Golden + 8 Enchanted Diamond Blocks (~1.6M), upgrades transfer.
+- Armor bundles: any mix of pieces can be bought as one step. Copy bundles exist for all classes.
+- Mage: detect the RCM Hyperion among 2+ blades. Spare blades become a dual-wield copy, dragon weapon or boss weapon, costing only missing upgrades.
+- Golden Dragon stays the RCM pet (no Pigman, no pet buys in RCM when a GDrag is owned). Balloon Snake is banned in RCM only.
+- First Strike V on a Prosecute weapon is never swapped for Triple Strike. FS IV or none gets Triple Strike.
+- Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
+- Bank deposit steps merge into one.
+
+## Profile upgrades (no coins)
+
+- Skills, slayers, class and cata levels, SkyBlock level, Harp songs.
+- Gold collection digits (Golden Dragon), one row per unmaxed collection when The One is worn.
+- Free quest accessories (soulbound, unpriced), listed only when magical power rises. In a chain, list only the next tier that changes rarity.
+- 2 IQ Points shows as "+2% intelligence" (additive intelligence).
