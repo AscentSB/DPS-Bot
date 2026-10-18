@@ -15,6 +15,8 @@ export const ARCHER_ARROW_DAMAGE_PER_LEVEL = 0.8;
 // (40 + 2 x 37.5 = 115 at level 50 when solo).
 export const BERSERK_DAMAGE_BASE = 40;
 export const BERSERK_DAMAGE_PER_LEVEL = 0.75;
+// Berserker Lust for Blood: additive damage, 1200 at Berserk 50 when solo (12 per level, doubled solo).
+export const LUST_FOR_BLOOD_PER_LEVEL = 12;
 // Combat skill Warrior bonus: +4% additive damage per level to 50, +1% per level from 51 to 60 (210 at 60).
 // Applies to every class (Mage is scored as LCM, the mage beam).
 export const WARRIOR_PER_LEVEL = 4;

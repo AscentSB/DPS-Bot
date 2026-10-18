@@ -9,7 +9,7 @@ use dps_core::config::accessories::{FREE_POWERS, POWERS};
 use dps_core::config::constants::*;
 use dps_core::config::upgrades::EXTRA_UPGRADES;
 use dps_core::kinds::{Class, FloorMode, Mode};
-use dps_core::model::{ItemInfo, ItemState, Pet, ProfileStats, Resource, Tuning, Weights};
+use dps_core::model::{Cake, ItemInfo, ItemState, Pet, PetProfile, ProfileStats, Resource, Tuning, Weights};
 use dps_core::stat::Stat;
 use serde_json::{json, Value};
 use std::sync::Arc;
@@ -357,7 +357,8 @@ fn class_bonuses() {
     });
     close(archer_multiplier_of(&bers), 1.0);
     close(arch.class_additive_damage(), 210.0);
-    close(bers.class_additive_damage(), 210.0 + 115.0);
+    // Berserk class bonus (115) plus Lust for Blood (1200 at Berserk 50 solo).
+    close(bers.class_additive_damage(), 210.0 + 115.0 + 1200.0);
     close(mk_ctx(Class::Mage, 50.0, &res, |i| i.combat_level = 60.0).class_additive_damage(), 210.0);
 }
 
@@ -963,18 +964,32 @@ fn fire_aspect_and_first_strike() {
 }
 
 #[test]
-fn golden_dragon_wither_pet_and_unknown_pet() {
+fn best_pet_per_boss_and_unknown_pet() {
     let res = res();
     let pets = [pet("GOLDEN_DRAGON", "LEGENDARY", None), pet("ENDER_DRAGON", "LEGENDARY", None)];
-    for cls in [Class::Arch, Class::Bers] {
-        let mut w = World::new(mk_ctx(cls, 50.0, &res, |_| {}), weights(cls));
+    // Endgame-sized stat pools, where Ender Dragon's Superior (+10% most stats) is worth the most.
+    let cake = |stat: &str, amount: f64| Cake { stat: stat.into(), amount };
+    let pick = |cls: Class, bank: f64| -> [String; 2] {
+        let ctx = mk_ctx(cls, 50.0, &res, |i| {
+            i.combat_level = 60.0;
+            i.berserk_level = 50.0;
+            i.pet_profile = PetProfile { bank: Some(bank), gold_collection: Some(1e9) };
+            i.profile_stats = Some(ProfileStats {
+                sb_level: 0,
+                bop_bonus: None,
+                harp_songs: vec![],
+                cakes: vec![cake("strength", 1200.0), cake("critDamage", 900.0), cake("attackSpeed", 100.0)],
+            });
+        });
+        let mut w = World::new(ctx, weights(cls));
         let l = w.build(&[new_it(&res, "TERMINATOR")], &pets, &[], &[]);
-        assert_eq!(w.model.pet(l.active_pets[0].unwrap()).kind, "GOLDEN_DRAGON");
-        assert_eq!(w.model.pet(l.active_pets[1].unwrap()).kind, "ENDER_DRAGON");
-    }
-    let mut w = World::new(mk_ctx(Class::Mage, 50.0, &res, |_| {}), weights(Class::Mage));
-    let l = w.build(&[new_it(&res, "HYPERION")], &pets, &[], &[]);
-    assert_eq!(w.model.pet(l.active_pets[0].unwrap()).kind, "GOLDEN_DRAGON");
+        l.active_pets.map(|p| w.model.pet(p.unwrap()).kind.clone())
+    };
+    // Archer: the Golden Dragon's bank perk (+250% additive at 1B) wins rich, Ender Dragon wins broke.
+    assert_eq!(pick(Class::Arch, 1e9), ["GOLDEN_DRAGON", "ENDER_DRAGON"]);
+    assert_eq!(pick(Class::Arch, 0.0)[0], "ENDER_DRAGON");
+    // Berserker: Lust for Blood's 1200 additive waters the bank perk down, so Ender Dragon wins even at 1B.
+    assert_eq!(pick(Class::Bers, 1e9)[0], "ENDER_DRAGON");
 
     // A pet the bot has no data for is ignored instead of crashing.
     let mut w = World::new(mk_ctx(Class::Mage, 50.0, &res, |_| {}), weights_for(Class::Mage, None, Mode::Lcm, FloorMode::Master));

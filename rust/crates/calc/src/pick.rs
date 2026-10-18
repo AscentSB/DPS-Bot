@@ -9,7 +9,7 @@ use crate::loadout::{Loadout, PetList};
 use crate::memo::{EvalKey, EvalMemo};
 use dps_core::config::accessories::{tuning_stats, POWERS};
 use dps_core::config::constants::ATTACK_SPEED_CAP;
-use dps_core::config::pets::{phase_pet, EXCLUDED_PETS, TIER_BOOST_ID};
+use dps_core::config::pets::{EXCLUDED_PETS, TIER_BOOST_ID};
 use dps_core::kinds::{Class, Target};
 use dps_core::model::Weights;
 use dps_core::pets::pet_stats;
@@ -177,8 +177,8 @@ impl<'a> Evaluator<'a> {
                 active[t] = None;
                 continue;
             }
-            let preferred = if rcm { Some("GOLDEN_DRAGON") } else { phase_pet(target, ctx.cls) };
-            let pool: Vec<PetId> = dps.iter().copied().filter(|&p| Some(model.pet(p).kind.as_str()) == preferred).collect();
+            // No fixed pet per boss: the owned pet that does the most damage wins (RCM keeps an owned Golden Dragon).
+            let pool: Vec<PetId> = if rcm { dps.iter().copied().filter(|&p| model.pet(p).kind == "GOLDEN_DRAGON").collect() } else { Vec::new() };
             let mut best: Option<PetId> = None;
             let mut best_score = f64::NEG_INFINITY;
             let candidates: Vec<Option<PetId>> = if pool.is_empty() {

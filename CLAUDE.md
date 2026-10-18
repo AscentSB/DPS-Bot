@@ -29,6 +29,8 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (level/2 %, max 25, doubled solo), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
 - Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). The owner was asked whether it should double instead; unconfirmed.
 - The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
+- Berserker additive damage: Warrior (Combat level) + Berserk class bonus (40 + 2 x 0.75 per level) + Lust for Blood (2 x 12 per level, 1200 at Berserk 50 solo).
+- Pets: no fixed pet per boss. The owned pet that does the most damage against each boss is active (RCM still keeps an owned Golden Dragon).
 - Golden Dragon strength uses gold collection digits (the player's own gold only) and the bank: co-op bank on co-ops, the one bank on solo profiles. Members with a deletion notice count as gone.
 
 ## Planner rules

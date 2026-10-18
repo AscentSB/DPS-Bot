@@ -1,6 +1,5 @@
 //! src/config/pets.js: pet items, pet perks (as a function), phase pets, Kat upgrades.
 
-use crate::kinds::{Class, Target};
 use crate::stat::{Stat, StatList};
 
 /// One entry of JS `PET_ITEMS`: `mult` multiplies the pet's stat, `flat` adds to it (empty when the JS has none).
@@ -172,16 +171,6 @@ pub fn pet_perk(kind: &str, n: &[f64], p: PerkProfile) -> Option<PetPerk> {
         _ => return None,
     }
     Some(perk)
-}
-
-/// JS `PHASE_PETS[target]?.[cls]`: the pet used against each boss when owned.
-#[inline]
-pub const fn phase_pet(target: Target, cls: Class) -> Option<&'static str> {
-    match (target, cls) {
-        (Target::Wither, _) => Some("GOLDEN_DRAGON"),
-        (Target::Dragon, Class::Arch | Class::Bers) => Some("ENDER_DRAGON"),
-        (Target::Dragon, Class::Mage) => None,
-    }
 }
 
 pub const EXCLUDED_PETS: [&str; 2] = ["HORSE", "SKELETON_HORSE"];

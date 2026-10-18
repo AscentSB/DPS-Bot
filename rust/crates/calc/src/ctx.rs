@@ -436,7 +436,7 @@ fn derive(ctx: &Ctx) -> CtxDerived {
     let combat = ctx.combat_level;
     let warrior = WARRIOR_PER_LEVEL * jsmath::min(combat, 50.0) + WARRIOR_PER_LEVEL_AFTER_50 * jsmath::max(0.0, combat - 50.0);
     let berserk = if ctx.cls == Class::Bers {
-        BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * ctx.berserk_level
+        BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * ctx.berserk_level
     } else {
         0.0
     };

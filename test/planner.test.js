@@ -424,17 +424,23 @@ test('Blended (blacksmith) reforge is offered on equipment at 9 rolls x 500 coin
   assert.equal(up.apply(base).equipment.GLOVES.reforge, 'blended');
 });
 
-test('Golden Dragon is the wither pet for every class; Ender Dragon is the dragon pet for Archer and Berserker', () => {
+test('the active pet is whichever owned pet does the most damage (no fixed Golden Dragon on withers)', () => {
   const pets = [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { type: 'ENDER_DRAGON', tier: 'LEGENDARY' }];
-  for (const cls of ['arch', 'bers']) {
-    const ctx = makeContext({ cls, cataLevel: 50, resource });
+  // Endgame-sized stat pools, where Ender Dragon's Superior (+10% most stats) is worth the most.
+  const profileStats = { sbLevel: 0, harpSongs: [], cakes: [{ stat: 'strength', amount: 1200 }, { stat: 'critDamage', amount: 900 }, { stat: 'attackSpeed', amount: 100 }] };
+  const pick = (cls, bank) => {
+    const ctx = makeContext({ cls, cataLevel: 50, berserkLevel: 50, combatLevel: 60, resource, profileStats, petProfile: { bank, goldCollection: 1e9 } });
     const l = buildLoadout(profile(items([{ id: 'TERMINATOR' }]), { pets }), ctx, weightsFor(cls));
-    assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
-    assert.equal(l.activePets.dragon.type, 'ENDER_DRAGON');
-  }
-  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
-  const l = buildLoadout(profile(items([{ id: 'HYPERION' }]), { pets }), ctx, weightsFor('mage'));
-  assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
+    const dmg = (p) => evaluate({ ...l, activePets: { ...l.activePets, wither: p } }, ctx, weightsFor(cls)).wither;
+    assert.equal(dmg(l.activePets.wither), Math.max(...pets.map(dmg)));
+    return l.activePets;
+  };
+  // Archer: the Golden Dragon's bank perk (+250% additive at 1B) wins rich, Ender Dragon wins broke.
+  assert.equal(pick('arch', 1e9).wither.type, 'GOLDEN_DRAGON');
+  assert.equal(pick('arch', 0).wither.type, 'ENDER_DRAGON');
+  assert.equal(pick('arch', 1e9).dragon.type, 'ENDER_DRAGON');
+  // Berserker: Lust for Blood's 1200 additive waters the bank perk down, so Ender Dragon wins even at 1B.
+  assert.equal(pick('bers', 1e9).wither.type, 'ENDER_DRAGON');
 });
 
 test('tuning buys attack speed for whichever boss needs more', async () => {
@@ -1168,7 +1174,8 @@ test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berser
   close(archerMultiplier({ cls: 'arch', archerLevel: 50 }), 1.8);
   close(archerMultiplier({ cls: 'bers', archerLevel: 50 }), 1);
   close(classAdditiveDamage({ cls: 'arch', combatLevel: 60 }), 210);
-  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115);
+  // Berserk class bonus (40 + 2 x 37.5 = 115) plus Lust for Blood (1200 at Berserk 50 solo).
+  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115 + 1200);
   close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 210);
 });
 

@@ -73,16 +73,6 @@ export const PET_PERKS = {
   JELLYFISH: (n) => ({ potionBoost: (n[2] ?? 0) / 100 }),
 };
 
-// Pet used against each boss, by class. Golden Dragon vs withers for everyone. Ender Dragon vs dragons
-// for Archer and Berserker (dragons are Ender mobs, so End Strike applies). Mage keeps Golden Dragon against dragons
-// too: Chimera on the Mage weapon copies its attack speed for the beam. When the player does not own
-// the listed pet, or no pet is listed, the owned pet that gives the most damage against that boss is used.
-export const PHASE_PETS = {
-  wither: { arch: 'GOLDEN_DRAGON', bers: 'GOLDEN_DRAGON', mage: 'GOLDEN_DRAGON' },
-  // Mage has no fixed dragon pet: the owned pet that does the most damage against dragons wins.
-  dragon: { arch: 'ENDER_DRAGON', bers: 'ENDER_DRAGON' },
-};
-
 // Pets never used (Horse and Skeleton Horse: their Jump Boost gets in the way).
 export const EXCLUDED_PETS = ['HORSE', 'SKELETON_HORSE'];
 

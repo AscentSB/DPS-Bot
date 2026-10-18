@@ -1,7 +1,7 @@
 import {
   CLASSES, TARGET_DEFENSE, NECRON_BLADE_WITHER_MULTIPLIER, DUAL_WIELD_ADDITIVE, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RARITIES, SPECIAL_RARITIES,
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
-  LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE,
+  LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE, LUST_FOR_BLOOD_PER_LEVEL,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
   WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, DEFAULT_MAXED_COLLECTIONS, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
@@ -19,7 +19,7 @@ import { ESSENCE_PERKS } from '../config/essence.js';
 import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
-import { PHASE_PETS, EXCLUDED_PETS, TIER_BOOST_ID } from '../config/pets.js';
+import { EXCLUDED_PETS, TIER_BOOST_ID } from '../config/pets.js';
 import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
@@ -845,11 +845,12 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
 
 // Final stats after the strength / crit damage / intelligence / crit chance formulas.
 // Class and Combat additive damage: Warrior (Combat level) for Archer and Berserker, plus the Berserk class
-// bonus. Classes are assumed solo.
+// bonus and Lust for Blood. Classes are assumed solo.
 export function classAdditiveDamage(ctx) {
   const combat = ctx.combatLevel ?? 0;
   const warrior = WARRIOR_PER_LEVEL * Math.min(combat, 50) + WARRIOR_PER_LEVEL_AFTER_50 * Math.max(0, combat - 50);
-  const berserk = ctx.cls === 'bers' ? BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0) : 0;
+  const bersLevel = ctx.berserkLevel ?? 0;
+  const berserk = ctx.cls === 'bers' ? BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * bersLevel : 0;
   return warrior + berserk;
 }
 
@@ -1037,8 +1038,8 @@ export function dpsPets(pets, ctx) {
   return [...byType.values()];
 }
 
-// Pick the active pet for each boss: the class's phase pet (PHASE_PETS) when owned, otherwise the owned
-// pet that does the most damage against that boss.
+// Pick the active pet for each boss: the owned pet that does the most damage against it (no fixed pet per boss,
+// e.g. Ender Dragon's Superior can beat a Golden Dragon with a small bank against withers).
 export function selectPet(loadout, ctx, weights) {
   const candidates = [null, ...dpsPets(loadout.pets, ctx)];
   const activePets = { ...(loadout.activePets ?? {}) };
@@ -1047,8 +1048,7 @@ export function selectPet(loadout, ctx, weights) {
     if (isRcm(ctx) && target === 'dragon') { activePets.dragon = null; continue; }
     // RCM: an owned Golden Dragon is always the clear pet (its bank bonus grows with deposits). Without one, the
     // best clear pet wins.
-    const preferred = isRcm(ctx) ? 'GOLDEN_DRAGON' : PHASE_PETS[target]?.[ctx.cls];
-    const pool = candidates.filter((p) => p && p.type === preferred);
+    const pool = isRcm(ctx) ? candidates.filter((p) => p && p.type === 'GOLDEN_DRAGON') : [];
     let best = null;
     let bestScore = -Infinity;
     for (const pet of pool.length ? pool : candidates) {

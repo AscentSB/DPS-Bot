@@ -300,6 +300,7 @@ fn constants() -> Vec<(&'static str, Value)> {
         ("LEGION_PER_LEVEL", n(c::LEGION_PER_LEVEL)),
         ("LEGION_PLAYERS", n(c::LEGION_PLAYERS)),
         ("LOVING_ABILITY_MULTIPLIER", n(c::LOVING_ABILITY_MULTIPLIER)),
+        ("LUST_FOR_BLOOD_PER_LEVEL", n(c::LUST_FOR_BLOOD_PER_LEVEL)),
         ("MAGE_ABILITY_DAMAGE_BASE", n(c::MAGE_ABILITY_DAMAGE_BASE)),
         ("MAGE_ABILITY_DAMAGE_PER_5_LEVELS", n(c::MAGE_ABILITY_DAMAGE_PER_5_LEVELS)),
         ("MAGE_BEAM_BASE", n(c::MAGE_BEAM_BASE)),
@@ -505,29 +506,6 @@ fn pets_config() -> Vec<(&'static str, Value)> {
                     })
                     .collect(),
             ),
-        ),
-        (
-            "PHASE_PETS",
-            obj(vec![
-                (
-                    "wither",
-                    Value::Object(
-                        Class::ALL
-                            .iter()
-                            .filter_map(|&cl| pc::phase_pet(dps_core::Target::Wither, cl).map(|p| (cl.js_name().to_string(), json!(p))))
-                            .collect(),
-                    ),
-                ),
-                (
-                    "dragon",
-                    Value::Object(
-                        Class::ALL
-                            .iter()
-                            .filter_map(|&cl| pc::phase_pet(dps_core::Target::Dragon, cl).map(|p| (cl.js_name().to_string(), json!(p))))
-                            .collect(),
-                    ),
-                ),
-            ]),
         ),
         ("TIER_BOOST_ID", json!(pc::TIER_BOOST_ID)),
     ]
