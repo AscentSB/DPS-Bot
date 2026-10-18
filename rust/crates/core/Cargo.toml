@@ -1,0 +1,18 @@
+[package]
+name = "dps-core"
+description = "Shared types, static SkyBlock data and small pure helpers for the DPS bot"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+# float_roundtrip: parse JSON numbers exactly like JavaScript (correctly rounded), not the faster approximate path.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+indexmap.workspace = true
+rustc-hash.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+# Tests compare key order with the JS dumps.
+serde_json = { workspace = true, features = ["float_roundtrip", "preserve_order"] }

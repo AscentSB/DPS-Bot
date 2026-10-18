@@ -72,6 +72,21 @@ The hit formula reproduces the M7 archer sheet's output exactly, and the blessin
 
 ## Setup
 
+The bot has two builds that give the same answers: the Rust port in `rust/` (default, uses far less CPU, see `rust/README.md`) and the original Node code in `src/` (the reference the Rust tests compare against).
+
+Rust (Docker, recommended for a 24/7 server):
+
+```
+cp .env.example .env   # fill in DISCORD_TOKEN, CLIENT_ID, HYPIXEL_API_KEY, optional GUILD_ID
+docker build -t dps-bot-rs .
+docker run --rm --env-file .env dps-bot-rs dps-bot deploy      # register /dps (again whenever the command's options change)
+docker run -d --restart unless-stopped --env-file .env -v dps-data:/app/data dps-bot-rs
+```
+
+Rust without Docker (a current stable Rust, built with 1.98): `cargo build --release --locked -p dps-bot` in `rust/`, then run `rust/target/release/dps-bot` (or `dps-bot deploy`, `dps-bot check-env`, `dps-bot debug-profile <ign> [cls] [mode]`, `dps-bot update-data`) from the folder that holds `.env`. The default build targets x86-64-v2 in Docker (`--build-arg TARGET_CPU=x86-64-v3` or `native` for faster code on newer CPUs). The four NEU data files in `src/data` are compiled into the binary, so run `dps-bot update-data` (writes `src/data`) and rebuild to pick up new data.
+
+Node (the original, `Dockerfile.node` builds it as an image):
+
 ```
 npm install
 cp .env.example .env   # fill in DISCORD_TOKEN, CLIENT_ID, HYPIXEL_API_KEY, optional GUILD_ID
@@ -79,12 +94,12 @@ npm run deploy         # register /dps (run again whenever the command's options
 npm start
 ```
 
-- Node 20.10 or newer. The bot needs to stay running (a VPS, a home server or any Node host).
+- Node 20.10 or newer for the Node build. The bot needs to stay running (a VPS, a home server or any Node host).
 - `DISCORD_TOKEN` and `CLIENT_ID` come from the Discord Developer Portal (Bot page and General Information). Invite the bot with the `applications.commands` and `bot` scopes. Without `GUILD_ID` the command registers globally and can take up to an hour to appear.
 - `HYPIXEL_API_KEY` reads profiles. Each player's profile is cached for 5 minutes, so repeat runs in that window show the same data and use no key requests. A development key works for testing; a bot others use needs a production key from https://developer.hypixel.net. Bazaar and auction prices need no key.
 - Interactions come over the Gateway by default (`DISCORD_TOKEN`). For HTTP interactions instead, set `INTERACTIONS_PORT` and `DISCORD_PUBLIC_KEY` (Developer Portal, General Information), put the server behind a public HTTPS URL, and paste that URL into Interactions Endpoint URL. Discord then sends interactions only to that URL. Every request is checked with Ed25519 (X-Signature-Ed25519 over X-Signature-Timestamp + body; invalid or older than 5 minutes gets 401), PINGs get a PONG, the first reply or defer is the HTTP response (Discord allows 3 seconds), and later edits go through the interaction webhook (valid 15 minutes). No message can ping anyone in either mode.
 - Usage: every accepted /dps run adds 1 to the total in `usage.json` (next to package.json, ignored by git). When the total gains a digit (10, 100, 1,000, ...) the bot DMs the owner: `OWNER_ID` if set, else the app owner from the Developer Portal. The DM uses `DISCORD_TOKEN`, so it also works in HTTP mode when the token is set.
-- Threads (`src/worker`): plans run in plan workers (`PLAN_WORKERS`, default 2), one plan per worker, so the Discord connection never blocks and one user's plan never waits for another's unless every worker is busy (then it queues for the first free one). A plan that takes over 3 minutes (`PLAN_TIMEOUT_MS`) is stopped, its worker is replaced, and the user is told. The main thread owns the only price cache and item list and sends them to the workers when they change.
+- Threads (`src/worker` in Node; a rayon pool in Rust, where `PLAN_WORKERS` and `PLAN_TIMEOUT_MS` mean the same and a finished plan is also cached by profile content, job and price version): plans run in plan workers (`PLAN_WORKERS`, default 2), one plan per worker, so the Discord connection never blocks and one user's plan never waits for another's unless every worker is busy (then it queues for the first free one). A plan that takes over 3 minutes (`PLAN_TIMEOUT_MS`) is stopped, its worker is replaced, and the user is told. The main thread owns the only price cache and item list and sends them to the workers when they change.
 - Caches: prices load at launch and refresh every 5 minutes (bazaar and auction house); until the first load finishes, /dps answers "try again in a moment" instead of waiting. The item list loads at launch and refreshes hourly in the background. Minecraft usernames are cached for a day (unknown names for 10 minutes). Every API call has a 15 second timeout, and a Mojang or Hypixel failure gets its own message.
 - Prices download and decode in a separate price worker (one refresh per source at a time; auction pages 6 at a time with retries, and a page that still fails keeps the last full auction house). Each refresh first reads page 0 and skips the rest when Hypixel's `lastUpdated` has not changed. Auction prices are the median lowest BIN over the last 3 changed downloads (only for items still listed), so one sniped or bought-out listing does not swing the plan. Candidate scoring spreads over an evaluation pool (up to 4 workers, `EVAL_WORKERS` to change or 0 to turn off) with the exact same results as one thread.
 - Planner speed: item, accessory, shard and pet stats are cached per (immutable) object; re-plans resume from the first step the new rules reject; every distinct loadout's scored candidates are cached by content.

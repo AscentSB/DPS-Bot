@@ -1,0 +1,16 @@
+# Checks the oracle's testdata against the shared types in crates/core/src/model.rs (included by path, so it builds
+# even while the rest of dps-core is being written). Its own workspace: not part of the bot's workspace.
+#   CARGO_TARGET_DIR=../../target/oracle cargo run --release --manifest-path oracle/model-check/Cargo.toml [testdata]
+[package]
+name = "oracle-model-check"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
+indexmap = { version = "2", features = ["serde"] }
+rustc-hash = "2"

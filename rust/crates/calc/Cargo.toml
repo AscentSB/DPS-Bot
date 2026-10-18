@@ -1,0 +1,18 @@
+[package]
+name = "dps-calc"
+description = "Damage model and upgrade planner"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+dps-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+indexmap.workspace = true
+rustc-hash.workspace = true
+rayon.workspace = true
+parking_lot.workspace = true
+
+[dev-dependencies]
+serde_json = { workspace = true, features = ["float_roundtrip", "preserve_order"] }
