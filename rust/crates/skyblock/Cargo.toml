@@ -1,0 +1,18 @@
+[package]
+name = "dps-skyblock"
+description = "Hypixel, Mojang and price data: downloads, NBT decoding, profile reading, price cache"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+dps-core.workspace = true
+serde.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+indexmap.workspace = true
+rustc-hash.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+flate2.workspace = true
+base64.workspace = true
+parking_lot.workspace = true

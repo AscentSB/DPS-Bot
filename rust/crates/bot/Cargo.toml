@@ -1,0 +1,37 @@
+[package]
+name = "dps-bot"
+description = "Hypixel SkyBlock Discord bot: ranks DPS upgrades per million coins"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "dps-bot"
+path = "src/main.rs"
+
+[dependencies]
+dps-core.workspace = true
+dps-calc.workspace = true
+dps-skyblock.workspace = true
+rustc-hash.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+indexmap.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+hex.workspace = true
+ed25519-dalek.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+http-body-util.workspace = true
+twilight-gateway.workspace = true
+twilight-http.workspace = true
+twilight-model.workspace = true
+mimalloc.workspace = true
+dotenvy.workspace = true
+parking_lot.workspace = true
+futures-util.workspace = true
+
+[dev-dependencies]
+serde_json = { workspace = true, features = ["preserve_order"] }

@@ -3,3 +3,7 @@ node_modules/
 debug-*.json
 usage.json
 usage.json.tmp
+
+# Rust port
+rust/target/
+rust/testdata/

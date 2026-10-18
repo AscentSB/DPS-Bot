@@ -9,6 +9,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Prices come only from bazaar and auction house lowest BIN. No NPC or guessed prices unless a rule below says so.
 - Match the code around you: short comments that say why, config values in `src/config/*`, tests in `test/planner.test.js` for planner rules.
 - Scratch profile dumps: `npm run debug-profile <ign>` (needs `HYPIXEL_API_KEY`).
+- Rust port in `rust/` (what the Dockerfile ships; Node image is `Dockerfile.node`). The JS in `src/` is the reference: make every rule change in both, with the same labels (`rust/PORTING_NOTES.md`). Test with `cargo test --release --workspace` in `rust/`; parity and bot tests need `rust/testdata/` from `rust/oracle/`.
 
 ## Layout
 
@@ -18,6 +19,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - `src/calc/upgrades.js`: candidates (`availableUpgrades`), scoring, greedy planner (`planUpgrades`), profile upgrades (`profileUpgrades`).
 - `src/api/*`: Hypixel, Mojang, price fetch (price worker). `src/worker/*`: plan workers and eval pool (eval workers rebuild the same candidate list, so candidate code must stay deterministic).
 - `src/lib/drops.js`: floor-scaled dungeon drop pricing.
+- `rust/crates/*`: `core` (config, formulas), `calc` (`candidates.rs` = availableUpgrades, `parts.rs` = pricing helpers, planner), `skyblock` (APIs), `bot` (Discord).
 
 ## Damage model rules
 
