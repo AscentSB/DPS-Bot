@@ -1,4 +1,4 @@
-//! Port of scripts/update-data.mjs: regenerates pets.json, reforges.json, accessories.json and fragged.json from the
+//! Port of scripts/update-data.mjs: regenerates pets.json, reforges.json, accessories.json, fragged.json and npcShop.json from the
 //! NotEnoughUpdates community repo, writing byte-identical files (JSON.stringify formatting, JS key order).
 //!
 //! JSON values go through a small ordered model ([`J`]) so key order and number formatting follow JavaScript:
@@ -15,6 +15,8 @@ use std::sync::Arc;
 
 const NEU: &str = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/constants";
 const NEU_ITEMS: &str = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/items";
+const NEU_ROOT: &str = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master";
+const NEU_TREE: &str = "https://api.github.com/repos/NotEnoughUpdates/NotEnoughUpdates-REPO/git/trees/master?recursive=1";
 const HYPIXEL_ITEMS: &str = "https://api.hypixel.net/v2/resources/skyblock/items";
 const FETCH_CONCURRENCY: usize = 16;
 
@@ -333,6 +335,114 @@ pub fn fragged_entry(id: &str, recipe: &J) -> Option<(String, J)> {
     Some((base, obj(vec![("id", J::Str(id.to_owned())), ("parts", J::Arr(parts))])))
 }
 
+/// `items/*_NPC.json` paths in the NEU file list (`/^items\/[^/]+_NPC\.json$/`), sorted.
+pub fn npc_files(tree: &J) -> Result<Vec<String>, String> {
+    let Some(J::Arr(list)) = tree.get("tree") else { return Err("NEU repo file list: incomplete".into()) };
+    if tree.get("truncated").is_some_and(J::truthy) {
+        return Err("NEU repo file list: incomplete".into());
+    }
+    let is_npc = |p: &str| {
+        p.strip_prefix("items/").and_then(|r| r.strip_suffix("_NPC.json")).is_some_and(|name| !name.is_empty() && !name.contains('/'))
+    };
+    let mut paths: Vec<String> = list.iter().filter_map(|x| x.get("path").and_then(J::str)).filter(|p| is_npc(p)).map(str::to_owned).collect();
+    paths.sort();
+    Ok(paths)
+}
+
+/// JS `String(x)` for the strings and numbers NEU uses in shop recipes.
+fn js_text(v: &J) -> Option<String> {
+    match v {
+        J::Str(s) => Some(s.clone()),
+        J::Num(n) => Some(dps_core::jsfmt::js_string(*n)),
+        _ => None,
+    }
+}
+
+/// `shopPart`: "ID:qty" (qty defaults to 1).
+fn shop_part(s: &str) -> (String, f64) {
+    match s.rfind(':') {
+        None => (s.to_owned(), 1.0),
+        Some(i) => (s[..i].to_owned(), js_number(&s[i + 1..])),
+    }
+}
+
+/// "§9Combat Merchant (NPC)" -> "Combat Merchant", "Alchemist (Rift NPC)" -> "Alchemist (Rift)" (JS `/§./g`, trim).
+fn npc_name(display: &str) -> String {
+    let mut out = String::with_capacity(display.len());
+    let mut chars = display.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '§' && chars.peek().is_some_and(|n| !matches!(n, '\n' | '\r' | '\u{2028}' | '\u{2029}')) {
+            chars.next();
+            continue;
+        }
+        out.push(c);
+    }
+    let mut name = dps_core::text::js_trim(&out).to_owned();
+    if let Some(s) = name.strip_suffix(" (NPC)") {
+        name = s.to_owned();
+    }
+    if let Some(s) = name.strip_suffix(" (Rift NPC)") {
+        name = format!("{s} (Rift)");
+    }
+    name
+}
+
+/// npcShop.json from the downloaded NPC files (None for a failed download), in path order: `{ ITEM_ID: [{ npc,
+/// coins, items? }] }` sorted by id. Returns the file text and the item count.
+pub fn build_npc_shop(npcs: &[Option<J>]) -> (String, usize) {
+    let mut shop: IndexMap<String, Vec<J>> = IndexMap::new();
+    for npc in npcs.iter().flatten() {
+        let name = npc_name(&npc.get("displayname").and_then(js_text).unwrap_or_default());
+        if name.is_empty() {
+            continue;
+        }
+        let Some(J::Arr(recipes)) = npc.get("recipes") else { continue };
+        for r in recipes {
+            if r.get("type").and_then(J::str) != Some("npc_shop") {
+                continue;
+            }
+            let Some(result) = r.get("result").filter(|x| x.truthy()).and_then(js_text) else { continue };
+            let (id, n) = shop_part(&result);
+            if id.contains(';') || !(n > 0.0) {
+                continue;
+            }
+            let mut coins = 0.0;
+            let mut items = Vec::new();
+            if let Some(J::Arr(cost)) = r.get("cost") {
+                for c in cost.iter().filter_map(js_text) {
+                    let (cid, q) = shop_part(&c);
+                    if cid == "SKYBLOCK_COIN" {
+                        coins += q;
+                    } else {
+                        items.push(obj(vec![("id", J::Str(cid)), ("qty", J::Num(q / n))]));
+                    }
+                }
+            }
+            if !(coins >= 1.0) && items.is_empty() {
+                continue;
+            }
+            let mut fields = vec![("npc", J::Str(name.clone())), ("coins", J::Num(coins / n))];
+            if !items.is_empty() {
+                fields.push(("items", J::Arr(items)));
+            }
+            let offer = obj(fields);
+            let list = shop.entry(id).or_default();
+            let text = stringify(&offer, None);
+            if !list.iter().any(|o| stringify(o, None) == text) {
+                list.push(offer);
+            }
+        }
+    }
+    let mut keys: Vec<String> = shop.keys().cloned().collect();
+    keys.sort();
+    let count = keys.len();
+    let sorted: IndexMap<String, J> = keys.into_iter().map(|k| {
+        let v = shop.shift_remove(&k).unwrap_or_default();
+        (k, J::Arr(v))
+    }).collect();
+    (stringify(&J::Obj(sorted), Some(1)) + "\n", count)
+}
+
 /// Build the four files from the downloaded sources. `fragged` is `[(base, entry)]` in the order to write.
 pub fn build_outputs(basic: &J, stones: &J, misc: &J, pet_meta: &J, pet_nums: &J, fragged: Vec<(String, J)>) -> Result<Outputs, String> {
     let mut reforges: IndexMap<String, J> = IndexMap::new();
@@ -479,15 +589,16 @@ pub struct UpdateSummary {
     pub reforges: usize,
     pub accessory_families: usize,
     pub fragged: usize,
+    pub npc_shop: usize,
 }
 
 impl fmt::Display for UpdateSummary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Wrote {} reforges, {} accessory families, {} fragged items.", self.reforges, self.accessory_families, self.fragged)
+        write!(f, "Wrote {} reforges, {} accessory families, {} fragged items, {} NPC shop items.", self.reforges, self.accessory_families, self.fragged, self.npc_shop)
     }
 }
 
-/// Download the NEU data and write `pets.json`, `reforges.json`, `accessories.json`, `fragged.json` into `out_dir`
+/// Download the NEU data and write `pets.json`, `reforges.json`, `accessories.json`, `fragged.json`, `npcShop.json` into `out_dir`
 /// (created if needed). Errors on any failed constants download; a starred item whose recipe cannot be fetched is
 /// skipped, like the script.
 pub async fn update_data(out_dir: impl AsRef<Path>) -> Result<UpdateSummary, String> {
@@ -527,13 +638,34 @@ pub async fn update_data(out_dir: impl AsRef<Path>) -> Result<UpdateSummary, Str
         }
     }
 
+    // NPC shops: every items/*_NPC.json in the repo (the GitHub API wants a User-Agent).
+    let res = client.get(NEU_TREE).header("User-Agent", "dps-bot").send().await.map_err(|e| format!("NEU repo file list: {e}"))?;
+    let tree: J = serde_json::from_slice(&res.bytes().await.map_err(|e| format!("NEU repo file list: {e}"))?).map_err(|e| format!("NEU repo file list: {e}"))?;
+    let mut handles = Vec::new();
+    for path in npc_files(&tree)? {
+        let (client, sem) = (client.clone(), sem.clone());
+        handles.push(tokio::spawn(async move {
+            let _permit = sem.acquire().await.ok()?;
+            let res = client.get(format!("{NEU_ROOT}/{path}")).send().await.ok()?;
+            if !res.status().is_success() {
+                return None;
+            }
+            serde_json::from_slice::<J>(&res.bytes().await.ok()?).ok()
+        }));
+    }
+    let mut npcs = Vec::new();
+    for h in handles {
+        npcs.push(h.await.map_err(|e| e.to_string())?);
+    }
+    let (npc_shop, npc_count) = build_npc_shop(&npcs);
+
     let out = build_outputs(&basic, &stones, &misc, &pet_meta, &pet_nums, fragged)?;
     let dir = out_dir.as_ref();
     tokio::fs::create_dir_all(dir).await.map_err(|e| e.to_string())?;
-    for (name, text) in [("pets.json", &out.pets), ("reforges.json", &out.reforges), ("accessories.json", &out.accessories), ("fragged.json", &out.fragged)] {
+    for (name, text) in [("pets.json", &out.pets), ("reforges.json", &out.reforges), ("accessories.json", &out.accessories), ("fragged.json", &out.fragged), ("npcShop.json", &npc_shop)] {
         tokio::fs::write(dir.join(name), text).await.map_err(|e| format!("{name}: {e}"))?;
     }
-    Ok(UpdateSummary { reforges: out.reforge_count, accessory_families: out.accessory_families, fragged: out.fragged_count })
+    Ok(UpdateSummary { reforges: out.reforge_count, accessory_families: out.accessory_families, fragged: out.fragged_count, npc_shop: npc_count })
 }
 
 #[cfg(test)]
@@ -570,6 +702,27 @@ mod tests {
         assert_eq!(
             o.pets,
             r#"{"levels":[1,2],"rarityOffset":{"COMMON":0},"custom":{"P":{"levels":[5],"maxLevel":200,"type":1},"Q":{"levels":[],"maxLevel":100,"type":0}},"stats":{"BEE":{"COMMON":{"min":{"strength":1},"max":{"strength":9},"otherMin":[1],"otherMax":[],"curve":"101:200:1"}}}}"#.to_owned() + "\n"
+        );
+    }
+
+    #[test]
+    fn npc_shop() {
+        let tree = j(r#"{"tree":[{"path":"items/B_NPC.json"},{"path":"items/A_NPC.json"},{"path":"items/x/C_NPC.json"},{"path":"items/_NPC.json"},{"path":"items/ZOMBIE_TALISMAN.json"}]}"#);
+        assert_eq!(npc_files(&tree).unwrap(), vec!["items/A_NPC.json", "items/B_NPC.json"]);
+        assert!(npc_files(&j(r#"{"tree":[],"truncated":true}"#)).is_err());
+        let a = j(r#"{"displayname":"§9Combat Merchant (NPC)","recipes":[
+            {"type":"npc_shop","cost":["SKYBLOCK_COIN:500.0"],"result":"ZOMBIE_TALISMAN:1"},
+            {"type":"npc_shop","cost":["SKYBLOCK_COIN:500.0"],"result":"ZOMBIE_TALISMAN:1"},
+            {"type":"npc_shop","cost":["SKYBLOCK_COIN:8.0"],"result":"BONE:4"},
+            {"type":"npc_shop","cost":["SKYBLOCK_COIN:0"],"result":"FREE"},
+            {"type":"npc_shop","cost":["SKYBLOCK_COIN:5"],"result":"BEE;4"},
+            {"type":"trade","cost":"EMERALD:10","result":"ZOMBIE_TALISMAN"}]}"#);
+        let b = j(r#"{"displayname":"§aFear Mongerer (Rift NPC)","recipes":[{"type":"npc_shop","cost":["INTIMIDATION_TALISMAN:1","GREEN_CANDY:100"],"result":"INTIMIDATION_RING"}]}"#);
+        let (text, n) = build_npc_shop(&[Some(b), None, Some(a)]);
+        assert_eq!(n, 3);
+        assert_eq!(
+            stringify(&j(&text), None),
+            r#"{"BONE":[{"npc":"Combat Merchant","coins":2}],"INTIMIDATION_RING":[{"npc":"Fear Mongerer (Rift)","coins":0,"items":[{"id":"INTIMIDATION_TALISMAN","qty":1},{"id":"GREEN_CANDY","qty":100}]}],"ZOMBIE_TALISMAN":[{"npc":"Combat Merchant","coins":500}]}"#
         );
     }
 

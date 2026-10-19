@@ -6,7 +6,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 
 - Node ESM, discord.js 14, worker threads, `node:test`. Run `npm test` before every push (all tests must pass).
 - Never write the Hypixel API key or Discord token into files, tests or commits. `.env` is ignored by git.
-- Prices come only from bazaar and auction house lowest BIN. No NPC or guessed prices unless a rule below says so.
+- Prices: bazaar instant buy, else auction house lowest BIN, and an NPC shop that sells the item for less wins (`src/data/npcShop.json` from NEU, `npm run update-data`; parts of an NPC cost are priced the same way). NPC sell prices (what an NPC pays you) are never used. No guessed prices unless a rule below says so.
 - Match the code around you: short comments that say why, config values in `src/config/*`, tests in `test/planner.test.js` for planner rules.
 - Scratch profile dumps: `npm run debug-profile <ign>` (needs `HYPIXEL_API_KEY`).
 - Rust port in `rust/` (what the Dockerfile ships; Node image is `Dockerfile.node`). The JS in `src/` is the reference: make every rule change in both, with the same labels (`rust/PORTING_NOTES.md`). Test with `cargo test --release --workspace` in `rust/`; parity and bot tests need `rust/testdata/` from `rust/oracle/`.
@@ -45,6 +45,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - First Strike V on a Prosecute weapon is never swapped for Triple Strike. FS IV or none gets Triple Strike.
 - Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
 - Bank deposit steps merge into one.
+- A step with anything bought from an NPC names the NPC in parentheses: "(buy from Combat Merchant)" for a one-part step, else each NPC item by name ("(Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)").
 
 ## Profile upgrades (no coins)
 

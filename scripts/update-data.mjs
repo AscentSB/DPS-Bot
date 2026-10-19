@@ -91,6 +91,51 @@ await Promise.all(starred.map(async (id) => {
   fragged[base] = { id, parts: Object.entries(counts).map(([item, qty]) => ({ id: item, qty })) };
 }));
 
+// NPC shops: what every NPC sells and its cost per item, from the npc_shop recipes in NEU's items/*_NPC.json.
+// { ITEM_ID: [{ npc, coins, items?: [{ id, qty }] }] }, files in path order, offers in file order. Free offers and
+// pets / enchanted books (ids with ';', which never match a price key) are left out.
+const NEU_TREE = 'https://api.github.com/repos/NotEnoughUpdates/NotEnoughUpdates-REPO/git/trees/master?recursive=1';
+const tree = await (await fetch(NEU_TREE)).json();
+if (!Array.isArray(tree?.tree) || tree.truncated) throw new Error('NEU repo file list: incomplete');
+const npcFiles = tree.tree.map((x) => x.path).filter((p) => /^items\/[^/]+_NPC\.json$/.test(p)).sort();
+const npcData = new Array(npcFiles.length).fill(null);
+let nextNpc = 0;
+await Promise.all(Array.from({ length: 16 }, async () => {
+  while (nextNpc < npcFiles.length) {
+    const i = nextNpc++;
+    const res = await fetch(`https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/${npcFiles[i]}`);
+    if (res.ok) npcData[i] = await res.json();
+  }
+}));
+// "ID:qty" (qty defaults to 1)
+const shopPart = (s) => {
+  const i = String(s).lastIndexOf(':');
+  return i < 0 ? [String(s), 1] : [s.slice(0, i), Number(s.slice(i + 1))];
+};
+const npcShop = {};
+for (const npc of npcData) {
+  // "§9Combat Merchant (NPC)" -> "Combat Merchant", "Alchemist (Rift NPC)" -> "Alchemist (Rift)"
+  const name = String(npc?.displayname ?? '').replace(/§./g, '').trim().replace(/ \(NPC\)$/, '').replace(/ \(Rift NPC\)$/, ' (Rift)');
+  if (!name) continue;
+  for (const r of npc.recipes ?? []) {
+    if (r.type !== 'npc_shop' || !r.result) continue;
+    const [id, n] = shopPart(r.result);
+    if (id.includes(';') || !(n > 0)) continue;
+    let coins = 0;
+    const items = [];
+    for (const c of r.cost ?? []) {
+      const [cid, q] = shopPart(c);
+      if (cid === 'SKYBLOCK_COIN') coins += q;
+      else items.push({ id: cid, qty: q / n });
+    }
+    if (!(coins >= 1) && !items.length) continue;
+    const offer = { npc: name, coins: coins / n, ...(items.length ? { items } : {}) };
+    const list = (npcShop[id] ??= []);
+    if (!list.some((o) => JSON.stringify(o) === JSON.stringify(offer))) list.push(offer);
+  }
+}
+const npcShopSorted = Object.fromEntries(Object.keys(npcShop).sort().map((k) => [k, npcShop[k]]));
+
 // Pets: leveling tables and stat numbers at level 1 and max for every pet with a DPS stat.
 const PET_STATS = { STRENGTH: 'strength', CRIT_DAMAGE: 'critDamage', CRIT_CHANCE: 'critChance', INTELLIGENCE: 'intelligence', SPEED: 'speed', BONUS_ATTACK_SPEED: 'attackSpeed', ABILITY_DAMAGE: 'abilityDamage', FEROCITY: 'ferocity' };
 const petStats = {};
@@ -117,4 +162,5 @@ await writeFile(new URL('pets.json', OUT), JSON.stringify(pets) + '\n');
 await writeFile(new URL('reforges.json', OUT), JSON.stringify(reforges, null, 1) + '\n');
 await writeFile(new URL('accessories.json', OUT), JSON.stringify(accessories, null, 1) + '\n');
 await writeFile(new URL('fragged.json', OUT), JSON.stringify(fragged, null, 1) + '\n');
-console.log(`Wrote ${Object.keys(reforges).length} reforges, ${Object.keys(accessories.upgrades).length} accessory families, ${Object.keys(fragged).length} fragged items.`);
+await writeFile(new URL('npcShop.json', OUT), JSON.stringify(npcShopSorted, null, 1) + '\n');
+console.log(`Wrote ${Object.keys(reforges).length} reforges, ${Object.keys(accessories.upgrades).length} accessory families, ${Object.keys(fragged).length} fragged items, ${Object.keys(npcShopSorted).length} NPC shop items.`);

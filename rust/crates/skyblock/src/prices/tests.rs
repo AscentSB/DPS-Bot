@@ -232,6 +232,37 @@ fn price_lookups_read_the_current_tables_bazaar_first() {
     assert_eq!(t.version, 1);
 }
 
+/// NPC offers from src/data/npcShop.json (Combat Merchant: Zombie Talisman 500, Intimidation Talisman 10k; Fear
+/// Mongerer: Intimidation Ring = Intimidation Talisman + 100 Green Candy; Agnes: Witch Talisman = 32 Festering Fly).
+#[test]
+fn an_npc_that_sells_an_item_for_less_than_the_bazaar_or_auction_house_is_used_with_the_npc_named() {
+    use dps_core::model::{PriceSource, PriceTables};
+    let lookup = |bz: &[(&str, f64)], ah: &[(&str, f64)]| {
+        let mut t = PriceTables::default();
+        t.bazaar = bz.iter().map(|(k, v)| (k.to_string(), *v)).collect();
+        t.auctions = ah.iter().map(|(k, v)| (k.to_string(), *v)).collect();
+        t
+    };
+    let t = lookup(&[], &[]);
+    assert_eq!(t.get("ZOMBIE_TALISMAN"), Some((500.0, PriceSource::Npc)));
+    assert_eq!(t.npc_route("ZOMBIE_TALISMAN"), vec![("ZOMBIE_TALISMAN", "Combat Merchant")]);
+    assert_eq!(lookup(&[], &[("ZOMBIE_TALISMAN", 900.0)]).get("ZOMBIE_TALISMAN"), Some((500.0, PriceSource::Npc)));
+    let t = lookup(&[], &[("ZOMBIE_TALISMAN", 400.0)]);
+    assert_eq!(t.get("ZOMBIE_TALISMAN"), Some((400.0, PriceSource::Auction)));
+    assert!(t.npc_route("ZOMBIE_TALISMAN").is_empty());
+    // A tie keeps the market price.
+    assert_eq!(lookup(&[("ZOMBIE_TALISMAN", 500.0)], &[]).get("ZOMBIE_TALISMAN"), Some((500.0, PriceSource::Bazaar)));
+    // Item parts of an NPC cost are priced the cheapest way too, and NPC-bought parts are named.
+    let t = lookup(&[("GREEN_CANDY", 1000.0)], &[]);
+    assert_eq!(t.get("INTIMIDATION_RING"), Some((110000.0, PriceSource::Npc)));
+    assert_eq!(t.npc_route("INTIMIDATION_RING"), vec![("INTIMIDATION_RING", "Fear Mongerer"), ("INTIMIDATION_TALISMAN", "Combat Merchant")]);
+    assert_eq!(lookup(&[("GREEN_CANDY", 1000.0)], &[("INTIMIDATION_RING", 50000.0)]).get("INTIMIDATION_RING"), Some((50000.0, PriceSource::Auction)));
+    // A part with no price rules the offer out.
+    assert_eq!(lookup(&[], &[]).get("WITCH_TALISMAN"), None);
+    assert_eq!(lookup(&[], &[]).get("INTIMIDATION_RING"), None);
+    assert_eq!(lookup(&[], &[]).get("TERMINATOR"), None);
+}
+
 // ----- parity with the JS bot over real pages ------------------------------------------------------------------
 
 fn td() -> PathBuf {

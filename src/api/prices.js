@@ -1,5 +1,7 @@
 import { Worker } from 'node:worker_threads';
 import { AUCTION_REFRESH_MS, BAZAAR_REFRESH_MS } from '../config/constants.js';
+// NPC shop offers (NEU repo, `npm run update-data`).
+import NPC_SHOP from '../data/npcShop.json' with { type: 'json' };
 
 // Price cache for the planner. Downloads run in a separate price worker (src/worker/priceWorker.js), and each
 // source has at most one refresh in flight: callers share it instead of starting another.
@@ -67,14 +69,45 @@ export function startPriceRefresh() {
   setInterval(tick, Math.min(BAZAAR_REFRESH_MS, AUCTION_REFRESH_MS)).unref();
 }
 
+// Cheapest NPC shop offer for `id`: { price, npc: [{ id, npc }] } (the NPC purchases: this item first, then any part
+// of its cost that is also bought from an NPC), or null. Item parts of a cost are priced like any item; a part with
+// no price (bits, copper, North Stars, motes) rules the offer out. `seen` holds the items being priced, so a shop
+// loop (A costs B, B costs A) ends.
+function npcBuy(id, t, seen) {
+  if (!Object.hasOwn(NPC_SHOP, id) || seen.has(id)) return null;
+  seen.add(id);
+  let best = null;
+  for (const offer of NPC_SHOP[id]) {
+    let price = offer.coins;
+    const npc = [{ id, npc: offer.npc }];
+    let priced = true;
+    for (const part of offer.items ?? []) {
+      const p = cheapest(part.id, t, seen);
+      if (!p) { priced = false; break; }
+      price += p.price * part.qty;
+      if (p.npc) npc.push(...p.npc);
+    }
+    if (priced && (!best || price < best.price)) best = { price, npc };
+  }
+  seen.delete(id);
+  return best;
+}
+
+// Bazaar instant buy, else auction house lowest BIN; an NPC that sells it for less wins. NPC sell prices (what an
+// NPC pays you) are never used.
+function cheapest(id, t, seen = new Set()) {
+  const market = t.bazaar.has(id) ? { price: t.bazaar.get(id), source: 'BZ' }
+    : t.auctions.has(id) ? { price: t.auctions.get(id), source: 'AH' } : null;
+  const npc = npcBuy(id, t, seen);
+  return npc && (!market || npc.price < market.price) ? { price: npc.price, source: 'NPC', npc: npc.npc } : market;
+}
+
 // Price lookup over { bazaar, auctions }, read at lookup time (a refresh swaps the maps in place of the old ones).
-// Bazaar first, then auction house lowest BIN.
+// { price, source: 'BZ' | 'AH' | 'NPC', npc?: [{ id, npc }] } or null.
 export function priceLookup(t) {
   return {
     get(id) {
-      if (t.bazaar.has(id)) return { price: t.bazaar.get(id), source: 'BZ' };
-      if (t.auctions.has(id)) return { price: t.auctions.get(id), source: 'AH' };
-      return null;
+      return cheapest(id, t);
     },
   };
 }

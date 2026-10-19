@@ -6,7 +6,8 @@ use dps_core::config::constants::*;
 use dps_core::config::enchants::{enchant, table_enchant_xp, enchant_upgrade_item, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID};
 use dps_core::data::{all_reforges, get_reforge, Reforge};
 use dps_core::kinds::Mode;
-use dps_core::model::{ItemState, PriceSource, PriceTables};
+use dps_core::clean_name;
+use dps_core::model::{ItemState, PriceSource, PriceTables, Resource};
 use std::borrow::Cow;
 
 /// A cost part: `{ id, qty }` (qty defaults to 1) or `{ coins }` (gem slot unlock fees and fixed fees).
@@ -57,10 +58,10 @@ fn source_code(s: PriceSource) -> &'static str {
 /// distinct sources in first-seen order joined with `+`.
 pub fn price_parts(parts: &[Part], prices: &PriceTables) -> Option<(f64, String)> {
     let mut cost = 0.0;
-    // At most a handful of distinct sources: coins, BZ, AH.
-    let mut sources: [&'static str; 3] = [""; 3];
+    // At most a handful of distinct sources: coins, BZ, AH, NPC.
+    let mut sources: [&'static str; 4] = [""; 4];
     let mut n = 0;
-    let add = |s: &'static str, sources: &mut [&'static str; 3], n: &mut usize| {
+    let add = |s: &'static str, sources: &mut [&'static str; 4], n: &mut usize| {
         if !sources[..*n].contains(&s) {
             sources[*n] = s;
             *n += 1;
@@ -87,6 +88,34 @@ pub fn price_parts(parts: &[Part], prices: &PriceTables) -> Option<(f64, String)
         }
     }
     Some((cost, sources[..n].join("+")))
+}
+
+/// JS `npcNote(parts, prices, resource)`: where to buy the parts that come from an NPC, for the step label:
+/// " (buy from Combat Merchant)" for a one-part step, else each NPC item by name (" (Intimidation Ring from Fear
+/// Mongerer, Intimidation Talisman from Combat Merchant)"). Empty when nothing comes from an NPC.
+pub fn npc_note(parts: &[Part], prices: &PriceTables, resource: &Resource) -> String {
+    let mut buys: Vec<(&'static str, &'static str)> = Vec::new();
+    for part in parts {
+        let id = match part {
+            Part::Coins(c) if *c != 0.0 && !c.is_nan() => continue,
+            // `part.coins` is falsy: the JS then looks up `prices.get(undefined)`.
+            Part::Coins(_) => "undefined",
+            Part::Id(id, _) => id,
+        };
+        for b in prices.npc_route(id) {
+            if !buys.contains(&b) {
+                buys.push(b);
+            }
+        }
+    }
+    if buys.is_empty() {
+        return String::new();
+    }
+    if buys.len() == 1 && parts.len() == 1 {
+        return format!(" (buy from {})", buys[0].1);
+    }
+    let named: Vec<String> = buys.iter().map(|(id, npc)| format!("{} from {npc}", clean_name(resource.get(*id).and_then(|i| i.name.as_deref()).unwrap_or(id)))).collect();
+    format!(" ({})", named.join(", "))
 }
 
 /// The cost only (`priceParts(parts, prices)?.cost`).
@@ -469,6 +498,22 @@ mod tests {
             t.auctions.insert(k.to_string(), v);
         }
         t
+    }
+
+    // NPC offers from src/data/npcShop.json (Combat Merchant: Zombie Talisman 500, Intimidation Talisman 10k; Fear
+    // Mongerer: Intimidation Ring = Intimidation Talisman + 100 Green Candy).
+    #[test]
+    fn npc_note_names_the_npc() {
+        let t = prices(&[("GREEN_CANDY", 1000.0)], &[]);
+        let mut res = Resource::new();
+        for (id, name) in [("ZOMBIE_TALISMAN", "Zombie Talisman"), ("INTIMIDATION_RING", "Intimidation Ring"), ("INTIMIDATION_TALISMAN", "Intimidation Talisman")] {
+            res.insert(id.into(), dps_core::model::ItemInfo { id: id.into(), name: Some(name.into()), ..Default::default() });
+        }
+        assert_eq!(npc_note(&[Part::id("ZOMBIE_TALISMAN")], &t, &res), " (buy from Combat Merchant)");
+        assert_eq!(npc_note(&[Part::id("INTIMIDATION_RING")], &t, &res), " (Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)");
+        assert_eq!(npc_note(&[Part::id("ZOMBIE_TALISMAN"), Part::id("RECOMBOBULATOR_3000")], &t, &res), " (Zombie Talisman from Combat Merchant)");
+        assert_eq!(npc_note(&[Part::id("GREEN_CANDY")], &t, &res), "");
+        assert_eq!(price_parts(&[Part::id("ZOMBIE_TALISMAN"), Part::id("GREEN_CANDY"), Part::Coins(5.0)], &t), Some((1505.0, "NPC+BZ+coins".to_string())));
     }
 
     #[test]

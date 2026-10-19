@@ -16,7 +16,7 @@ Discord bot for Hypixel SkyBlock dungeons. `/dps` reads your gear and lists your
 
 Only gear the player can use is offered: Catacombs level, floor completion (from Catacombs level), skill and slayer requirements from the items resource are checked, and shards need the Hunting level to syphon them (Uncommon 5, Rare 10, Epic 15, Legendary 20).
 
-Prices come from bazaar instant buy and auction house lowest BIN. NPC prices are never used. Essence shop perks cost essence × the bazaar price of that essence, and only show at Catacombs 20+ (the bazaar requirement for essence). Blacksmith reforges roll at random for 500 coins, so they cost 500 × the number of basic reforges for that item type (9 for equipment, so 4,500 coins).
+Prices come from bazaar instant buy and auction house lowest BIN, or an NPC shop when it sells the item for less (`src/data/npcShop.json`, from the NEU repo's NPC files). An NPC offer that also costs items prices them the same way, and one that needs bits, copper, North Stars or other currencies is skipped. A step that buys anything from an NPC names the NPC in parentheses, e.g. "Buy Zombie Talisman (buy from Combat Merchant)". NPC sell prices are never used. Essence shop perks cost essence × the bazaar price of that essence, and only show at Catacombs 20+ (the bazaar requirement for essence). Blacksmith reforges roll at random for 500 coins, so they cost 500 × the number of basic reforges for that item type (9 for equipment, so 4,500 coins).
 
 ## Weights
 

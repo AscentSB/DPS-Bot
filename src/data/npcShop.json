@@ -1,0 +1,9780 @@
+{
+ "ABICASE_BLUE_AQUA": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 17000
+    }
+   ]
+  }
+ ],
+ "ABICASE_BLUE_BLUE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 17000
+    }
+   ]
+  }
+ ],
+ "ABICASE_BLUE_GREEN": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 17000
+    }
+   ]
+  }
+ ],
+ "ABICASE_BLUE_RED": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 17000
+    }
+   ]
+  }
+ ],
+ "ABICASE_BLUE_YELLOW": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 17000
+    }
+   ]
+  }
+ ],
+ "ABICASE_REZAR": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 26000
+    }
+   ]
+  }
+ ],
+ "ABICASE_SUMSUNG_1": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 15000
+    }
+   ]
+  }
+ ],
+ "ABICASE_SUMSUNG_2": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 25000
+    }
+   ]
+  }
+ ],
+ "ABIPHONE_BASIC": [
+  {
+   "npc": "Alda",
+   "coins": 5000
+  }
+ ],
+ "ABIPHONE_FLIP_DRAGON": [
+  {
+   "npc": "Udel",
+   "coins": 50000000
+  }
+ ],
+ "ABIPHONE_FLIP_NUCLEUS": [
+  {
+   "npc": "Udel",
+   "coins": 50000000
+  }
+ ],
+ "ABIPHONE_FLIP_PLUS_CLOCKWORK": [
+  {
+   "npc": "Udel",
+   "coins": 100000000
+  }
+ ],
+ "ABIPHONE_FLIP_PLUS_FLOWER": [
+  {
+   "npc": "Udel",
+   "coins": 100000000
+  }
+ ],
+ "ABIPHONE_FLIP_PLUS_LUNAR": [
+  {
+   "npc": "Udel",
+   "coins": 100000000
+  }
+ ],
+ "ABIPHONE_FLIP_VOLCANO": [
+  {
+   "npc": "Udel",
+   "coins": 50000000
+  }
+ ],
+ "ABIPHONE_XIII_PRO": [
+  {
+   "npc": "Udel",
+   "coins": 5000000
+  }
+ ],
+ "ABIPHONE_XIII_PRO_GIGA": [
+  {
+   "npc": "Udel",
+   "coins": 5000000
+  }
+ ],
+ "ABIPHONE_XII_MEGA": [
+  {
+   "npc": "Udel",
+   "coins": 1000000
+  }
+ ],
+ "ABIPHONE_XII_MEGA_COLOR": [
+  {
+   "npc": "Udel",
+   "coins": 1000000
+  }
+ ],
+ "ABIPHONE_XIV_ENORMOUS": [
+  {
+   "npc": "Udel",
+   "coins": 25000000
+  }
+ ],
+ "ABIPHONE_XIV_ENORMOUS_BLACK": [
+  {
+   "npc": "Udel",
+   "coins": 25000000
+  }
+ ],
+ "ABIPHONE_XIV_ENORMOUS_PURPLE": [
+  {
+   "npc": "Udel",
+   "coins": 25000000
+  }
+ ],
+ "ABIPHONE_XI_ULTRA": [
+  {
+   "npc": "Udel",
+   "coins": 500000
+  }
+ ],
+ "ABIPHONE_XI_ULTRA_STYLE": [
+  {
+   "npc": "Udel",
+   "coins": 500000
+  }
+ ],
+ "ABIPHONE_X_PLUS": [
+  {
+   "npc": "Udel",
+   "coins": 500000
+  }
+ ],
+ "ABIPHONE_X_PLUS_SPECIAL_EDITION": [
+  {
+   "npc": "Udel",
+   "coins": 500000
+  }
+ ],
+ "ADVANCED_GARDENING_AXE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 20
+    },
+    {
+     "id": "BASIC_GARDENING_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ADVANCED_GARDENING_HOE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 20
+    },
+    {
+     "id": "BASIC_GARDENING_HOE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ANGLER_BELT": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_BOOTS": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_BRACELET": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_CHESTPLATE": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_CLOAK": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_HELMET": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_LEGGINGS": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANGLER_NECKLACE": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 100
+  }
+ ],
+ "ANITA_ARTIFACT": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GOLD_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 100
+    },
+    {
+     "id": "ANITA_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ANITA_RING": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 64
+    },
+    {
+     "id": "ANITA_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ANITA_TALISMAN": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BRONZE_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "ANTI_MORPH_POTION": [
+  {
+   "npc": "Alchemist (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RIFT_BUCKET",
+     "qty": 1
+    },
+    {
+     "id": "RIFTWART_ROOTS",
+     "qty": 64
+    },
+    {
+     "id": "LARVA_SILK",
+     "qty": 8
+    },
+    {
+     "id": "CADUCOUS_EXTRACT",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "ANTI_SENTIENT_PICKAXE": [
+  {
+   "npc": "Chipper McPickaxe (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 24999
+    }
+   ]
+  }
+ ],
+ "APPLICANT_STATEMENT": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 100000
+  }
+ ],
+ "AQUAMASTER_HYDROMAX": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AQUAMASTER_X",
+     "qty": 1
+    },
+    {
+     "id": "IRIDIUM",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "AQUAMASTER_X": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "HYDRO_CAN_ULTRA_3000",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "ARACHNE_CRYSTAL": [
+  {
+   "npc": "Shaggy",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ARACHNE_FRAGMENT",
+     "qty": 2
+    },
+    {
+     "id": "ENCHANTED_SPIDER_EYE",
+     "qty": 16
+    },
+    {
+     "id": "ENCHANTED_STRING",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "ARACHNE_SANCTUARY_TRAVEL_SCROLL": [
+  {
+   "npc": "Spider Tamer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SPIDER",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "ARMADILLO_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "ARMORSHRED_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_SAND",
+     "qty": 0.03125
+    }
+   ]
+  }
+ ],
+ "ARMOR_SHOWCASE": [
+  {
+   "npc": "Carpenter",
+   "coins": 100
+  }
+ ],
+ "ARROW": [
+  {
+   "npc": "Gregory",
+   "coins": 12
+  },
+  {
+   "npc": "Jax",
+   "coins": 5
+  },
+  {
+   "npc": "Ophelia",
+   "coins": 10
+  },
+  {
+   "npc": "Weaponsmith",
+   "coins": 40
+  }
+ ],
+ "ARROW_SWAPPER": [
+  {
+   "npc": "Jax",
+   "coins": 1000
+  }
+ ],
+ "ARTISANAL_SHORTBOW": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 600
+  }
+ ],
+ "ATOMINIZER": [
+  {
+   "npc": "Mage Emissary",
+   "coins": 95000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "AUTOPET_RULES_2": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 21000
+    }
+   ]
+  }
+ ],
+ "AUTUMN_HUT_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "AVARICIOUS_CHALICE": [
+  {
+   "npc": "Liz",
+   "coins": 0,
+   "items": [
+    {
+     "id": "STOCK_OF_STONKS",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "BACKWATER_BELT": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_BELT",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_BOOTS": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_BOOTS",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_CHESTPLATE": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_CHESTPLATE",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_CLOAK": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_CLOAK",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_GLOVES": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_BRACELET",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_HELMET": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_HELMET",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_LEGGINGS": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_LEGGINGS",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BACKWATER_NECKLACE": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ANGLER_NECKLACE",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "BAMBOO_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 7500
+    }
+   ]
+  }
+ ],
+ "BANDAGED_MITHRIL_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_MITHRIL",
+     "qty": 2
+    },
+    {
+     "id": "FRACTURED_MITHRIL_PICKAXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "BASIC_CHICKEN_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASIC_COW_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASIC_GARDENING_AXE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "BASIC_GARDENING_HOE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "BASIC_MUSHROOM_COW_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASIC_PIG_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASIC_RABBIT_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASIC_SHEEP_AXE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 100
+  }
+ ],
+ "BASKET_OF_SEEDS": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "BAT_ARTIFACT": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BAT_RING",
+     "qty": 1
+    },
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "BAT_FIREWORK": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREEN_CANDY",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "BAT_RING": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BAT_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "GREEN_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "BEE_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "BEGINNER_COMBAT_SACK": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 250
+  }
+ ],
+ "BEGINNER_HUSBANDRY_SACK": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 250
+  }
+ ],
+ "BEGINNER_MINING_SACK": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 250
+  }
+ ],
+ "BINGO_ARTIFACT": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 150
+    },
+    {
+     "id": "BINGO_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "BINGO_DISPLAY": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "BINGO_RELIC": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 200
+    },
+    {
+     "id": "BINGO_ARTIFACT",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "BINGO_RING": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 150
+    },
+    {
+     "id": "BINGO_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "BINGO_TALISMAN": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "BIOFUEL": [
+  {
+   "npc": "Bubu",
+   "coins": 20000
+  },
+  {
+   "npc": "SkyMart",
+   "coins": 5000
+  }
+ ],
+ "BIOHAZARD_BOOTS": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MUSHROOM_BOOTS",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "BIOHAZARD_HELMET": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MUSHROOM_HELMET",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "BIOHAZARD_LEGGINGS": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MUSHROOM_LEGGINGS",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 70
+    }
+   ]
+  }
+ ],
+ "BIOHAZARD_SUIT": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MUSHROOM_CHESTPLATE",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 80
+    }
+   ]
+  }
+ ],
+ "BITS_TALISMAN": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 15000
+    }
+   ]
+  }
+ ],
+ "BITTER_ICE_TEA": [
+  {
+   "npc": "Bartender",
+   "coins": 1200
+  }
+ ],
+ "BLACK_COFFEE": [
+  {
+   "npc": "Ezekiel",
+   "coins": 50000
+  },
+  {
+   "npc": "Grog",
+   "coins": 50000
+  }
+ ],
+ "BLACK_WOOLEN_YARN": [
+  {
+   "npc": "Vargul",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DARK_CANDY",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "BLAZE_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "BLAZE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_BLAZE_ROD",
+     "qty": 16
+    }
+   ]
+  },
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "BLAZE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_BLAZE_ROD",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "BLAZE_POWDER": [
+  {
+   "npc": "Alchemist",
+   "coins": 12
+  }
+ ],
+ "BLAZE_ROD": [
+  {
+   "npc": "An",
+   "coins": 50
+  },
+  {
+   "npc": "Ulyn",
+   "coins": 50
+  }
+ ],
+ "BLENDED_FISH_MIXIN": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WATERBORNE_LICE",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "BLESSED_FRUIT": [
+  {
+   "npc": "Smithmonger",
+   "coins": 1000000
+  }
+ ],
+ "BLOCK_ZAPPER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "BLOSSOM_BELT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LOTUS_BELT",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "BLOSSOM_BRACELET": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LOTUS_BRACELET",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "BLOSSOM_CLOAK": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LOTUS_CLOAK",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 10000
+    }
+   ]
+  }
+ ],
+ "BLOSSOM_NECKLACE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LOTUS_NECKLACE",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 7500
+    }
+   ]
+  }
+ ],
+ "BLUE_GIFT_TALISMAN": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 60
+    },
+    {
+     "id": "GREEN_GIFT_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "BONE": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 8
+  }
+ ],
+ "BONZO_STATUE": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "BOOK": [
+  {
+   "npc": "Librarian",
+   "coins": 20
+  }
+ ],
+ "BOOK_OF_STATS": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "BOO_STONE": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 10000
+  }
+ ],
+ "BOTANICAL_GREENHOUSE_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "BOTTLE_OF_JYRRE": [
+  {
+   "npc": "Sherry",
+   "coins": 50000
+  }
+ ],
+ "BOUNCY_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_SLIME_BALL",
+     "qty": 0.03125
+    }
+   ]
+  }
+ ],
+ "BOW": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 25
+  }
+ ],
+ "BREAD_BOWL": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 10000
+    }
+   ]
+  }
+ ],
+ "BREWING_STAND_ITEM": [
+  {
+   "npc": "Alchemist",
+   "coins": 30
+  }
+ ],
+ "BRONZE_HUNTER_BOOTS": [
+  {
+   "npc": "Odger",
+   "coins": 100000
+  }
+ ],
+ "BRONZE_HUNTER_CHESTPLATE": [
+  {
+   "npc": "Odger",
+   "coins": 100000
+  }
+ ],
+ "BRONZE_HUNTER_HELMET": [
+  {
+   "npc": "Odger",
+   "coins": 100000
+  }
+ ],
+ "BRONZE_HUNTER_LEGGINGS": [
+  {
+   "npc": "Odger",
+   "coins": 100000
+  }
+ ],
+ "BRONZE_SHIP_ENGINE": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_COIN",
+     "qty": 64
+    },
+    {
+     "id": "BUSTED_BELT_BUCKLE",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "BRONZE_TROPHY_FISHING_SACK": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "BRONZE_TROPHY_FROG_SACK": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 50000
+  }
+ ],
+ "BROWN_BANDANA": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "BROWN_MUSHROOM": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 12
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 12
+  }
+ ],
+ "BUILDERS_RULER": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "BUILDERS_WAND": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 12000
+    }
+   ]
+  }
+ ],
+ "CACTUS": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 10
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 10
+  }
+ ],
+ "CACTUS_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_CACTUS",
+     "qty": 32
+    },
+    {
+     "id": "CACTUS_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "CACTUS_KNIFE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "CANDY_ARTIFACT": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "CANDY_RING",
+     "qty": 1
+    },
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "CANDY_RELIC": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "CANDY_ARTIFACT",
+     "qty": 1
+    },
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "CANDY_RING": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "CANDY_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "GREEN_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "CANDY_TALISMAN": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREEN_CANDY",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "CANOPY_BOOTS": [
+  {
+   "npc": "Amaury",
+   "coins": 106700
+  }
+ ],
+ "CANOPY_CHESTPLATE": [
+  {
+   "npc": "Amaury",
+   "coins": 135800
+  }
+ ],
+ "CANOPY_HELMET": [
+  {
+   "npc": "Amaury",
+   "coins": 116400
+  }
+ ],
+ "CANOPY_LEGGINGS": [
+  {
+   "npc": "Amaury",
+   "coins": 126100
+  }
+ ],
+ "CARNIVAL_MASK_BAG": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "CARPET": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-1": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-10": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-11": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-12": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-13": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-14": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-15": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-2": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-3": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-4": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-5": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-6": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-7": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-8": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARPET-9": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "CARROT_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_GOLDEN_CARROT",
+     "qty": 32
+    },
+    {
+     "id": "CARROT_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "CARROT_ITEM": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 2.3333333333333335
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 2.3333333333333335
+  }
+ ],
+ "CASTLE_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 15000
+    }
+   ]
+  }
+ ],
+ "CELESTE_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 4000
+  }
+ ],
+ "CELESTE_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 8000
+  }
+ ],
+ "CELESTE_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 5000
+  }
+ ],
+ "CELESTE_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 7000
+  }
+ ],
+ "CELESTE_WAND": [
+  {
+   "npc": "Rosetta",
+   "coins": 5000
+  }
+ ],
+ "CHAINMAIL_BOOTS": [
+  {
+   "npc": "Iron Forger",
+   "coins": 9
+  }
+ ],
+ "CHAINMAIL_CHESTPLATE": [
+  {
+   "npc": "Iron Forger",
+   "coins": 16
+  }
+ ],
+ "CHAINMAIL_HELMET": [
+  {
+   "npc": "Iron Forger",
+   "coins": 10
+  }
+ ],
+ "CHAINMAIL_LEGGINGS": [
+  {
+   "npc": "Iron Forger",
+   "coins": 14
+  }
+ ],
+ "CHALLENGE_ROD": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHING_ROD",
+     "qty": 1
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "CHARMINIZER": [
+  {
+   "npc": "Mage Emissary",
+   "coins": 95000,
+   "items": [
+    {
+     "id": "MUSHROOM_SPORE",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "CHEAP_COFFEE": [
+  {
+   "npc": "Bartender",
+   "coins": 1000
+  }
+ ],
+ "CHEAP_TUXEDO_BOOTS": [
+  {
+   "npc": "Seymour",
+   "coins": 1000000
+  }
+ ],
+ "CHEAP_TUXEDO_CHESTPLATE": [
+  {
+   "npc": "Seymour",
+   "coins": 1000000
+  }
+ ],
+ "CHEAP_TUXEDO_LEGGINGS": [
+  {
+   "npc": "Seymour",
+   "coins": 1000000
+  }
+ ],
+ "CHEST_SHELVES": [
+  {
+   "npc": "Carpenter",
+   "coins": 15000
+  }
+ ],
+ "CHICKEN_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_CHICKEN_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "CHICKEN_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_RAW_CHICKEN",
+     "qty": 1024
+    },
+    {
+     "id": "CHICKEN_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "CHILLED_PRISTINE_POTATO": [
+  {
+   "npc": "Brynmor",
+   "coins": 250000
+  }
+ ],
+ "CHISEL": [
+  {
+   "npc": "Researcher Beryl",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOSSIL",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "CHUMMING_TALISMAN": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "CHUM_SINKER": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 4
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 15
+    }
+   ]
+  }
+ ],
+ "COAL": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 4
+  }
+ ],
+ "COAL_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_COAL_BLOCK",
+     "qty": 16
+    },
+    {
+     "id": "COAL_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COBBLESTONE": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 3
+  }
+ ],
+ "COBBLESTONE_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_COBBLESTONE",
+     "qty": 1024
+    },
+    {
+     "id": "COBBLESTONE_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COCOA_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_COOKIE",
+     "qty": 16
+    },
+    {
+     "id": "COCOA_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COCO_CHOPPER": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "COLLECTION_DISPLAY": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "COLOSSAL_EXP_BOTTLE_UPGRADE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 1200
+    }
+   ]
+  }
+ ],
+ "COMBO_MANIA_TALISMAN": [
+  {
+   "npc": "Sun Gecko Essence Shop (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SUN_GECKO",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "CONNECT_FOUR": [
+  {
+   "npc": "Amelia",
+   "coins": 2500
+  }
+ ],
+ "COPPER_ARTIFACT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 50000
+    },
+    {
+     "id": "COPPER_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COPPER_RING": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 20000
+    },
+    {
+     "id": "COPPER_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COPPER_TALISMAN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "COUNTRY_GREENHOUSE_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "COW_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_COW_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COW_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_LEATHER",
+     "qty": 1024
+    },
+    {
+     "id": "COW_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "COZY_COTTAGE_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "CRAFTING_PLUS": [
+  {
+   "npc": "Carpenter",
+   "coins": 10000
+  }
+ ],
+ "CROOKED_ARTIFACT": [
+  {
+   "npc": "Lucius",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "SHADY_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "CROPSHOT_GARDEN_CHIP": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "CRYSTAL_HOLLOWS_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 14000
+    }
+   ]
+  }
+ ],
+ "CUBE_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "DANTE_RING": [
+  {
+   "npc": "Pig Shop",
+   "coins": 1000000,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "DARK_GOGGLES": [
+  {
+   "npc": "Ophelia",
+   "coins": 80000
+  }
+ ],
+ "DAYLIGHT_DETECTOR": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 18
+  }
+ ],
+ "DEATH_BOW": [
+  {
+   "npc": "Ophelia",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "SUPER_UNDEAD_BOW",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "DECENT_AXE": [
+  {
+   "npc": "Amaury",
+   "coins": 1000000
+  }
+ ],
+ "DECENT_BOW": [
+  {
+   "npc": "Gregory",
+   "coins": 500
+  }
+ ],
+ "DECENT_COFFEE": [
+  {
+   "npc": "Bartender",
+   "coins": 5000
+  }
+ ],
+ "DETRANSFIGURED_MASK": [
+  {
+   "npc": "Seraphine (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 1500
+    },
+    {
+     "id": "AGARICUS_CAP_CAP",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "DIAMOND_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_DIAMOND_BLOCK",
+     "qty": 16
+    },
+    {
+     "id": "DIAMOND_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "DIAMOND_HUNTER_BOOTS": [
+  {
+   "npc": "Odger",
+   "coins": 2500000
+  }
+ ],
+ "DIAMOND_HUNTER_CHESTPLATE": [
+  {
+   "npc": "Odger",
+   "coins": 2500000
+  }
+ ],
+ "DIAMOND_HUNTER_HELMET": [
+  {
+   "npc": "Odger",
+   "coins": 2500000
+  }
+ ],
+ "DIAMOND_HUNTER_LEGGINGS": [
+  {
+   "npc": "Odger",
+   "coins": 2500000
+  }
+ ],
+ "DIAMOND_SWORD": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 50
+  },
+  {
+   "npc": "Weaponsmith",
+   "coins": 60
+  }
+ ],
+ "DIODE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 6
+  }
+ ],
+ "DIRT-2": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "DIRT_BOTTLE": [
+  {
+   "npc": "Smithmonger",
+   "coins": 100000
+  }
+ ],
+ "DISINFESTOR_GLOVES": [
+  {
+   "npc": "Kat (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHADOW_CRUX",
+     "qty": 12
+    },
+    {
+     "id": "SKYBLOCK_FLY",
+     "qty": 4
+    },
+    {
+     "id": "SKYBLOCK_SPIDER",
+     "qty": 4
+    },
+    {
+     "id": "SKYBLOCK_SILVERFISH",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "DITTO_BLOB": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 600
+    }
+   ]
+  }
+ ],
+ "DITTO_SKIN": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "DITTO_SKULL": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "DR_PAPER": [
+  {
+   "npc": "Shifty",
+   "coins": 3400
+  }
+ ],
+ "DUNGEONBREAKER": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_WITHER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "DWARVEN_MINES_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 14000
+    }
+   ]
+  }
+ ],
+ "DYE_BINGO_BLUE": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "DYE_PURE_BLACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 250000
+    }
+   ]
+  }
+ ],
+ "DYE_PURE_WHITE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 250000
+    }
+   ]
+  }
+ ],
+ "ECHOLOCATOR": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREEN_CANDY",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "EERIE_TOY": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "NIGHTMARE_NULLIFIER",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "EERIE_TREAT": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SEWER_FISH",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "EFFICIENT_AXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 100
+  }
+ ],
+ "EGG": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "EGG_HUNT": [
+  {
+   "npc": "Amelia",
+   "coins": 1000
+  }
+ ],
+ "ELEGANT_TUXEDO_BOOTS": [
+  {
+   "npc": "Seymour",
+   "coins": 24999999
+  }
+ ],
+ "ELEGANT_TUXEDO_CHESTPLATE": [
+  {
+   "npc": "Seymour",
+   "coins": 24999999
+  }
+ ],
+ "ELEGANT_TUXEDO_LEGGINGS": [
+  {
+   "npc": "Seymour",
+   "coins": 24999999
+  }
+ ],
+ "EMERALD_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_EMERALD_BLOCK",
+     "qty": 16
+    },
+    {
+     "id": "EMERALD_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "EMERALD_TIPPED_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_EMERALD",
+     "qty": 0.015625
+    }
+   ]
+  }
+ ],
+ "EMPTY_CHUM_BUCKET": [
+  {
+   "npc": "Moby",
+   "coins": 2000,
+   "items": [
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "EMPTY_ODONATA_BOTTLE": [
+  {
+   "npc": "Argofay Bugshopper (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 2
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 400
+    }
+   ]
+  }
+ ],
+ "ENCHANTED_BONE_MEAL": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 6
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 6
+  }
+ ],
+ "ENCHANTED_BOOK_BUNDLE_REFLECTION": [
+  {
+   "npc": "ttemme .rD (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHADOW_CRUX",
+     "qty": 16
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "ENCHANTING_PLUS": [
+  {
+   "npc": "Carpenter",
+   "coins": 10000
+  }
+ ],
+ "ENDER_STONE": [
+  {
+   "npc": "Pearl Dealer",
+   "coins": 10
+  }
+ ],
+ "END_PORTAL_FUMES_MIXIN": [
+  {
+   "npc": "Bartender",
+   "coins": 150000
+  }
+ ],
+ "END_SWORD": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 150
+  }
+ ],
+ "ETALPTSEHC_NORI": [
+  {
+   "npc": "ttemme .rD (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WYLD_CHESTPLATE",
+     "qty": 1
+    },
+    {
+     "id": "SHADOW_CRUX",
+     "qty": 12
+    }
+   ]
+  }
+ ],
+ "EXCEEDINGLY_COMFY_SNEAKERS": [
+  {
+   "npc": "Seymour (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 49999
+    },
+    {
+     "id": "GUNTHER_SNEAKERS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "EXPIRED_PUMPKIN": [
+  {
+   "npc": "Vargul",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DARK_CANDY",
+     "qty": 0.03333333333333333
+    }
+   ]
+  }
+ ],
+ "EXPLOSIVE_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_GUNPOWDER",
+     "qty": 0.03125
+    }
+   ]
+  }
+ ],
+ "EXP_BOTTLE": [
+  {
+   "npc": "Librarian",
+   "coins": 30
+  }
+ ],
+ "EXTREMELY_MILD_ADHESIVE": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "FAKE_NEUROSCIENCE_DEGREE": [
+  {
+   "npc": "Kat (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "VOLT_CRUX",
+     "qty": 10
+    },
+    {
+     "id": "SHADOW_CRUX",
+     "qty": 10
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 5000
+    },
+    {
+     "id": "SKYBLOCK_FLY",
+     "qty": 30
+    },
+    {
+     "id": "SKYBLOCK_SPIDER",
+     "qty": 40
+    },
+    {
+     "id": "SKYBLOCK_SILVERFISH",
+     "qty": 60
+    }
+   ]
+  }
+ ],
+ "FAKE_SHURIKEN": [
+  {
+   "npc": "Sun Gecko Essence Shop (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SUN_GECKO",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "FANCY_FLOWER_POT": [
+  {
+   "npc": "Carpenter",
+   "coins": 150
+  }
+ ],
+ "FANCY_SWORD": [
+  {
+   "npc": "Gold Forger",
+   "coins": 80
+  }
+ ],
+ "FANCY_TUXEDO_BOOTS": [
+  {
+   "npc": "Seymour",
+   "coins": 6666666
+  }
+ ],
+ "FANCY_TUXEDO_CHESTPLATE": [
+  {
+   "npc": "Seymour",
+   "coins": 6666666
+  }
+ ],
+ "FANCY_TUXEDO_LEGGINGS": [
+  {
+   "npc": "Seymour",
+   "coins": 6666666
+  }
+ ],
+ "FARMING_TOOLKIT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "FEATHER": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "FESTIVE_SINKER": [
+  {
+   "npc": "Sherry",
+   "coins": 40000
+  }
+ ],
+ "FIESTA_FLASK": [
+  {
+   "npc": "Brynmor",
+   "coins": 2500000
+  }
+ ],
+ "FIGHTING_BOOSTER": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "FIGHTING_BOOSTER_UNCOMMON": [
+  {
+   "npc": "Maxim",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FIGSTONE",
+     "qty": 1
+    },
+    {
+     "id": "MANGCORE",
+     "qty": 1
+    },
+    {
+     "id": "HELIXIS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FILET_O_FORTUNE": [
+  {
+   "npc": "Brynmor",
+   "coins": 100000
+  }
+ ],
+ "FINNS_FOCACCIA": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "FIREPLACE": [
+  {
+   "npc": "Carpenter",
+   "coins": 10000
+  }
+ ],
+ "FISHING_ROD": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 50
+  },
+  {
+   "npc": "Researcher Ribery",
+   "coins": 20
+  }
+ ],
+ "FLINT": [
+  {
+   "npc": "Pat",
+   "coins": 6
+  }
+ ],
+ "FLOWER_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 14000
+    }
+   ]
+  }
+ ],
+ "FORAGING_FORTUNE_BOOSTER": [
+  {
+   "npc": "Sawyer",
+   "coins": 50000
+  }
+ ],
+ "FORAGING_FORTUNE_BOOSTER_UNCOMMON": [
+  {
+   "npc": "Maxim",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FIGSTONE",
+     "qty": 1
+    },
+    {
+     "id": "MANGCORE",
+     "qty": 1
+    },
+    {
+     "id": "HELIXIS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FORAGING_WISDOM_BOOSTER_UNCOMMON": [
+  {
+   "npc": "Maxim",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FIGSTONE",
+     "qty": 1
+    },
+    {
+     "id": "MANGCORE",
+     "qty": 1
+    },
+    {
+     "id": "HELIXIS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FRACTURED_MITHRIL_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 10000
+  }
+ ],
+ "FRESHLY_BAKED_ARTIFACT": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 250
+    },
+    {
+     "id": "FRESHLY_BAKED_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FRESHLY_BAKED_HEIRLOOM": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 1000
+    },
+    {
+     "id": "FRESHLY_BAKED_RELIC",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FRESHLY_BAKED_RELIC": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 500
+    },
+    {
+     "id": "FRESHLY_BAKED_ARTIFACT",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FRESHLY_BAKED_RING": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 100
+    },
+    {
+     "id": "FRESHLY_BAKED_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FRESHLY_BAKED_TALISMAN": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 25
+    }
+   ]
+  }
+ ],
+ "FRESHLY_MINTED_COINS": [
+  {
+   "npc": "Liz",
+   "coins": 0,
+   "items": [
+    {
+     "id": "STOCK_OF_STONKS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "FROGS_SPIRIT_SCROLL": [
+  {
+   "npc": "Rosemary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOREST",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "FROG_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "FROSTY_SNOW_BALL": [
+  {
+   "npc": "Sherry",
+   "coins": 75000
+  }
+ ],
+ "FROZEN_AMULET": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "FROZEN_BAUBLE": [
+  {
+   "npc": "Terry",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ICE_HUNK",
+     "qty": 64
+    },
+    {
+     "id": "BLUE_ICE_HUNK",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "FUNGI_CUTTER": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "FURNACE_PLUS": [
+  {
+   "npc": "Carpenter",
+   "coins": 15000
+  }
+ ],
+ "GABAGOEY_MIXIN": [
+  {
+   "npc": "Bartender",
+   "coins": 150000
+  }
+ ],
+ "GARDEN_SCYTHE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 20
+    },
+    {
+     "id": "SAM_SCYTHE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GENERAL_MEDALLION": [
+  {
+   "npc": "Zodd",
+   "coins": 1000000
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_ACACIA_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_ACACIA_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_BIRCH_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_BIRCH_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_CLAY_12": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_CLAY_BLOCK",
+     "qty": 8
+    },
+    {
+     "id": "FISHY_TREAT",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_DARK_OAK_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_DARK_OAK_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_FISHING_12": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_COOKED_FISH",
+     "qty": 16
+    },
+    {
+     "id": "FISHY_TREAT",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_JUNGLE_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_JUNGLE_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_LILY_PAD_12": [
+  {
+   "npc": "The Lotus Eater",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LOTUS_DIAMOND",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_OAK_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_OAK_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_REVENANT_12": [
+  {
+   "npc": "Bartender",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "REVENANT_VISCERA",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_SPRUCE_12": [
+  {
+   "npc": "Ant",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_SPRUCE_LOG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GENERATOR_UPGRADE_STONE_TARANTULA_12": [
+  {
+   "npc": "Bartender",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "TARANTULA_SILK",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "GHAST_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "GHAST_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "SILVER_FANG",
+     "qty": 1024
+    }
+   ]
+  },
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "GHAST_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "SILVER_FANG",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "GHAST_TEAR": [
+  {
+   "npc": "Alchemist",
+   "coins": 200
+  },
+  {
+   "npc": "An",
+   "coins": 200
+  },
+  {
+   "npc": "Ulyn",
+   "coins": 200
+  }
+ ],
+ "GIANT_CLEAVER": [
+  {
+   "npc": "Ophelia",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "HYPER_CLEAVER",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GIANT_FROG_TREAT": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 60
+    }
+   ]
+  }
+ ],
+ "GIANT_HONEY_DIPPER": [
+  {
+   "npc": "Bea",
+   "coins": 500000
+  }
+ ],
+ "GIANT_PIG_EAR": [
+  {
+   "npc": "Pig Shop",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 256
+    },
+    {
+     "id": "ENCHANTED_GRILLED_PORK",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GIANT_SEAL_PLUSHIE": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 512
+    }
+   ]
+  }
+ ],
+ "GIANT_SLOTH_CLAW": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 60
+    }
+   ]
+  }
+ ],
+ "GIANT_WITCH_CAULDRON": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHIELD_DUST",
+     "qty": 64
+    },
+    {
+     "id": "PIXIE_DUST",
+     "qty": 64
+    },
+    {
+     "id": "RUFFLED_FEATHER",
+     "qty": 64
+    },
+    {
+     "id": "BRITTLE_POWDER",
+     "qty": 64
+    },
+    {
+     "id": "DIRTY_FINGERNAILS",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "GLASS_BOTTLE": [
+  {
+   "npc": "Alchemist",
+   "coins": 6.25
+  }
+ ],
+ "GLOWING_MUSHROOM_CAVE_TRAVEL_SCROLL": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 64
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "GLOWSTONE_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "GLOWSTONE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_GLOWSTONE",
+     "qty": 32
+    }
+   ]
+  },
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "GLOWSTONE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_GLOWSTONE",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "GLOWY_CHUM_BAIT": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 0.0625
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 0.25
+    }
+   ]
+  }
+ ],
+ "GLUE_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_STRING",
+     "qty": 0.03125
+    }
+   ]
+  }
+ ],
+ "GOD_POTION_2": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 1500
+    }
+   ]
+  }
+ ],
+ "GOLDEN_BOUNTY": [
+  {
+   "npc": "Liz",
+   "coins": 0,
+   "items": [
+    {
+     "id": "STOCK_OF_STONKS",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "GOLDEN_CARROT": [
+  {
+   "npc": "Alchemist",
+   "coins": 30
+  }
+ ],
+ "GOLDEN_DANTE_STATUE": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "GOLDEN_FRAGMENT": [
+  {
+   "npc": "Liz",
+   "coins": 0,
+   "items": [
+    {
+     "id": "STOCK_OF_STONKS",
+     "qty": 3
+    }
+   ]
+  }
+ ],
+ "GOLD_AXE": [
+  {
+   "npc": "Gold Forger",
+   "coins": 10
+  }
+ ],
+ "GOLD_BONZO_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_BOOTS": [
+  {
+   "npc": "Gold Forger",
+   "coins": 9
+  }
+ ],
+ "GOLD_BOTTLE_CAP": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_COIN",
+     "qty": 512
+    },
+    {
+     "id": "BUSTED_BELT_BUCKLE",
+     "qty": 64
+    },
+    {
+     "id": "OLD_LEATHER_BOOT",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "GOLD_CHESTPLATE": [
+  {
+   "npc": "Gold Forger",
+   "coins": 16
+  }
+ ],
+ "GOLD_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_GOLD_BLOCK",
+     "qty": 16
+    },
+    {
+     "id": "GOLD_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_GIFT_TALISMAN": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 200
+    },
+    {
+     "id": "PURPLE_GIFT_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "GOLD_GIFT",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_HELMET": [
+  {
+   "npc": "Gold Forger",
+   "coins": 10
+  }
+ ],
+ "GOLD_HUNTER_BOOTS": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "GOLD_HUNTER_CHESTPLATE": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "GOLD_HUNTER_HELMET": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "GOLD_HUNTER_LEGGINGS": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "GOLD_INGOT": [
+  {
+   "npc": "Gold Forger",
+   "coins": 5.5
+  },
+  {
+   "npc": "Mine Merchant",
+   "coins": 6
+  }
+ ],
+ "GOLD_LEGGINGS": [
+  {
+   "npc": "Gold Forger",
+   "coins": 14
+  }
+ ],
+ "GOLD_LIVID_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_NECRON_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_PICKAXE": [
+  {
+   "npc": "Gold Forger",
+   "coins": 10
+  },
+  {
+   "npc": "Mine Merchant",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GOLD_INGOT",
+     "qty": 3
+    }
+   ]
+  }
+ ],
+ "GOLD_PLATE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 16
+  }
+ ],
+ "GOLD_PROFESSOR_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_SADAN_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_SCARF_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_SPADE": [
+  {
+   "npc": "Gold Forger",
+   "coins": 10
+  }
+ ],
+ "GOLD_THORN_HEAD": [
+  {
+   "npc": "Ophelia",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_GOLD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GOLD_TIPPED_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_GOLD",
+     "qty": 0.015625
+    }
+   ]
+  }
+ ],
+ "GRANDMAS_KNITTING_NEEDLE": [
+  {
+   "npc": "Sun Gecko Essence Shop (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SUN_GECKO",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "GRAND_EXP_BOTTLE": [
+  {
+   "npc": "Mage Emissary",
+   "coins": 4750
+  }
+ ],
+ "GRAVEL": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 6
+  },
+  {
+   "npc": "Pat",
+   "coins": 4.333333333333333
+  }
+ ],
+ "GREAT_SPOOK_ARTIFACT": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREAT_SPOOK_RING",
+     "qty": 1
+    },
+    {
+     "id": "BREAD",
+     "qty": 2
+    },
+    {
+     "id": "BUILDER_ONION",
+     "qty": 1
+    },
+    {
+     "id": "CHEESE_FUEL",
+     "qty": 1
+    },
+    {
+     "id": "BUILDER_LETTUCE",
+     "qty": 1
+    },
+    {
+     "id": "COOKED_BEEF",
+     "qty": 1
+    },
+    {
+     "id": "FRENCH_FRIES",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_BELT": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ROGUE_FLESH",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_BOOTS": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SWEET_FLESH",
+     "qty": 12
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_CHESTPLATE": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DECAYED_BAT",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_CLOAK": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PRECIOUS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_GLOVES": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BETRAYAL_HEAD",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_HELMET": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WET_PUMPKIN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_LEGGINGS": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "POISONED_CANDY",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_NECKLACE": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "OBSCURE_ENDING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_POTION": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 20000
+  }
+ ],
+ "GREAT_SPOOK_REFORGING_MANUAL": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "THE_SOUP_PAINTING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_RING": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREAT_SPOOK_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "FREE_SPIDER",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_STAFF": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FROZEN_SPIDER",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_SWORD": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DEAD_SEED",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "GREAT_SPOOK_TALISMAN": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FAIRY_WINGS",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "GREEN_GIFT_TALISMAN": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 40
+    },
+    {
+     "id": "WHITE_GIFT_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "GRUNGLE": [
+  {
+   "npc": "Rosemary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOREST",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "HARDENED_WOOD": [
+  {
+   "npc": "Jake",
+   "coins": 15000
+  }
+ ],
+ "HARD_STONE_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "CONCENTRATED_STONE",
+     "qty": 16
+    },
+    {
+     "id": "HARD_STONE_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "HARMONIOUS_SURGERY_TOOLKIT": [
+  {
+   "npc": "Argofay Bugshopper (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BOTTLED_ODONATA",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "HEAT_CORE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 3000
+    }
+   ]
+  }
+ ],
+ "HIVE_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 10000
+    }
+   ]
+  }
+ ],
+ "HOE_OF_GREATER_TILLING": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 1
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "HOE_OF_GREATEST_TILLING": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "HOE_OF_GREAT_TILLING": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BRONZE_MEDAL",
+     "qty": 1
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "HOLOGRAM": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "HOPPER": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 50
+  }
+ ],
+ "HORSEMAN_CANDLE": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "HOT_CHOCOLATE": [
+  {
+   "npc": "Ezekiel",
+   "coins": 70000
+  },
+  {
+   "npc": "Grog",
+   "coins": 70000
+  }
+ ],
+ "HUB_CASTLE_TRAVEL_SCROLL": [
+  {
+   "npc": "Lonely Philosopher",
+   "coins": 150000
+  }
+ ],
+ "HUB_WIZARD_TOWER_TRAVEL_SCROLL": [
+  {
+   "npc": "Grumblefoot",
+   "coins": 11111
+  }
+ ],
+ "HUNTING_TOOLKIT": [
+  {
+   "npc": "David Hunterborough",
+   "coins": 1000000
+  }
+ ],
+ "HUNTING_WISDOM_BOOSTER_COMMON": [
+  {
+   "npc": "Rosemary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOREST",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "HUNTING_WISDOM_BOOSTER_UNCOMMON": [
+  {
+   "npc": "Maxim",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FIGSTONE",
+     "qty": 1
+    },
+    {
+     "id": "MANGCORE",
+     "qty": 1
+    },
+    {
+     "id": "HELIXIS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "HYDRO_CAN_1000": [
+  {
+   "npc": "SkyMart",
+   "coins": 5000
+  }
+ ],
+ "HYDRO_CAN_TURBO_2000": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "HYDRO_CAN_1000",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "HYDRO_CAN_ULTRA_3000": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "HYDRO_CAN_TURBO_2000",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "HYPER_CATALYST_UPGRADE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 300
+    }
+   ]
+  }
+ ],
+ "HYPER_CLEAVER": [
+  {
+   "npc": "Ophelia",
+   "coins": 800000,
+   "items": [
+    {
+     "id": "SUPER_CLEAVER",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ICE": [
+  {
+   "npc": "Sherry",
+   "coins": 1
+  }
+ ],
+ "ICE_BAIT": [
+  {
+   "npc": "Sherry",
+   "coins": 12
+  }
+ ],
+ "ICE_GENERATOR_12": [
+  {
+   "npc": "Einary",
+   "coins": 1000000,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 300
+    },
+    {
+     "id": "ICE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_ICE",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "ICY_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_ICE",
+     "qty": 0.03125
+    }
+   ]
+  }
+ ],
+ "INFERNO_FUEL_BLOCK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 75
+    }
+   ]
+  }
+ ],
+ "INFINIDIRT_WAND": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "INFINIPOT": [
+  {
+   "npc": "Malik",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_WITHER",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "INFINITE_SPIRIT_LEAP": [
+  {
+   "npc": "Malik",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_WITHER",
+     "qty": 25000
+    }
+   ]
+  }
+ ],
+ "INFINITE_SUPERBOOM_TNT": [
+  {
+   "npc": "Malik",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_UNDEAD",
+     "qty": 50000
+    }
+   ]
+  }
+ ],
+ "INFINI_TORCH": [
+  {
+   "npc": "Lumina",
+   "coins": 100000
+  }
+ ],
+ "INFINI_VACUUM": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYMART_HYPER_VACUUM",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "INFINI_VACUUM_HOOVERIUS": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "CHIRPING_STEREO",
+     "qty": 1
+    },
+    {
+     "id": "INFINI_VACUUM",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "INK_SACK-3": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 7
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 7
+  }
+ ],
+ "INTIMIDATION_ARTIFACT": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "INTIMIDATION_RING",
+     "qty": 1
+    },
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "INTIMIDATION_RING": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "INTIMIDATION_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "GREEN_CANDY",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "INTIMIDATION_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 10000
+  }
+ ],
+ "IRON_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 20
+  }
+ ],
+ "IRON_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 25
+  }
+ ],
+ "IRON_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_IRON_BLOCK",
+     "qty": 16
+    },
+    {
+     "id": "IRON_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "IRON_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 15
+  }
+ ],
+ "IRON_INGOT": [
+  {
+   "npc": "Iron Forger",
+   "coins": 5.5
+  },
+  {
+   "npc": "Mine Merchant",
+   "coins": 5.5
+  }
+ ],
+ "IRON_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 30
+  }
+ ],
+ "IRON_PICKAXE": [
+  {
+   "npc": "Iron Forger",
+   "coins": 60
+  }
+ ],
+ "IRON_PLATE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 12
+  }
+ ],
+ "ISLAND_NPC": [
+  {
+   "npc": "Amelia",
+   "coins": 50000
+  }
+ ],
+ "JACOBS_TICKET": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BRONZE_MEDAL",
+     "qty": 0.5
+    }
+   ]
+  },
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 0.25
+    }
+   ]
+  },
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GOLD_MEDAL",
+     "qty": 0.0625
+    }
+   ]
+  }
+ ],
+ "JUICY_SPRAYONATOR": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SPRAYONATOR",
+     "qty": 1
+    },
+    {
+     "id": "JUICY_NOZZLE",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "JUMBO_BACKPACK_UPGRADE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 4000
+    }
+   ]
+  }
+ ],
+ "JUNGLE_AMULET": [
+  {
+   "npc": "Odawa",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SLUDGE_JUICE",
+     "qty": 500
+    },
+    {
+     "id": "JUNGLE_HEART",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "JUNGLE_KEY": [
+  {
+   "npc": "Odawa",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SLUDGE_JUICE",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "JUNGLE_PICKAXE": [
+  {
+   "npc": "Odawa",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SLUDGE_JUICE",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "JUNK_ARTIFACT": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "JUNK_RING",
+     "qty": 1
+    },
+    {
+     "id": "OLD_LEATHER_BOOT",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "JUNK_RING": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "JUNK_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "BUSTED_BELT_BUCKLE",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "JUNK_SINKER": [
+  {
+   "npc": "Junker Joel",
+   "coins": 10000
+  }
+ ],
+ "JUNK_TALISMAN": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_COIN",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "KALHUIKI_MASK": [
+  {
+   "npc": "Odawa",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SLUDGE_JUICE",
+     "qty": 20
+    },
+    {
+     "id": "WOOD",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "KAT_BOUQUET": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "KAT_FLOWER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "KEY_TO_KAT_SOUL": [
+  {
+   "npc": "Kat (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVERFISH",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "KISMET_FEATHER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 1350
+    }
+   ]
+  }
+ ],
+ "KNOCKOFF_COLA": [
+  {
+   "npc": "Bartender",
+   "coins": 1500
+  }
+ ],
+ "KUUDRA_BURNING_TIER_KEY": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 750000,
+   "items": [
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 16
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Mage Emissary",
+   "coins": 750000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 16
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "KUUDRA_FIERY_TIER_KEY": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 1500000,
+   "items": [
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 40
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Mage Emissary",
+   "coins": 1500000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 40
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "KUUDRA_FOLLOWER_ARTIFACT": [
+  {
+   "npc": "Drakuu",
+   "coins": 100000000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 1024
+    },
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 1024
+    },
+    {
+     "id": "KUUDRA_TEETH",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "KUUDRA_HOT_TIER_KEY": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 400000,
+   "items": [
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 4
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Mage Emissary",
+   "coins": 400000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 4
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "KUUDRA_INFERNAL_TIER_KEY": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 3000000,
+   "items": [
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 80
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Mage Emissary",
+   "coins": 3000000,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 80
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "KUUDRA_TIER_KEY": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 200000,
+   "items": [
+    {
+     "id": "ENCHANTED_RED_SAND",
+     "qty": 2
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Mage Emissary",
+   "coins": 7600,
+   "items": [
+    {
+     "id": "ENCHANTED_MYCELIUM",
+     "qty": 2
+    },
+    {
+     "id": "CORRUPTED_NETHER_STAR",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "LAMP_BLACK": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_BLUE": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_BROWN": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_CYAN": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_GRAY": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_GREEN": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_LIGHT_BLUE": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_LIGHT_GRAY": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_LILAC": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_LIME": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_MAGENTA": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_ORANGE": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_PINK": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_PURPLE": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_RAINBOW": [
+  {
+   "npc": "Lys",
+   "coins": 250000
+  }
+ ],
+ "LAMP_RED": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_WHITE": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LAMP_YELLOW": [
+  {
+   "npc": "Lys",
+   "coins": 150000
+  }
+ ],
+ "LANTERN": [
+  {
+   "npc": "Lumina",
+   "coins": 10000
+  }
+ ],
+ "LAPIS_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_LAPIS_LAZULI_BLOCK",
+     "qty": 64
+    },
+    {
+     "id": "LAPIS_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "LARGE_DUNGEON_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 14000
+    }
+   ]
+  }
+ ],
+ "LARGE_FROG_TREAT": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "LARGE_HONEY_DIPPER": [
+  {
+   "npc": "Bea",
+   "coins": 50000
+  }
+ ],
+ "LARGE_PIG_EAR": [
+  {
+   "npc": "Pig Shop",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 128
+    },
+    {
+     "id": "ENCHANTED_PORK",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "LARGE_SEAL_PLUSHIE": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "LARGE_SLOTH_CLAW": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "LARGE_WALNUT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 150
+    }
+   ]
+  }
+ ],
+ "LARGE_WINTER_SACK": [
+  {
+   "npc": "Sherry",
+   "coins": 250000
+  }
+ ],
+ "LARGE_WITCH_CAULDRON": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SMOLDERING_EMBERS",
+     "qty": 64
+    },
+    {
+     "id": "WARMED_FLAKES",
+     "qty": 64
+    },
+    {
+     "id": "NEVER_MELT_ICE",
+     "qty": 64
+    },
+    {
+     "id": "GLACIATED_BRAINS",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "LARVA_HOOK": [
+  {
+   "npc": "Argofay Bugshopper (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 6
+    }
+   ]
+  }
+ ],
+ "LEATHER": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "LEVER": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 2
+  }
+ ],
+ "LOG": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOG-1": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOG-2": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOG-3": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOG_2": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOG_2-1": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 25
+  }
+ ],
+ "LOTUS_ATOLL_TRAVEL_SCROLL": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 500000
+  }
+ ],
+ "LOTUS_BELT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "LOTUS_BRACELET": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "LOTUS_CLOAK": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "LOTUS_NECKLACE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "LUCKY_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 950
+    }
+   ]
+  }
+ ],
+ "LUCKY_DICE": [
+  {
+   "npc": "Jake",
+   "coins": 1000000
+  }
+ ],
+ "LUMINOUS_BRACELET": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 2
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "MAGIC_TOP_HAT": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 500
+    },
+    {
+     "id": "VOLCANIC_ROCK",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "MAGMA_CREAM": [
+  {
+   "npc": "Alchemist",
+   "coins": 20
+  },
+  {
+   "npc": "An",
+   "coins": 20
+  },
+  {
+   "npc": "Ulyn",
+   "coins": 20
+  }
+ ],
+ "MAGMA_CUBE_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "MAGMA_CUBE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_MAGMA_CREAM",
+     "qty": 1024
+    }
+   ]
+  },
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "MAGMA_CUBE_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_MAGMA_CREAM",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "MARSH_SPORE_SOUP": [
+  {
+   "npc": "Ezekiel",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "MUSHROOM_SPORE",
+     "qty": 5
+    }
+   ]
+  }
+ ],
+ "MASTER_THESIS": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 500000
+  }
+ ],
+ "MATRIARCH_PARFUM": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 1200
+    }
+   ]
+  }
+ ],
+ "MECHAMIND_GARDEN_CHIP": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GOLD_MEDAL",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MEDIUM_FROG_TREAT": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "MEDIUM_HONEY_DIPPER": [
+  {
+   "npc": "Bea",
+   "coins": 5000
+  }
+ ],
+ "MEDIUM_PIG_EAR": [
+  {
+   "npc": "Pig Shop",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 64
+    },
+    {
+     "id": "ENCHANTED_PORK",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "MEDIUM_POCKET_BLACK_HOLE": [
+  {
+   "npc": "Albert",
+   "coins": 1000000,
+   "items": [
+    {
+     "id": "ENCHANTED_MANGROVE_LOG",
+     "qty": 64
+    },
+    {
+     "id": "ENCHANTED_OBSIDIAN",
+     "qty": 64
+    },
+    {
+     "id": "SMALL_POCKET_BLACK_HOLE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MEDIUM_SEAL_PLUSHIE": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "MEDIUM_SLOTH_CLAW": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "MEDIUM_WITCH_CAULDRON": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WATERBORNE_LICE",
+     "qty": 64
+    },
+    {
+     "id": "CONSOLE_PANEL",
+     "qty": 64
+    },
+    {
+     "id": "JAWBREAKER",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "MELON": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 2
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 2
+  }
+ ],
+ "MELON_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 950
+    }
+   ]
+  }
+ ],
+ "MELON_DICER": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "MELON_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_MELON_BLOCK",
+     "qty": 32
+    },
+    {
+     "id": "MELON_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MENDER_CROWN": [
+  {
+   "npc": "Ophelia",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "MENDER_FEDORA",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MENDER_FEDORA": [
+  {
+   "npc": "Ophelia",
+   "coins": 800000,
+   "items": [
+    {
+     "id": "MENDER_HELMET",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MENDER_HELMET": [
+  {
+   "npc": "Ophelia",
+   "coins": 80000
+  }
+ ],
+ "MERCENARY_AXE": [
+  {
+   "npc": "Rosetta",
+   "coins": 30000
+  }
+ ],
+ "MERCENARY_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 30000
+  }
+ ],
+ "MERCENARY_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 70000
+  }
+ ],
+ "MERCENARY_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 35000
+  }
+ ],
+ "MERCENARY_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 45000
+  }
+ ],
+ "METAL_CHESTPLATE": [
+  {
+   "npc": "Ophelia",
+   "coins": 800000,
+   "items": [
+    {
+     "id": "STONE_CHESTPLATE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MINE_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 2500
+  }
+ ],
+ "MINING_OFF_CAMERA": [
+  {
+   "npc": "Gemma",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_DIAMOND",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "MINING_PUMPKIN": [
+  {
+   "npc": "Brynmor",
+   "coins": 50000
+  }
+ ],
+ "MINION_STORAGE_EXPANDER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 1500
+    }
+   ]
+  }
+ ],
+ "MINNOW_BAIT": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 15
+  }
+ ],
+ "MITHRIL_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "REFINED_MITHRIL",
+     "qty": 16
+    },
+    {
+     "id": "MITHRIL_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MITHRIL_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BANDAGED_MITHRIL_PICKAXE",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_MITHRIL",
+     "qty": 64
+    },
+    {
+     "id": "BEJEWELED_HANDLE",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_GOLD",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "MOBYS_SHEARS": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 5
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 15
+    }
+   ]
+  }
+ ],
+ "MOIL_LOG": [
+  {
+   "npc": "Smithmonger",
+   "coins": 50000
+  }
+ ],
+ "MOODY_GRAPPLESHOT": [
+  {
+   "npc": "Desperate Engineer",
+   "coins": 3700000
+  }
+ ],
+ "MOONGLADE_ARTIFACT": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 30
+    },
+    {
+     "id": "MOONGLADE_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MOONGLADE_JEWEL": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "MOONGLADE_RING": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 30
+    },
+    {
+     "id": "MOONGLADE_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MOONGLADE_TALISMAN": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "MOON_GREENHOUSE_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 400
+    }
+   ]
+  }
+ ],
+ "MORNING_DEW": [
+  {
+   "npc": "Archie",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SAFARI",
+     "qty": 2500
+    }
+   ]
+  }
+ ],
+ "MOUSE_PEST_TRAP": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PEST_TRAP",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 75
+    }
+   ]
+  }
+ ],
+ "MUSHED_MUSHROOM_MIXIN": [
+  {
+   "npc": "Moby",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FULL_CHUM_BUCKET",
+     "qty": 64
+    },
+    {
+     "id": "GLOWING_MUSHROOM",
+     "qty": 80
+    }
+   ]
+  }
+ ],
+ "MUSHROOM_COW_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_MUSHROOM_COW_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MUSHROOM_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_BROWN_MUSHROOM",
+     "qty": 512
+    },
+    {
+     "id": "ENCHANTED_RED_MUSHROOM",
+     "qty": 512
+    },
+    {
+     "id": "MUSHROOM_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "MUTTON": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "MYCEL": [
+  {
+   "npc": "Ulyn",
+   "coins": 20
+  }
+ ],
+ "MYCELIUM_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "MYCELIUM_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_MYCELIUM_CUBE",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "NANSORB_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_CACTUS_GREEN",
+     "qty": 0.109375
+    }
+   ]
+  }
+ ],
+ "NETHER_STALK": [
+  {
+   "npc": "Alchemist",
+   "coins": 30
+  },
+  {
+   "npc": "An",
+   "coins": 10
+  },
+  {
+   "npc": "Ulyn",
+   "coins": 10
+  }
+ ],
+ "NETHER_WARTS_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_NETHER_STALK",
+     "qty": 1024
+    },
+    {
+     "id": "NETHER_WARTS_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "NETHER_WART_POUCH": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 2
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "NEW_YEAR_CAKE_BAG": [
+  {
+   "npc": "Baker",
+   "coins": 250000
+  }
+ ],
+ "OBSIDIAN": [
+  {
+   "npc": "Pearl Dealer",
+   "coins": 50
+  }
+ ],
+ "OBSIDIAN_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_OBSIDIAN",
+     "qty": 1024
+    },
+    {
+     "id": "OBSIDIAN_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "ODGERS_BRONZE_TOOTH": [
+  {
+   "npc": "Odger",
+   "coins": 100000
+  }
+ ],
+ "ODGERS_DIAMOND_TOOTH": [
+  {
+   "npc": "Odger",
+   "coins": 2500000
+  }
+ ],
+ "ODGERS_GOLD_TOOTH": [
+  {
+   "npc": "Odger",
+   "coins": 1000000
+  }
+ ],
+ "ODGERS_SILVER_TOOTH": [
+  {
+   "npc": "Odger",
+   "coins": 500000
+  }
+ ],
+ "ONYX": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 100
+  }
+ ],
+ "ORCHARD_GREENHOUSE_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 3000
+    }
+   ]
+  }
+ ],
+ "OVERDRIVE_GARDEN_CHIP": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GOLD_MEDAL",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "PACKED_ICE": [
+  {
+   "npc": "Sherry",
+   "coins": 9
+  }
+ ],
+ "PARKOUR_CONTROLLER": [
+  {
+   "npc": "Amelia",
+   "coins": 1000
+  }
+ ],
+ "PARKOUR_POINT": [
+  {
+   "npc": "Amelia",
+   "coins": 1000
+  }
+ ],
+ "PARKOUR_TIMES": [
+  {
+   "npc": "Amelia",
+   "coins": 2000
+  }
+ ],
+ "PARK_JUNGLE_TRAVEL_SCROLL": [
+  {
+   "npc": "Joyful Viking",
+   "coins": 70000
+  }
+ ],
+ "PARROT_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "PELT_BELT": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "PERFECTLY_CUT_DIAMOND": [
+  {
+   "npc": "Gemma",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_DIAMOND",
+     "qty": 1000
+    },
+    {
+     "id": "REFINED_DIAMOND",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "PESTHUNTERS_BELT": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "PESTHUNTERS_CLOAK": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "PESTHUNTERS_GLOVES": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "PESTHUNTERS_LAIR_BARN_SKIN": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 1500
+    }
+   ]
+  }
+ ],
+ "PESTHUNTERS_NECKLACE": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 40
+    }
+   ]
+  }
+ ],
+ "PESTHUNTER_ARTIFACT": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PESTHUNTER_RING",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "PESTHUNTER_BADGE": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 25
+    }
+   ]
+  }
+ ],
+ "PESTHUNTER_RELIC": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PESTHUNTER_ARTIFACT",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "PESTHUNTER_RING": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PESTHUNTER_BADGE",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "PESTHUNTING_GUIDE": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "PEST_REPELLENT": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 15
+    }
+   ]
+  }
+ ],
+ "PEST_REPELLENT_MAX": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PEST_REPELLENT",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 25
+    }
+   ]
+  }
+ ],
+ "PEST_TRAP": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "PEST_VEST": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "PET_ITEM_ALL_SKILLS_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 50000
+  }
+ ],
+ "PET_ITEM_BIG_TEETH_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 750000
+  }
+ ],
+ "PET_ITEM_BUBBLEGUM": [
+  {
+   "npc": "Zog",
+   "coins": 5000000
+  }
+ ],
+ "PET_ITEM_COMBAT_SKILL_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 60000
+  }
+ ],
+ "PET_ITEM_FARMING_SKILL_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 60000
+  }
+ ],
+ "PET_ITEM_FARMING_SKILL_BOOST_EPIC": [
+  {
+   "npc": "Duncan",
+   "coins": 1500000
+  }
+ ],
+ "PET_ITEM_FARMING_SKILL_BOOST_RARE": [
+  {
+   "npc": "Zog",
+   "coins": 500000
+  }
+ ],
+ "PET_ITEM_FISHING_SKILL_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 60000
+  }
+ ],
+ "PET_ITEM_FORAGING_SKILL_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 60000
+  }
+ ],
+ "PET_ITEM_HARDENED_SCALES_UNCOMMON": [
+  {
+   "npc": "Zog",
+   "coins": 1000000
+  }
+ ],
+ "PET_ITEM_IRON_CLAWS_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 750000
+  }
+ ],
+ "PET_ITEM_MINING_SKILL_BOOST_COMMON": [
+  {
+   "npc": "Zog",
+   "coins": 60000
+  }
+ ],
+ "PET_ITEM_MINING_SKILL_BOOST_UNCOMMON": [
+  {
+   "npc": "Zog",
+   "coins": 250000
+  }
+ ],
+ "PET_ITEM_SHARPENED_CLAWS_UNCOMMON": [
+  {
+   "npc": "Zog",
+   "coins": 1000000
+  }
+ ],
+ "PHD_GRIMOIRE": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 1000000
+  }
+ ],
+ "PIG_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_PIG_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "PIG_BRAIN_MIXIN": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FROG_LEGS",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "PIG_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_GRILLED_PORK",
+     "qty": 16
+    },
+    {
+     "id": "PIG_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "PLANT_DIAGNOSTICS_TOOL": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "PLUMBER_SPONGE": [
+  {
+   "npc": "Plumber Joe",
+   "coins": 50
+  }
+ ],
+ "POCKET_SACK_IN_A_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 8000
+    }
+   ]
+  }
+ ],
+ "PORK": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "PORTABLE_WASHER": [
+  {
+   "npc": "SkyMart",
+   "coins": 20000
+  }
+ ],
+ "PORTALIZER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 4800
+    }
+   ]
+  }
+ ],
+ "POTATO_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_BAKED_POTATO",
+     "qty": 32
+    },
+    {
+     "id": "POTATO_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "POTATO_ITEM": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 2.3333333333333335
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 2.3333333333333335
+  }
+ ],
+ "POTION": [
+  {
+   "npc": "Alchemist",
+   "coins": 6
+  }
+ ],
+ "PRISMAPUMP": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BRONZE_MEDAL",
+     "qty": 0.25
+    },
+    {
+     "id": "JACOBS_TICKET",
+     "qty": 0.5
+    }
+   ]
+  }
+ ],
+ "PROMISING_AXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 35
+  }
+ ],
+ "PROMISING_PICKAXE": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 35
+  }
+ ],
+ "PULPOUS_ORANGE_JUICE": [
+  {
+   "npc": "Bartender",
+   "coins": 1000
+  }
+ ],
+ "PUMPKIN": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 8
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 8
+  }
+ ],
+ "PUMPKIN_DICER": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "PUMPKIN_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_PUMPKIN",
+     "qty": 1024
+    },
+    {
+     "id": "PUMPKIN_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "PURPLE_GIFT_TALISMAN": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 100
+    },
+    {
+     "id": "BLUE_GIFT_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "QUARTZ": [
+  {
+   "npc": "An",
+   "coins": 50
+  },
+  {
+   "npc": "Ulyn",
+   "coins": 50
+  }
+ ],
+ "QUARTZ_GENERATOR_12": [
+  {
+   "npc": "Hilda",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "QUARTZ_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_QUARTZ_BLOCK",
+     "qty": 16
+    }
+   ]
+  },
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "QUARTZ_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_QUARTZ_BLOCK",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "RABBIT": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "RABBIT_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_RABBIT_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "RABBIT_FOOT": [
+  {
+   "npc": "Alchemist",
+   "coins": 10
+  },
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "RABBIT_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_COOKED_RABBIT",
+     "qty": 16
+    },
+    {
+     "id": "RABBIT_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "RABBIT_HIDE": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "RAIDER_AXE": [
+  {
+   "npc": "Joyful Viking",
+   "coins": 130000
+  }
+ ],
+ "RAW_BEEF": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "RAW_CHICKEN": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  }
+ ],
+ "RAW_FISH": [
+  {
+   "npc": "Fishing Merchant",
+   "coins": 10
+  }
+ ],
+ "REDSTONE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 4
+  }
+ ],
+ "REDSTONE_COMPARATOR": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 10
+  }
+ ],
+ "REDSTONE_GENERATOR_12": [
+  {
+   "npc": "Bulvar",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "ENCHANTED_REDSTONE_BLOCK",
+     "qty": 32
+    },
+    {
+     "id": "REDSTONE_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "REDSTONE_TIPPED_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_REDSTONE",
+     "qty": 0.015625
+    }
+   ]
+  }
+ ],
+ "REDSTONE_TORCH_ON": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 2
+  }
+ ],
+ "RED_MUSHROOM": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 12
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 12
+  }
+ ],
+ "RED_SAND_GENERATOR_12": [
+  {
+   "npc": "Marthos",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "RED_SAND_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_RED_SAND_CUBE",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "RED_THORNLEAF_TEA": [
+  {
+   "npc": "Grog",
+   "coins": 20000,
+   "items": [
+    {
+     "id": "RED_THORNLEAF",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "REFINED_AMBER": [
+  {
+   "npc": "Smithmonger",
+   "coins": 1000000
+  }
+ ],
+ "REFINED_MITHRIL_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MITHRIL_PICKAXE",
+     "qty": 1
+    },
+    {
+     "id": "REFINED_MITHRIL",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "REFINED_TITANIUM_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 0,
+   "items": [
+    {
+     "id": "TITANIUM_PICKAXE",
+     "qty": 1
+    },
+    {
+     "id": "REFINED_TITANIUM",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "REINFORCED_IRON_ARROW": [
+  {
+   "npc": "Jax",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ENCHANTED_IRON",
+     "qty": 0.015625
+    }
+   ]
+  }
+ ],
+ "REMNANT_OF_THE_EYE": [
+  {
+   "npc": "Pearl Dealer",
+   "coins": 200000
+  }
+ ],
+ "REVIVE_STONE": [
+  {
+   "npc": "Winona",
+   "coins": 100000
+  }
+ ],
+ "RIBBIT_THE_FISH": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 1000000
+  }
+ ],
+ "RIFT_BUCKET": [
+  {
+   "npc": "Plumber Joe (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "RIFT_JUMP_ELIXIR": [
+  {
+   "npc": "Shifted (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 5
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "RIFT_SPEED_ELIXIR": [
+  {
+   "npc": "Shifted (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 5
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 10000
+    }
+   ]
+  }
+ ],
+ "RIFT_STABILITY_ELIXIR": [
+  {
+   "npc": "Argofay Serialbather (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "RIFT_STRENGTH_ELIXIR": [
+  {
+   "npc": "Shifted (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHAME_CRUX",
+     "qty": 5
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 12000
+    }
+   ]
+  }
+ ],
+ "RIFT_TROPHY_CITIZEN": [
+  {
+   "npc": "Old Election Box (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BARRY_PEN",
+     "qty": 1
+    },
+    {
+     "id": "SCRIBE_CRUX",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "RIFT_TROPHY_MIRRORED": [
+  {
+   "npc": "ttemme .rD (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 10000
+    },
+    {
+     "id": "SHADOW_CRUX",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "RIFT_WIZARD_TOWER_TRAVEL_SCROLL": [
+  {
+   "npc": "Roger (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "ROCK_PAPER_SHEARS": [
+  {
+   "npc": "Amelia",
+   "coins": 10000
+  }
+ ],
+ "ROGUE_SWORD": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 100
+  }
+ ],
+ "ROOKIE_AXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 12
+  }
+ ],
+ "ROOKIE_HOE": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 10
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 10
+  }
+ ],
+ "ROOKIE_PICKAXE": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 12
+  }
+ ],
+ "ROSETTA_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 960
+  }
+ ],
+ "ROSETTA_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 1320
+  }
+ ],
+ "ROSETTA_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 1050
+  }
+ ],
+ "ROSETTA_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 1200
+  }
+ ],
+ "ROTTEN_FLESH": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 8
+  }
+ ],
+ "RUBBER_SNORKEL": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 125
+    }
+   ]
+  }
+ ],
+ "RUNE_SACK": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 14000
+    }
+   ]
+  }
+ ],
+ "RUSTY_ANCHOR": [
+  {
+   "npc": "Terry",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BLUE_ICE_HUNK",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "RUSTY_TITANIUM_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 50000
+  }
+ ],
+ "SALMON_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "SALTY_SPRAYONATOR": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "JUICY_SPRAYONATOR",
+     "qty": 1
+    },
+    {
+     "id": "SALTY_NOZZLE",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 10000
+    }
+   ]
+  }
+ ],
+ "SALT_CUBE": [
+  {
+   "npc": "Terry",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ICE_HUNK",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SAM_SCYTHE": [
+  {
+   "npc": "SkyMart",
+   "coins": 2000
+  }
+ ],
+ "SAND": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 4
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 4
+  }
+ ],
+ "SAND-1": [
+  {
+   "npc": "An",
+   "coins": 20
+  }
+ ],
+ "SCARECROW": [
+  {
+   "npc": "Carpenter",
+   "coins": 120
+  }
+ ],
+ "SCARE_FRAGMENT": [
+  {
+   "npc": "Vargul",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DARK_CANDY",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "SCARLETON_PREMIUM": [
+  {
+   "npc": "Ezekiel",
+   "coins": 20000,
+   "items": [
+    {
+     "id": "MUSHROOM_SPORE",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "SCARY_GRIMOIRE": [
+  {
+   "npc": "Tyashoi Alchemist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SIRIUS_BOOK",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SCAVENGER_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 10000
+  }
+ ],
+ "SCORNCLAW_BREW": [
+  {
+   "npc": "Grog",
+   "coins": 2000
+  }
+ ],
+ "SCOTTS_CONTACT_BAKED_IN_BREAD": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "SEAL_OF_THE_FAMILY": [
+  {
+   "npc": "Lucius",
+   "coins": 10000000,
+   "items": [
+    {
+     "id": "CROOKED_ARTIFACT",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SEAL_PERSONALITY": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "SEAL_RING": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SEAL_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "FISHY_TREAT",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "SEAL_TALISMAN": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "SEAL_TREAT_BAG": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "SECRET_TRACKER": [
+  {
+   "npc": "Malik",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_WITHER",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "SERIOUSLY_DAMAGED_AXE": [
+  {
+   "npc": "Amaury",
+   "coins": 5000
+  }
+ ],
+ "SHADOW_GOGGLES": [
+  {
+   "npc": "Ophelia",
+   "coins": 800000,
+   "items": [
+    {
+     "id": "DARK_GOGGLES",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SHADY_RING": [
+  {
+   "npc": "Lucius",
+   "coins": 500000
+  }
+ ],
+ "SHEEP_AXE": [
+  {
+   "npc": "Jake",
+   "coins": 1000,
+   "items": [
+    {
+     "id": "BASIC_SHEEP_AXE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SHEEP_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_COOKED_MUTTON",
+     "qty": 16
+    },
+    {
+     "id": "SHEEP_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SHENS_RINGALIA": [
+  {
+   "npc": "Madame Eleanor Q. Goldsworth X (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 25000
+    },
+    {
+     "id": "PUFF_CRUX",
+     "qty": 64
+    },
+    {
+     "id": "YOUNGITE",
+     "qty": 20
+    },
+    {
+     "id": "TIMITE",
+     "qty": 20
+    },
+    {
+     "id": "OBSOLITE",
+     "qty": 20
+    },
+    {
+     "id": "DISINFESTOR_GLOVES",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SHINIEST": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "STARLYN_PRIZE",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "SHINY_ORB": [
+  {
+   "npc": "Pig Shop",
+   "coins": 5000
+  }
+ ],
+ "SHINY_ROD": [
+  {
+   "npc": "Pig Shop",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 128
+    }
+   ]
+  }
+ ],
+ "SHOWCASE_BLOCK": [
+  {
+   "npc": "Amelia",
+   "coins": 50000
+  }
+ ],
+ "SILENT_PEARL": [
+  {
+   "npc": "Pearl Dealer",
+   "coins": 1250
+  }
+ ],
+ "SILKRIDER_SAFETY_BELT": [
+  {
+   "npc": "Argofay Bughunter (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BOTTLED_ODONATA",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "SILKWIRE_STICK": [
+  {
+   "npc": "Argofay Bughunter (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LARVA_SILK",
+     "qty": 6
+    }
+   ]
+  }
+ ],
+ "SILVER_HUNTER_BOOTS": [
+  {
+   "npc": "Odger",
+   "coins": 500000
+  }
+ ],
+ "SILVER_HUNTER_CHESTPLATE": [
+  {
+   "npc": "Odger",
+   "coins": 500000
+  }
+ ],
+ "SILVER_HUNTER_HELMET": [
+  {
+   "npc": "Odger",
+   "coins": 500000
+  }
+ ],
+ "SILVER_HUNTER_LEGGINGS": [
+  {
+   "npc": "Odger",
+   "coins": 500000
+  }
+ ],
+ "SILVER_TROPHY_FISHING_SACK": [
+  {
+   "npc": "Odger",
+   "coins": 5000000
+  }
+ ],
+ "SILVER_TROPHY_FROG_SACK": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 100000
+  }
+ ],
+ "SKELETON_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 500
+  }
+ ],
+ "SKYBLOCK_BRONZE_MEDAL": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 0.5
+    }
+   ]
+  }
+ ],
+ "SKYBLOCK_ENIGMA_SOUL": [
+  {
+   "npc": "Cryptosis (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SCRIBE_CRUX",
+     "qty": 10
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 15000
+    }
+   ]
+  },
+  {
+   "npc": "Fairylosopher",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 10000
+    },
+    {
+     "id": "SPLATTER_CRUX",
+     "qty": 32
+    }
+   ]
+  },
+  {
+   "npc": "Roy (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 4000
+    },
+    {
+     "id": "DEADGEHOG_SPINE",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "npc": "Sun Gecko Essence Shop (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SUN_GECKO",
+     "qty": 25
+    }
+   ]
+  }
+ ],
+ "SKYBLOCK_GOLD_MEDAL": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_SILVER_MEDAL",
+     "qty": 4
+    }
+   ]
+  }
+ ],
+ "SKYBLOCK_MOTE": [
+  {
+   "npc": "Kay (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LIL_PAD",
+     "qty": 0.1
+    }
+   ]
+  }
+ ],
+ "SKYBLOCK_SILVER_MEDAL": [
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BRONZE_MEDAL",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "npc": "Anita",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GOLD_MEDAL",
+     "qty": 0.25
+    }
+   ]
+  }
+ ],
+ "SKYMART_BROCHURE": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "SKYMART_HYPER_VACUUM": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYMART_TURBO_VACUUM",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "SKYMART_TURBO_VACUUM": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYMART_VACUUM",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "SKYMART_VACUUM": [
+  {
+   "npc": "SkyMart",
+   "coins": 5000
+  }
+ ],
+ "SLAYER_ENERGY_DRINK": [
+  {
+   "npc": "Shifty",
+   "coins": 8500
+  }
+ ],
+ "SLEEPY_HOLLOW": [
+  {
+   "npc": "Vargul",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DARK_CANDY",
+     "qty": 150
+    }
+   ]
+  }
+ ],
+ "SLIME_BALL": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 14
+  }
+ ],
+ "SMALL_FROG_TREAT": [
+  {
+   "npc": "Agatha",
+   "coins": 0,
+   "items": [
+    {
+     "id": "AGATHA_COUPON",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "SMALL_HONEY_DIPPER": [
+  {
+   "npc": "Bea",
+   "coins": 500
+  }
+ ],
+ "SMALL_PIG_EAR": [
+  {
+   "npc": "Pig Shop",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 32
+    },
+    {
+     "id": "ENCHANTED_PORK",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "SMALL_POCKET_BLACK_HOLE": [
+  {
+   "npc": "Albert",
+   "coins": 100000,
+   "items": [
+    {
+     "id": "FIG_LOG",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SMALL_SEAL_PLUSHIE": [
+  {
+   "npc": "Lukas the Aquarist",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FISHY_TREAT",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SMALL_SLOTH_CLAW": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "SMALL_WITCH_CAULDRON": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SPIDER_EGG",
+     "qty": 64
+    },
+    {
+     "id": "FUNNY_BONE",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SNORKELING_BOOTS": [
+  {
+   "npc": "Nemo",
+   "coins": 38800
+  }
+ ],
+ "SNORKELING_CHESTPLATE": [
+  {
+   "npc": "Nemo",
+   "coins": 77600
+  }
+ ],
+ "SNORKELING_HELMET": [
+  {
+   "npc": "Nemo",
+   "coins": 48500
+  }
+ ],
+ "SNORKELING_LEGGINGS": [
+  {
+   "npc": "Nemo",
+   "coins": 67900
+  }
+ ],
+ "SNOW_BELT": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "SNOW_CLOAK": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "SNOW_GENERATOR_12": [
+  {
+   "npc": "Einary",
+   "coins": 2000000,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 500
+    },
+    {
+     "id": "SNOW_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_SNOW_BLOCK",
+     "qty": 1024
+    }
+   ]
+  }
+ ],
+ "SNOW_GLOVES": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "SNOW_NECKLACE": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "SNOW_SHOVEL": [
+  {
+   "npc": "Scoop",
+   "coins": 2500
+  }
+ ],
+ "SOCIAL_DISPLAY": [
+  {
+   "npc": "Amelia",
+   "coins": 10000
+  }
+ ],
+ "SOWLEDGE_GARDEN_CHIP": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "SPECKLED_MELON": [
+  {
+   "npc": "Alchemist",
+   "coins": 10
+  }
+ ],
+ "SPEEDY_LINE": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BUSTED_BELT_BUCKLE",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "SPIDER_EGG_MIXIN": [
+  {
+   "npc": "Bartender",
+   "coins": 150000
+  }
+ ],
+ "SPIDER_EYE": [
+  {
+   "npc": "Alchemist",
+   "coins": 12
+  }
+ ],
+ "SPIDER_SWORD": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 100
+  }
+ ],
+ "SPOOKY_BOOTS": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SPOOKY_CHESTPLATE": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SPOOKY_HELMET": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SPOOKY_LEGGINGS": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "PURPLE_CANDY",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "SPOOKY_TREE": [
+  {
+   "npc": "Vargul",
+   "coins": 0,
+   "items": [
+    {
+     "id": "DARK_CANDY",
+     "qty": 170
+    }
+   ]
+  }
+ ],
+ "SPORE_HARVESTER": [
+  {
+   "npc": "Mage Emissary",
+   "coins": 95000
+  }
+ ],
+ "SPRAYONATOR": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 25
+    }
+   ]
+  }
+ ],
+ "SPRING_BOOTS": [
+  {
+   "npc": "Bingo",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BINGO_POINT",
+     "qty": 150
+    }
+   ]
+  }
+ ],
+ "SQUIRE_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 4000
+  }
+ ],
+ "SQUIRE_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 8000
+  }
+ ],
+ "SQUIRE_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 5000
+  }
+ ],
+ "SQUIRE_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 7000
+  }
+ ],
+ "SQUIRE_SWORD": [
+  {
+   "npc": "Rosetta",
+   "coins": 5000
+  }
+ ],
+ "STAINED_CLAY": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-1": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-10": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-11": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-12": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-13": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-14": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-15": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-2": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-3": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-4": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-5": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-6": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-7": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-8": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_CLAY-9": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 8
+  }
+ ],
+ "STAINED_GLASS": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-1": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-10": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-11": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-12": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-13": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-14": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-15": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-2": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-3": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-4": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-5": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-6": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-7": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-8": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS-9": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-1": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-10": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-11": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-12": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-13": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-14": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-15": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-2": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-3": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-4": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-5": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-6": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-7": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-8": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STAINED_GLASS_PANE-9": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 16
+  }
+ ],
+ "STARLIGHT_BOOTS": [
+  {
+   "npc": "Rosetta",
+   "coins": 30000
+  }
+ ],
+ "STARLIGHT_CHESTPLATE": [
+  {
+   "npc": "Rosetta",
+   "coins": 70000
+  }
+ ],
+ "STARLIGHT_HELMET": [
+  {
+   "npc": "Rosetta",
+   "coins": 35000
+  }
+ ],
+ "STARLIGHT_LEGGINGS": [
+  {
+   "npc": "Rosetta",
+   "coins": 45000
+  }
+ ],
+ "STARLIGHT_WAND": [
+  {
+   "npc": "Rosetta",
+   "coins": 30000
+  }
+ ],
+ "STARTER_LAVA_ROD": [
+  {
+   "npc": "Odger",
+   "coins": 10000
+  }
+ ],
+ "STEEL_CHESTPLATE": [
+  {
+   "npc": "Ophelia",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "METAL_CHESTPLATE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "STINGY_SINKER": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_COIN",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "STONE": [
+  {
+   "npc": "Mine Merchant",
+   "coins": 2
+  }
+ ],
+ "STONE_CHESTPLATE": [
+  {
+   "npc": "Ophelia",
+   "coins": 80000
+  }
+ ],
+ "STONE_PLATE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 4
+  }
+ ],
+ "STONK_PICKAXE": [
+  {
+   "npc": "Pearl Dealer",
+   "coins": 499999
+  }
+ ],
+ "STRING": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 10
+  }
+ ],
+ "STUDENT_STUDIES": [
+  {
+   "npc": "Researcher Ribery",
+   "coins": 250000
+  }
+ ],
+ "SUGAR": [
+  {
+   "npc": "Alchemist",
+   "coins": 4
+  }
+ ],
+ "SUGAR_CANE": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 5
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 5
+  }
+ ],
+ "SUGAR_CANE_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_SUGAR_CANE",
+     "qty": 32
+    },
+    {
+     "id": "SUGAR_CANE_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SULPHUR": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 10
+  }
+ ],
+ "SUNFLOWER_GENERATOR_12": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SUNFLOWER_GENERATOR_11",
+     "qty": 1
+    },
+    {
+     "id": "COMPACTED_SUNFLOWER",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "SUPERBOOM_TNT": [
+  {
+   "npc": "Chunk",
+   "coins": 2500
+  },
+  {
+   "npc": "Ophelia",
+   "coins": 3000
+  },
+  {
+   "npc": "Walter",
+   "coins": 2500
+  }
+ ],
+ "SUPER_CLEAVER": [
+  {
+   "npc": "Ophelia",
+   "coins": 80000,
+   "items": [
+    {
+     "id": "CLEAVER",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SUPER_LEECH_MODIFIER": [
+  {
+   "npc": "Sun Gecko Essence Shop (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_SUN_GECKO",
+     "qty": 12.5
+    }
+   ]
+  }
+ ],
+ "SUPER_SCORCHER": [
+  {
+   "npc": "Plumber Joe (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "SUPER_SCRUBBER": [
+  {
+   "npc": "Plumber Joe",
+   "coins": 25000
+  }
+ ],
+ "SUPER_UNDEAD_BOW": [
+  {
+   "npc": "Ophelia",
+   "coins": 800000,
+   "items": [
+    {
+     "id": "UNDEAD_BOW",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SUSPICIOUS_SCRAP": [
+  {
+   "npc": "Researcher Beryl",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOSSIL",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "SWEEP_BOOSTER_UNCOMMON": [
+  {
+   "npc": "Maxim",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FIGSTONE",
+     "qty": 1
+    },
+    {
+     "id": "MANGCORE",
+     "qty": 1
+    },
+    {
+     "id": "HELIXIS",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "SWEET_AXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 100
+  }
+ ],
+ "TACTICIAN_MURDER_WEAPON": [
+  {
+   "npc": "Master Tactician Fink (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LEECH_SWORD",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "TACTICIAN_SWORD": [
+  {
+   "npc": "Master Tactician",
+   "coins": 35000
+  }
+ ],
+ "TALBOTS_THEODOLITE": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 80
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_ATTACK_SPEED": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_CRITICAL_CHANCE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_CRITICAL_DAMAGE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_DEFENSE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_FEROCITY": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_HEALTH": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_INTELLIGENCE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_MAGIC_FIND": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_SEA_CREATURE_CHANCE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_STRENGTH": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_SWAPPER": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 200
+    }
+   ]
+  }
+ ],
+ "TALISMAN_ENRICHMENT_WALK_SPEED": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
+  }
+ ],
+ "TAVERN_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "TEDS_CONTACT_BAKED_IN_BREAD": [
+  {
+   "npc": "Feast Baker Scott",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_KERNEL",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "TEPID_GREEN_TEA": [
+  {
+   "npc": "Bartender",
+   "coins": 1000
+  }
+ ],
+ "TERRY_SNOWGLOBE": [
+  {
+   "npc": "Terry",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ICE_HUNK",
+     "qty": 32
+    },
+    {
+     "id": "BLUE_ICE_HUNK",
+     "qty": 8
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_CANE_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_CARROT_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_POTATO_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_SUNFLOWER_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_WARTS_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_WHEAT_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THEORETICAL_HOE_WILD_ROSE_1": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "THE_ART_OF_WAR": [
+  {
+   "npc": "Pig Shop",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "SHINY_SHARD",
+     "qty": 256
+    },
+    {
+     "id": "ENCHANTED_GRILLED_PORK",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "THORNLEAF_SCYTHE": [
+  {
+   "npc": "Barbarian Emissary",
+   "coins": 100000
+  }
+ ],
+ "TIC_TAC_TOE": [
+  {
+   "npc": "Amelia",
+   "coins": 2500
+  }
+ ],
+ "TITANIC_EXP_BOTTLE": [
+  {
+   "npc": "Mage Emissary",
+   "coins": 712500
+  }
+ ],
+ "TITANIUM_PICKAXE": [
+  {
+   "npc": "Bubu",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_TITANIUM_PICKAXE",
+     "qty": 1
+    },
+    {
+     "id": "ENCHANTED_TITANIUM",
+     "qty": 4
+    },
+    {
+     "id": "BEJEWELED_HANDLE",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "TNT": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 50
+  }
+ ],
+ "TOIL_LOG": [
+  {
+   "npc": "Smithmonger",
+   "coins": 1000000
+  }
+ ],
+ "TORCH": [
+  {
+   "npc": "Lumina",
+   "coins": 0.5
+  },
+  {
+   "npc": "Mine Merchant",
+   "coins": 0.5
+  }
+ ],
+ "TORRHUS_ARTIFACT": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 30
+    },
+    {
+     "id": "TORRHUS_RING",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "TORRHUS_RING": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 30
+    },
+    {
+     "id": "TORRHUS_TALISMAN",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "TORRHUS_TALISMAN": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 30
+    }
+   ]
+  }
+ ],
+ "TRADING_POST_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "TRAPPER_CREST": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 340
+    }
+   ]
+  }
+ ],
+ "TRAPPER_DEN_TRAVEL_SCROLL": [
+  {
+   "npc": "Talbot",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "TREASURE_BAIT": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "RUSTY_COIN",
+     "qty": 0.0625
+    }
+   ]
+  }
+ ],
+ "TREASURE_HOOK": [
+  {
+   "npc": "Junker Joel",
+   "coins": 0,
+   "items": [
+    {
+     "id": "BAYOU_WATER_ORB",
+     "qty": 1
+    },
+    {
+     "id": "OLD_LEATHER_BOOT",
+     "qty": 4
+    },
+    {
+     "id": "BUSTED_BELT_BUCKLE",
+     "qty": 32
+    },
+    {
+     "id": "RUSTY_COIN",
+     "qty": 256
+    }
+   ]
+  }
+ ],
+ "TRIBAL_SPEAR": [
+  {
+   "npc": "Odawa",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SLUDGE_JUICE",
+     "qty": 100
+    },
+    {
+     "id": "JUNGLE_HEART",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "TRICK_OR_TREAT_BAG": [
+  {
+   "npc": "Fear Mongerer",
+   "coins": 0,
+   "items": [
+    {
+     "id": "GREEN_CANDY",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "TRIO_CONTACTS_ADDON": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 6450
+    }
+   ]
+  }
+ ],
+ "TRIPWIRE_HOOK": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 4
+  }
+ ],
+ "TRUE_ESSENCE": [
+  {
+   "npc": "Old Shaman Nyko",
+   "coins": 25000
+  }
+ ],
+ "TUTTI_FRUTTI_POISON": [
+  {
+   "npc": "Shifty",
+   "coins": 850
+  }
+ ],
+ "ULTIMATE_CARROT_CANDY_UPGRADE": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 8000
+    }
+   ]
+  }
+ ],
+ "UNDEAD_BOW": [
+  {
+   "npc": "Ophelia",
+   "coins": 80000
+  }
+ ],
+ "UNDEAD_SWORD": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 100
+  }
+ ],
+ "VERMIN_BELT": [
+  {
+   "npc": "Kat (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "LEECH_BELT",
+     "qty": 1
+    },
+    {
+     "id": "SKYBLOCK_FLY",
+     "qty": 15
+    }
+   ]
+  }
+ ],
+ "VERMIN_PEST_TRAP": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 200
+    },
+    {
+     "id": "FIRE_IN_A_BOTTLE",
+     "qty": 1
+    },
+    {
+     "id": "MOUSE_PEST_TRAP",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "VIAL_OF_SPRING_WATER": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_PRIZE",
+     "qty": 10
+    }
+   ]
+  }
+ ],
+ "VIKING_TEAR": [
+  {
+   "npc": "Joyful Viking",
+   "coins": 15000
+  }
+ ],
+ "VILLAGE_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 2500
+  }
+ ],
+ "WEAPON_RACK": [
+  {
+   "npc": "Carpenter",
+   "coins": 100
+  }
+ ],
+ "WHEAT": [
+  {
+   "npc": "Farm Merchant",
+   "coins": 2.3333333333333335
+  },
+  {
+   "npc": "Windmill Operator",
+   "coins": 2.3333333333333335
+  }
+ ],
+ "WHEAT_GENERATOR_12": [
+  {
+   "npc": "Tony",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PELT",
+     "qty": 75
+    },
+    {
+     "id": "ENCHANTED_WHEAT",
+     "qty": 1024
+    },
+    {
+     "id": "WHEAT_GENERATOR_11",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "WHITE_GIFT_TALISMAN": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 20
+    }
+   ]
+  }
+ ],
+ "WINDING_IVY": [
+  {
+   "npc": "Miria",
+   "coins": 0,
+   "items": [
+    {
+     "id": "MIRIA_COUPON",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "WINDMILL_BARN_SKIN": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_GEM",
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "WINTER_FRAGMENT": [
+  {
+   "npc": "Einary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_NORTH_STAR",
+     "qty": 5
+    },
+    {
+     "id": "VOLCANIC_ROCK",
+     "qty": 0.5
+    }
+   ]
+  }
+ ],
+ "WITCH_ARTIFACT": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WITCH_RING",
+     "qty": 1
+    },
+    {
+     "id": "SMOLDERING_EMBERS",
+     "qty": 64
+    },
+    {
+     "id": "SPELL_SOOT",
+     "qty": 64
+    },
+    {
+     "id": "GELATINOUS_GLOOP",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "WITCH_RING": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "WITCH_TALISMAN",
+     "qty": 1
+    },
+    {
+     "id": "VOID_OOZE",
+     "qty": 64
+    },
+    {
+     "id": "FROG_LEGS",
+     "qty": 64
+    }
+   ]
+  }
+ ],
+ "WITCH_SACK": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FESTERING_FLY",
+     "qty": 16
+    },
+    {
+     "id": "SPIDER_EGG",
+     "qty": 16
+    }
+   ]
+  }
+ ],
+ "WITCH_TALISMAN": [
+  {
+   "npc": "Agnes",
+   "coins": 0,
+   "items": [
+    {
+     "id": "FESTERING_FLY",
+     "qty": 32
+    }
+   ]
+  }
+ ],
+ "WITHER_BOW": [
+  {
+   "npc": "Weaponsmith",
+   "coins": 250
+  }
+ ],
+ "WITHER_GOGGLES": [
+  {
+   "npc": "Ophelia",
+   "coins": 5000000,
+   "items": [
+    {
+     "id": "SHADOW_GOGGLES",
+     "qty": 1
+    }
+   ]
+  }
+ ],
+ "WOLF_FUR_MIXIN": [
+  {
+   "npc": "Bartender",
+   "coins": 150000
+  }
+ ],
+ "WOODEN_BAIT": [
+  {
+   "npc": "Rosemary",
+   "coins": 0,
+   "items": [
+    {
+     "id": "ESSENCE_FOREST",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "WOOD_AXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 5
+  }
+ ],
+ "WOOD_CHEST": [
+  {
+   "npc": "Carpenter",
+   "coins": 15000
+  }
+ ],
+ "WOOD_HOE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 5
+  }
+ ],
+ "WOOD_PICKAXE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 5
+  }
+ ],
+ "WOOD_PLATE": [
+  {
+   "npc": "Mad Redstone Engineer",
+   "coins": 2
+  }
+ ],
+ "WOOD_SINGULARITY": [
+  {
+   "npc": "Master Tactician",
+   "coins": 1464000,
+   "items": [
+    {
+     "id": "ENCHANTED_OAK_LOG",
+     "qty": 320
+    },
+    {
+     "id": "ENCHANTED_SPRUCE_LOG",
+     "qty": 320
+    },
+    {
+     "id": "ENCHANTED_BIRCH_LOG",
+     "qty": 320
+    },
+    {
+     "id": "ENCHANTED_DARK_OAK_LOG",
+     "qty": 320
+    },
+    {
+     "id": "ENCHANTED_ACACIA_LOG",
+     "qty": 320
+    },
+    {
+     "id": "ENCHANTED_JUNGLE_LOG",
+     "qty": 320
+    }
+   ]
+  }
+ ],
+ "WOOD_SPADE": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 5
+  }
+ ],
+ "WOOD_SWORD": [
+  {
+   "npc": "Lumber Merchant",
+   "coins": 5
+  }
+ ],
+ "WOOL": [
+  {
+   "npc": "Husbandry Merchant",
+   "coins": 10
+  },
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-1": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-10": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-11": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-12": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-13": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-14": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-15": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-2": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-3": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-4": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-5": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-6": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-7": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-8": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WOOL-9": [
+  {
+   "npc": "Wool Weaver",
+   "coins": 32
+  }
+ ],
+ "WYLD_BOOTS": [
+  {
+   "npc": "Argofay Trafficker 2 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 50
+    }
+   ]
+  }
+ ],
+ "WYLD_CHESTPLATE": [
+  {
+   "npc": "Argofay Trafficker 3 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 2000
+    }
+   ]
+  }
+ ],
+ "WYLD_HELMET": [
+  {
+   "npc": "Argofay Trafficker 4 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "WYLD_LEGGINGS": [
+  {
+   "npc": "Argofay Trafficker 1 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 1000
+    }
+   ]
+  }
+ ],
+ "WYLD_SWORD": [
+  {
+   "npc": "Argofay Threebrother 1 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 333
+    },
+    {
+     "id": "SHAME_CRUX",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "npc": "Argofay Threebrother 2 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 333
+    },
+    {
+     "id": "SHAME_CRUX",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "npc": "Argofay Threebrother 3 (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 333
+    },
+    {
+     "id": "SHAME_CRUX",
+     "qty": 3
+    }
+   ]
+  }
+ ],
+ "YELLOW_BANDANA": [
+  {
+   "npc": "SkyMart",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_COPPER",
+     "qty": 300
+    }
+   ]
+  }
+ ],
+ "ZOMBIE_BRAIN_MIXIN": [
+  {
+   "npc": "Bartender",
+   "coins": 150000
+  }
+ ],
+ "ZOMBIE_MASK": [
+  {
+   "npc": "Doug",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_CARNIVAL_POINT",
+     "qty": 500
+    }
+   ]
+  }
+ ],
+ "ZOMBIE_TALISMAN": [
+  {
+   "npc": "Combat Merchant",
+   "coins": 500
+  }
+ ],
+ "ZOOP_THE_FISH": [
+  {
+   "npc": "Finplex (Rift)",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_MOTE",
+     "qty": 99999
+    }
+   ]
+  }
+ ]
+}

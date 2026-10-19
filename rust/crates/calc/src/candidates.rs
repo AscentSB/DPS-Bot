@@ -441,7 +441,7 @@ impl<'a> B<'a> {
         if let Some((cost, source)) = price_parts(parts, self.prices) {
             let edit = edit(self.model, &mut self.g.bag_cache);
             self.ups.push(Candidate {
-                label: Arc::from(label),
+                label: Arc::from(label + &npc_note(parts, self.prices, self.resource)),
                 cost,
                 source: Arc::from(source),
                 unverified: extra.unverified,
@@ -1299,7 +1299,7 @@ impl<'a> B<'a> {
         base.recomb = extra.recomb;
         base.enrichment = extra.enrichment.map(|s| s.to_string());
         let item = self.model.intern_item(base);
-        Some(BuyTemplate { label: Arc::from(labels.join(" + ")), cost, source: Arc::from(source), item, group: group.map(Arc::from), repick: bc.is_weapon, armor_slot, armor_id: armor_id.map(Arc::from) })
+        Some(BuyTemplate { label: Arc::from(labels.join(" + ") + &npc_note(&parts, self.prices, self.resource)), cost, source: Arc::from(source), item, group: group.map(Arc::from), repick: bc.is_weapon, armor_slot, armor_id: armor_id.map(Arc::from) })
     }
 
     /// JS `bestReforge(loadout, ctx, item)`: best reforge for a fresh item of this category / rarity, tested in the

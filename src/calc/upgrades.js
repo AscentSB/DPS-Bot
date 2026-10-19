@@ -428,6 +428,20 @@ function priceParts(parts, prices) {
   return { cost, source: [...sources].join('+') };
 }
 
+// Where to buy the parts that come from an NPC, for the step label: " (buy from Combat Merchant)" for a one-part
+// step, else each NPC item by name (" (Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat
+// Merchant)"). Empty when nothing comes from an NPC.
+function npcNote(parts, prices, resource) {
+  const buys = [];
+  for (const part of parts) {
+    if (part.coins) continue;
+    for (const b of prices.get(part.id)?.npc ?? []) if (!buys.some((x) => x.id === b.id && x.npc === b.npc)) buys.push(b);
+  }
+  if (!buys.length) return '';
+  if (buys.length === 1 && parts.length === 1) return ` (buy from ${buys[0].npc})`;
+  return ` (${buys.map((b) => `${cleanName(resource.get(b.id)?.name ?? b.id)} from ${b.npc}`).join(', ')})`;
+}
+
 function hasDpsStats(stats) {
   return DPS_STATS.some((k) => stats?.[k]);
 }
@@ -557,7 +571,7 @@ export function availableUpgrades(loadout, ctx, prices) {
   const { resource, cls } = ctx;
   const push = (label, parts, apply, extra = {}) => {
     const p = priceParts(parts, prices);
-    if (p) ups.push({ label, ...p, apply, ...extra });
+    if (p) ups.push({ label: label + npcNote(parts, prices, resource), ...p, apply, ...extra });
   };
 
   for (const item of upgradableItems(loadout)) {

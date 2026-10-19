@@ -1695,3 +1695,19 @@ test('Skeleton Master chest rule: other chestplates are offered only with the bu
   assert.equal(offered(false), false);
   assert.equal(offered(true), true);
 });
+
+test('a step bought from an NPC says which NPC in its label', async () => {
+  const { priceLookup } = await import('../src/api/prices.js');
+  const res = new Map([...resource,
+    ['ZOMBIE_TALISMAN', { id: 'ZOMBIE_TALISMAN', name: 'Zombie Talisman', category: 'ACCESSORY', tier: 'COMMON' }],
+    ['INTIMIDATION_TALISMAN', { id: 'INTIMIDATION_TALISMAN', name: 'Intimidation Talisman', category: 'ACCESSORY', tier: 'COMMON' }],
+    ['INTIMIDATION_RING', { id: 'INTIMIDATION_RING', name: 'Intimidation Ring', category: 'ACCESSORY', tier: 'UNCOMMON' }],
+  ]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const loadout = buildLoadout(profile([]), ctx, weightsFor('arch'));
+  const p = priceLookup({ bazaar: new Map([['GREEN_CANDY', 1000], ['RECOMBOBULATOR_3000', 8e6]]), auctions: new Map() });
+  const labels = availableUpgrades(loadout, ctx, p).map((u) => u.label);
+  assert.ok(labels.includes('Buy Zombie Talisman (buy from Combat Merchant)'), labels.join(', '));
+  assert.ok(labels.includes('Buy Intimidation Ring (Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)'), labels.join(', '));
+  assert.ok(labels.some((l) => l.startsWith('Buy Zombie Talisman + Recombobulator (Zombie Talisman from Combat Merchant)')), labels.filter((l) => /Zombie/.test(l)).join(', '));
+});

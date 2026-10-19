@@ -334,6 +334,8 @@ pub struct PriceTables {
 pub enum PriceSource {
     Bazaar,
     Auction,
+    /// An NPC shop (src/data/npcShop.json).
+    Npc,
 }
 
 impl PriceSource {
@@ -341,17 +343,68 @@ impl PriceSource {
         match self {
             PriceSource::Bazaar => "BZ",
             PriceSource::Auction => "AH",
+            PriceSource::Npc => "NPC",
         }
     }
 }
 
+/// NPC purchases behind an NPC price, `(item id, npc)`: the item first, then any part of its cost also bought from
+/// an NPC. Left empty when the caller only wants the price.
+pub type NpcRoute = Vec<(&'static str, &'static str)>;
+
 impl PriceTables {
-    /// JS priceLookup: bazaar first, then the auction house.
+    /// JS priceLookup: bazaar first, then the auction house; an NPC that sells it for less wins.
     pub fn get(&self, id: &str) -> Option<(f64, PriceSource)> {
+        self.cheapest(id, &mut Vec::new(), false).map(|(p, s, _)| (p, s))
+    }
+
+    /// JS `prices.get(id)?.npc`: the NPC purchases when the cheapest price is an NPC's, else empty.
+    pub fn npc_route(&self, id: &str) -> NpcRoute {
+        match self.cheapest(id, &mut Vec::new(), true) {
+            Some((_, PriceSource::Npc, route)) => route,
+            _ => Vec::new(),
+        }
+    }
+
+    fn market(&self, id: &str) -> Option<(f64, PriceSource)> {
         if let Some(p) = self.bazaar.get(id) {
             return Some((*p, PriceSource::Bazaar));
         }
         self.auctions.get(id).map(|p| (*p, PriceSource::Auction))
+    }
+
+    /// JS `cheapest(id, t, seen)`. NPC sell prices (what an NPC pays you) are never used.
+    fn cheapest(&self, id: &str, seen: &mut Vec<&'static str>, route: bool) -> Option<(f64, PriceSource, NpcRoute)> {
+        let market = self.market(id);
+        match self.npc_buy(id, seen, route) {
+            Some((p, r)) if market.is_none_or(|(m, _)| p < m) => Some((p, PriceSource::Npc, r)),
+            _ => market.map(|(p, s)| (p, s, Vec::new())),
+        }
+    }
+
+    /// JS `npcBuy(id, t, seen)`: the cheapest NPC offer whose item parts all have a price. `seen` holds the items
+    /// being priced, so a shop loop ends.
+    fn npc_buy(&self, id: &str, seen: &mut Vec<&'static str>, route: bool) -> Option<(f64, NpcRoute)> {
+        let (key, offers) = crate::data::npc_offers(id)?;
+        if seen.contains(&key) {
+            return None;
+        }
+        seen.push(key);
+        let mut best: Option<(f64, NpcRoute)> = None;
+        'offers: for offer in offers {
+            let mut price = offer.coins;
+            let mut r: NpcRoute = if route { vec![(key, offer.npc)] } else { Vec::new() };
+            for part in offer.items {
+                let Some((p, _, pr)) = self.cheapest(part.id, seen, route) else { continue 'offers };
+                price += p * part.qty;
+                r.extend(pr);
+            }
+            if best.as_ref().is_none_or(|(b, _)| price < *b) {
+                best = Some((price, r));
+            }
+        }
+        seen.pop();
+        best
     }
 }
 

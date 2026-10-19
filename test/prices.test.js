@@ -79,3 +79,24 @@ test('floor-scaled armor is priced only from fully boosted (50%) listings, by th
   assert.equal(entries.get('SKELETON_MASTER_CHESTPLATE_FLOOR7'), 3e6);
   assert.equal(entries.get('SKELETON_MASTER_CHESTPLATE_FLOOR8'), 95e6);
 });
+
+// NPC shop offers come from src/data/npcShop.json (Combat Merchant: Zombie Talisman 500, Intimidation Talisman 10k;
+// Fear Mongerer: Intimidation Ring = Intimidation Talisman + 100 Green Candy; Agnes: Witch Talisman = 32 Festering Fly).
+test('an NPC that sells an item for less than the bazaar or auction house is used, with the NPC named', () => {
+  const lookup = (bazaar, auctions) => priceLookup({ bazaar: new Map(Object.entries(bazaar)), auctions: new Map(Object.entries(auctions)) });
+  assert.deepEqual(lookup({}, {}).get('ZOMBIE_TALISMAN'), { price: 500, source: 'NPC', npc: [{ id: 'ZOMBIE_TALISMAN', npc: 'Combat Merchant' }] });
+  assert.equal(lookup({}, { ZOMBIE_TALISMAN: 900 }).get('ZOMBIE_TALISMAN').source, 'NPC');
+  assert.deepEqual(lookup({}, { ZOMBIE_TALISMAN: 400 }).get('ZOMBIE_TALISMAN'), { price: 400, source: 'AH' });
+  // A tie keeps the market price.
+  assert.equal(lookup({ ZOMBIE_TALISMAN: 500 }, {}).get('ZOMBIE_TALISMAN').source, 'BZ');
+  // Item parts of an NPC cost are priced the cheapest way too, and NPC-bought parts are named.
+  assert.deepEqual(lookup({ GREEN_CANDY: 1000 }, {}).get('INTIMIDATION_RING'), {
+    price: 110000, source: 'NPC', npc: [{ id: 'INTIMIDATION_RING', npc: 'Fear Mongerer' }, { id: 'INTIMIDATION_TALISMAN', npc: 'Combat Merchant' }],
+  });
+  assert.deepEqual(lookup({ GREEN_CANDY: 1000 }, { INTIMIDATION_RING: 50000 }).get('INTIMIDATION_RING'), { price: 50000, source: 'AH' });
+  // A part with no price rules the offer out.
+  assert.equal(lookup({}, {}).get('WITCH_TALISMAN'), null);
+  assert.equal(lookup({}, {}).get('INTIMIDATION_RING'), null);
+  // Not sold by any NPC: market only.
+  assert.equal(lookup({}, {}).get('TERMINATOR'), null);
+});

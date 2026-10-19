@@ -4,7 +4,8 @@ import { decodeItems, toItemState } from '../lib/nbt.js';
 import { petLevel, maxPetLevel } from '../lib/pets.js';
 
 // Downloads and decoding for prices. Runs in the price worker (src/worker/priceWorker.js), never on the planner.
-// Prices come only from the bazaar (instant buy) and the auction house (lowest BIN). NPC prices are never used.
+// Prices come from the bazaar (instant buy) and the auction house (lowest BIN); NPC shop prices (src/data/npcShop.json)
+// are added at lookup time in src/api/prices.js.
 
 const API = 'https://api.hypixel.net/v2/skyblock';
 const PAGE_CONCURRENCY = 6;

@@ -17,6 +17,7 @@ const REFORGES_JSON: &str = include_str!("../../../../src/data/reforges.json");
 const ACCESSORIES_JSON: &str = include_str!("../../../../src/data/accessories.json");
 const FRAGGED_JSON: &str = include_str!("../../../../src/data/fragged.json");
 const PETS_JSON: &str = include_str!("../../../../src/data/pets.json");
+const NPC_SHOP_JSON: &str = include_str!("../../../../src/data/npcShop.json");
 
 fn leak(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
@@ -385,6 +386,41 @@ static FRAGGED: LazyLock<(Vec<Fragged>, FxHashMap<&'static str, usize>)> = LazyL
 #[inline]
 pub fn all_fragged() -> &'static [Fragged] {
     &FRAGGED.0
+}
+
+/// One npcShop.json offer: an NPC sells the item for `coins` plus `items` (per item bought).
+#[derive(Clone, Copy, Debug)]
+pub struct NpcOffer {
+    pub npc: &'static str,
+    pub coins: f64,
+    pub items: &'static [Part],
+}
+
+#[derive(Deserialize)]
+struct RawNpcOffer {
+    npc: String,
+    coins: f64,
+    #[serde(default)]
+    items: Vec<RawPart>,
+}
+
+static NPC_SHOP: LazyLock<FxHashMap<&'static str, &'static [NpcOffer]>> = LazyLock::new(|| {
+    let raw: IndexMap<String, Vec<RawNpcOffer>> = serde_json::from_str(NPC_SHOP_JSON).expect("npcShop.json");
+    raw.into_iter()
+        .map(|(id, offers)| {
+            let offers: Vec<NpcOffer> = offers
+                .into_iter()
+                .map(|o| NpcOffer { npc: leak(o.npc), coins: o.coins, items: leak_slice(o.items.into_iter().map(|p| Part { id: leak(p.id), qty: p.qty }).collect()) })
+                .collect();
+            (leak(id), leak_slice(offers))
+        })
+        .collect()
+});
+
+/// JS `NPC_SHOP[id]`: an item's NPC shop offers in file order, with the id as a `'static` str.
+#[inline]
+pub fn npc_offers(id: &str) -> Option<(&'static str, &'static [NpcOffer])> {
+    NPC_SHOP.get_key_value(id).map(|(k, v)| (*k, *v))
 }
 
 /// JS `FRAGGED[fromId]`.
