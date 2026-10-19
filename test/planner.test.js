@@ -113,6 +113,18 @@ test('smite only helps withers, ender slayer only helps dragons', () => {
   assert.ok(ender.dragon > before.dragon && ender.wither === before.wither);
 });
 
+test('Sharpness and Smite stack on one sword (Hypixel allows both)', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
+  const w = weightsFor('mage');
+  const base = buildLoadout(profile(items([{ id: 'GIANTS_SWORD', enchants: { sharpness: 7 } }])), ctx, w);
+  const up = availableUpgrades(base, ctx, prices).find((u) => u.label.startsWith('Smite VII'));
+  assert.ok(!up.label.includes('replaces'));
+  const after = up.apply(base);
+  assert.equal(after.weapon.enchants.sharpness, 7);
+  assert.equal(after.weapon.enchants.smite, 7);
+  assert.ok(evaluate(after, ctx, w).wither > evaluate(base, ctx, w).wither);
+});
+
 test('accessory families: a ring replaces its talisman, and the talisman is not offered once you own the ring', () => {
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
   const w = weightsFor('arch');

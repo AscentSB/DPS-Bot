@@ -42,10 +42,11 @@ export const ENCHANTS = {
   ultimate_swarm: { name: 'Swarm', categories: [...SWORDS, 'BOW'], target: 'global', swarm: true, stats: { additiveDamage: [2, 4, 6, 8, 10] }, conflicts: ['ultimate_chimera', 'ultimate_reiterate'] },
   // Vicious: +3 / +4 / +5 ferocity at III-V (I and II do not exist; listed as 0). Goes on bows (Terminator) too.
   vicious: { categories: [...SWORDS, 'BOW'], target: 'global', stats: { ferocity: [0, 0, 3, 4, 5] } },
-  sharpness: { categories: SWORDS, target: 'global', melee: true, stats: { additiveDamage: [5, 10, 15, 20, 30, 45, 65] }, conflicts: ['smite', 'bane_of_arthropods'] },
+  // Hypixel lets Sharpness and Smite sit on the same sword, so they do not conflict.
+  sharpness: { categories: SWORDS, target: 'global', melee: true, stats: { additiveDamage: [5, 10, 15, 20, 30, 45, 65] }, conflicts: ['bane_of_arthropods'] },
   power: { categories: ['BOW'], target: 'global', stats: { additiveDamage: [8, 16, 24, 32, 40, 50, 65] } },
   critical: { categories: SWORDS, target: 'global', stats: { critDamage: [10, 20, 30, 40, 50, 70, 100] } },
-  smite: { categories: SWORDS, target: 'wither', clearMobs: true, stats: { additiveDamage: [10, 20, 30, 40, 60, 80, 100] }, conflicts: ['sharpness', 'bane_of_arthropods'] },
+  smite: { categories: SWORDS, target: 'wither', clearMobs: true, stats: { additiveDamage: [10, 20, 30, 40, 60, 80, 100] }, conflicts: ['bane_of_arthropods'] },
   ender_slayer: { categories: SWORDS, target: 'dragon', stats: { additiveDamage: [15, 30, 45, 60, 80, 100, 130] } },
   dragon_hunter: { categories: ['BOW'], target: 'dragon', stats: { additiveDamage: [8, 16, 24, 32, 40, 50] } },
   // From the M7 archer sheet: Snipe IV +2% over Snipe III, Overload V +5 crit damage and crit chance.

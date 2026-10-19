@@ -44,6 +44,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Golden Dragon stays the RCM pet (no Pigman, no pet buys in RCM when a GDrag is owned). Balloon Snake is banned in RCM only.
 - First Strike V on a Prosecute weapon is never swapped for Triple Strike. FS IV or none gets Triple Strike.
 - Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
+- Sharpness and Smite stack on one sword (Hypixel allows both); only Bane of Arthropods conflicts with them.
 - Bank deposit steps merge into one.
 - A step with anything bought from an NPC names the NPC in parentheses: "(buy from Combat Merchant)" for a one-part step, else each NPC item by name ("(Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)").
 

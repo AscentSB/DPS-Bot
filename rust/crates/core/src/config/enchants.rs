@@ -127,12 +127,13 @@ pub static ENCHANTS: &[Enchant] = &[
         ..BASE
     },
     Enchant { key: "vicious", categories: SWORDS_BOW, stats: &[(Stat::Ferocity, &[0.0, 0.0, 3.0, 4.0, 5.0])], ..BASE },
+    // Hypixel lets Sharpness and Smite sit on the same sword, so they do not conflict.
     Enchant {
         key: "sharpness",
         categories: SWORDS,
         melee: true,
         stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 65.0])],
-        conflicts: &["smite", "bane_of_arthropods"],
+        conflicts: &["bane_of_arthropods"],
         ..BASE
     },
     Enchant {
@@ -153,7 +154,7 @@ pub static ENCHANTS: &[Enchant] = &[
         target: StatTarget::Wither,
         clear_mobs: true,
         stats: &[(Stat::AdditiveDamage, &[10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0])],
-        conflicts: &["sharpness", "bane_of_arthropods"],
+        conflicts: &["bane_of_arthropods"],
         ..BASE
     },
     Enchant {
@@ -342,5 +343,11 @@ mod tests {
         assert_eq!(enchant("ultimate_the_one").unwrap().max_level(), 5);
         assert_eq!(enchant("toxophilite").unwrap().max_level(), 1);
         assert!(enchant("thunderbolt").is_none());
+    }
+
+    #[test]
+    fn sharpness_and_smite_stack() {
+        assert!(!enchant("sharpness").unwrap().conflicts.contains(&"smite"));
+        assert!(!enchant("smite").unwrap().conflicts.contains(&"sharpness"));
     }
 }
