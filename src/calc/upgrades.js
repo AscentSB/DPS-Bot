@@ -3,7 +3,7 @@ import {
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
   MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith, SKELETON_MASTER_CHEST_CLASSES, SKELETON_MASTER_CHESTS, SKELETON_MASTER_CHEST_CATA,
 } from '../config/constants.js';
-import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS } from '../config/enchants.js';
+import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS, skippedSwordEnchant } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
 import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, ENRICHMENT_SWAPPER_ID, DEFAULT_POWER } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
@@ -515,6 +515,7 @@ function convertParts(spare, src, prices, swap = {}) {
   const names = [];
   for (const [srcKey, level] of Object.entries(src.enchants ?? {})) {
     const key = swap[srcKey] ?? srcKey;
+    if (skippedSwordEnchant(key, spare.category)) continue;
     const cur = item.enchants[key] ?? 0;
     if (cur >= level) continue;
     const way = enchantParts(srcKey, level, cur, prices);
@@ -551,7 +552,8 @@ function convertParts(spare, src, prices, swap = {}) {
 
 function copyParts(item, prices) {
   const parts = [
-    ...Object.entries(item.enchants ?? {}).flatMap(([k, level]) => enchantParts(k, level, 0, prices)?.parts ?? []),
+    ...Object.entries(item.enchants ?? {}).filter(([k]) => !skippedSwordEnchant(k, item.category))
+      .flatMap(([k, level]) => enchantParts(k, level, 0, prices)?.parts ?? []),
     ...(item.hpb ? [{ id: HOT_POTATO.id, qty: Math.min(item.hpb, HOT_POTATO.max) }] : []),
     ...(item.hpb > HOT_POTATO.max ? [{ id: FUMING_POTATO.id, qty: item.hpb - HOT_POTATO.max }] : []),
     ...(item.artOfWar ? [{ id: ART_OF_WAR.id }] : []),

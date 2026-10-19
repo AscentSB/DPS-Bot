@@ -281,6 +281,15 @@ impl Enchant {
     }
 }
 
+/// JS `SKIPPED_SWORD_ENCHANTS`: non-DPS sword enchants, never bought when a blade copies another (spare blade,
+/// dual-wield copy).
+pub static SKIPPED_SWORD_ENCHANTS: &[&str] = &["divine_gift", "looting", "luck", "experience", "cleave", "smoldering", "cubism"];
+
+/// JS `skippedSwordEnchant(key, category)`.
+pub fn skipped_sword_enchant(key: &str, category: Option<&str>) -> bool {
+    category.is_some_and(|c| SWORDS.contains(&c)) && SKIPPED_SWORD_ENCHANTS.contains(&key)
+}
+
 /// JS `enchantMaxLevel(ench)`.
 #[inline]
 pub fn enchant_max_level(ench: &Enchant) -> i32 {

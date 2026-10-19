@@ -3,7 +3,7 @@
 //! `ordinal`, `titleCase`, `enrichmentName`).
 
 use dps_core::config::constants::*;
-use dps_core::config::enchants::{enchant, table_enchant_xp, enchant_upgrade_item, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID};
+use dps_core::config::enchants::{enchant, skipped_sword_enchant, table_enchant_xp, enchant_upgrade_item, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID};
 use dps_core::data::{all_reforges, get_reforge, Reforge};
 use dps_core::kinds::Mode;
 use dps_core::clean_name;
@@ -363,6 +363,9 @@ pub fn convert_parts(spare: &ItemState, src: &ItemState, prices: &PriceTables, s
     let mut names: Vec<String> = Vec::new();
     for (src_key, &level) in &src.enchants {
         let key: &str = swap.iter().find(|(from, _)| *from == src_key.as_str()).map_or(src_key.as_str(), |(_, to)| *to);
+        if skipped_sword_enchant(key, spare.category.as_deref()) {
+            continue;
+        }
         let cur = item.enchants.get(key).copied().unwrap_or(0);
         if cur >= level {
             continue;
@@ -452,6 +455,9 @@ pub fn convert_parts(spare: &ItemState, src: &ItemState, prices: &PriceTables, s
 pub fn copy_parts(item: &ItemState, prices: &PriceTables) -> Vec<Part> {
     let mut parts: Vec<Part> = Vec::new();
     for (k, &level) in &item.enchants {
+        if skipped_sword_enchant(k, item.category.as_deref()) {
+            continue;
+        }
         if let Some(way) = enchant_parts(k, level, 0, prices) {
             parts.extend(way.parts);
         }

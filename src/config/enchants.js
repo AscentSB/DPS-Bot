@@ -93,6 +93,13 @@ export const ENCHANT_UPGRADE_ITEMS = {
   ender_slayer: { level: 7, id: 'ENDSTONE_IDOL', name: 'End Stone Idol' },
 };
 
+// Non-DPS sword enchants: never bought when a blade copies another (spare blade, dual-wield copy).
+export const SKIPPED_SWORD_ENCHANTS = ['divine_gift', 'looting', 'luck', 'experience', 'cleave', 'smoldering', 'cubism'];
+
+export function skippedSwordEnchant(key, category) {
+  return SWORDS.includes(category) && SKIPPED_SWORD_ENCHANTS.includes(key);
+}
+
 export function enchantMaxLevel(ench) {
   if (ench.maxLevel) return ench.maxLevel;
   return Math.max(...Object.values(ench.stats ?? {}).map((v) => v.length), 0);
