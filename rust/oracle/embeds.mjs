@@ -76,17 +76,17 @@ const golden = (id) => {
   return g;
 };
 const sameBlessings = (a, b) => a.power === b.power && a.wisdom === b.wisdom && a.time === b.time;
-const planKey = (s) => `${s.upgradeMode}${s.anyChest ? ':anyChest' : ''}`;
+const planKey = (s) => `${s.upgradeMode}${s.anyChest ? ':anyChest' : ''}${s.noClearBoots ? ':noClearBoots' : ''}`;
 
 // The profile menu handleButton computes for this session's job, from cases.json when it has that job.
 async function profileFor(c, member) {
   const j = c.job;
   const match = cases.find((p) => p.profile === c.profile && p.job.menu === 'profile' && p.job.cls === j.cls
     && (p.job.target ?? null) === (j.target ?? null) && p.job.mode === j.mode && p.job.floorMode === j.floorMode
-    && sameBlessings(p.job.blessings, j.blessings) && Boolean(p.job.anyChest) === Boolean(j.anyChest));
+    && sameBlessings(p.job.blessings, j.blessings) && Boolean(p.job.anyChest) === Boolean(j.anyChest) && Boolean(p.job.noClearBoots) === Boolean(j.noClearBoots));
   // handleButton's job: { cls, target, mode, floorMode, blessings, anyChest, member } + menu 'profile' (no
   // upgradeMode, no limit), run in the plan worker with the resource and frozen prices.
-  const computed = (await bot.runDps({ cls: j.cls, target: j.target, mode: j.mode, floorMode: j.floorMode, blessings: j.blessings, anyChest: j.anyChest, member, menu: 'profile', resource: bot.snap.resource, prices: bot.prices })).profile;
+  const computed = (await bot.runDps({ cls: j.cls, target: j.target, mode: j.mode, floorMode: j.floorMode, blessings: j.blessings, anyChest: j.anyChest, noClearBoots: j.noClearBoots, member, menu: 'profile', resource: bot.snap.resource, prices: bot.prices })).profile;
   if (!match) return { profile: computed, source: 'computed' };
   const g = golden(match.id).profile;
   if (JSON.stringify(g) !== JSON.stringify(computed)) throw new Error(`${c.id}: profile golden ${match.id} differs from the profile menu the bot would compute`);
@@ -116,7 +116,7 @@ for (const caseId of ids) {
   const { profile, source } = await profileFor(c, memberFull);
   const j = c.job;
   const base = {
-    cls: j.cls, target: j.target ?? null, mode: j.mode, floorMode: j.floorMode, blessings: j.blessings, anyChest: j.anyChest,
+    cls: j.cls, target: j.target ?? null, mode: j.mode, floorMode: j.floorMode, blessings: j.blessings, anyChest: j.anyChest, noClearBoots: j.noClearBoots,
     upgradeMode: j.upgradeMode, name: c.profile, member: { cataLevel: memberFull.cataLevel },
   };
   base.coins = { [planKey(base)]: golden(caseId) };

@@ -4,9 +4,9 @@
 // Every profile: coin plans (limit 40, default blessings, upgradeMode 'all') for arch, bers, mage LCM Master Mode,
 // mage LCM Normal Mode and mage RCM, plus the profile menu for arch and mage LCM Master Mode.
 // Variant profiles (the seed profiles and 4 others spread over Catacombs levels) also get: upgradeMode 'max' (arch,
-// bers, mage LCM), anyChest (arch / bers, Catacombs 36+ only), target wither / dragon (arch) and blessings
+// bers, mage LCM), anyChest (arch / bers, Catacombs 36+ only), noClearBoots (arch / bers), target wither / dragon (arch) and blessings
 // power 19 / wisdom 12 / time 0 (arch, mage LCM).
-// Case id: <profile>__<cls>-<mode>-<floorMode>-<upgradeMode>[-anychest][-<target>][-b<power>.<wisdom>.<time>]-<menu>
+// Case id: <profile>__<cls>-<mode>-<floorMode>-<upgradeMode>[-anychest][-noclearboots][-<target>][-b<power>.<wisdom>.<time>]-<menu>
 import path from 'node:path';
 import { DEFAULT_BLESSINGS, MEMBERS_DIR, PLAN_STEPS, TD, profileNames, readJson, writeJson } from './common.mjs';
 
@@ -19,10 +19,10 @@ const BASE = [['arch', 'lcm', 'master'], ['bers', 'lcm', 'master'], ['mage', 'lc
 const PROFILE_MENUS = [['arch', 'lcm', 'master'], ['mage', 'lcm', 'master']];
 
 const sameBlessings = (a, b) => a.power === b.power && a.wisdom === b.wisdom && a.time === b.time;
-function makeCase(profile, cls, mode, floorMode, { upgradeMode = 'all', anyChest = false, target = null, blessings = DEFAULT_BLESSINGS, menu = 'coins' } = {}) {
-  const id = `${profile}__${cls}-${mode}-${floorMode}-${upgradeMode}${anyChest ? '-anychest' : ''}${target ? `-${target}` : ''}`
+function makeCase(profile, cls, mode, floorMode, { upgradeMode = 'all', anyChest = false, noClearBoots = false, target = null, blessings = DEFAULT_BLESSINGS, menu = 'coins' } = {}) {
+  const id = `${profile}__${cls}-${mode}-${floorMode}-${upgradeMode}${anyChest ? '-anychest' : ''}${noClearBoots ? '-noclearboots' : ''}${target ? `-${target}` : ''}`
     + `${sameBlessings(blessings, DEFAULT_BLESSINGS) ? '' : `-b${blessings.power}.${blessings.wisdom}.${blessings.time}`}-${menu}`;
-  return { id, profile, job: { cls, target, mode, floorMode, upgradeMode, menu, limit: PLAN_STEPS, blessings: { ...blessings }, anyChest } };
+  return { id, profile, job: { cls, target, mode, floorMode, upgradeMode, menu, limit: PLAN_STEPS, blessings: { ...blessings }, anyChest, noClearBoots } };
 }
 
 const members = new Map();
@@ -52,6 +52,7 @@ function variants(name) {
     makeCase(name, 'mage', 'lcm', 'master', { upgradeMode: 'max' }),
   ];
   if (cata >= ANY_CHEST_CATA) out.push(makeCase(name, 'arch', 'lcm', 'master', { anyChest: true }), makeCase(name, 'bers', 'lcm', 'master', { anyChest: true }));
+  out.push(makeCase(name, 'arch', 'lcm', 'master', { noClearBoots: true }), makeCase(name, 'bers', 'lcm', 'master', { noClearBoots: true }));
   out.push(
     makeCase(name, 'arch', 'lcm', 'master', { target: 'wither' }),
     makeCase(name, 'arch', 'lcm', 'master', { target: 'dragon' }),

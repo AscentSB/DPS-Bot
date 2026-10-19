@@ -1353,7 +1353,7 @@ impl<'a> B<'a> {
     fn clear_boots(&mut self) {
         let l = self.l;
         let ctx = self.ctx;
-        if !(CLEAR_BOOTS_CLASSES.contains(&ctx.cls) && ctx.mode != Mode::Rcm) {
+        if !ctx.clear_boots_used() {
             return;
         }
         let resource = self.resource;

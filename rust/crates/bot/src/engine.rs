@@ -179,6 +179,9 @@ impl StubEngine {
         if job.any_chest {
             id.push_str("-anychest");
         }
+        if job.no_clear_boots {
+            id.push_str("-noclearboots");
+        }
         if let Some(t) = &job.target {
             id.push('-');
             id.push_str(t);

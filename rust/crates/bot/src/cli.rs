@@ -159,6 +159,7 @@ async fn debug_profile_inner(ign: &str, cls: &str, mode: &str, stage: &mut Strin
         limit: Some(40),
         blessings: Blessings { power: 29, wisdom: 14, time: 5 },
         any_chest: false,
+        no_clear_boots: false,
     };
     let snap = prices.snapshot();
     let member = Arc::new(member);

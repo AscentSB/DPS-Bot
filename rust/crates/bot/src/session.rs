@@ -1,6 +1,6 @@
 //! Session data and fixed texts of the /dps command (port of the pure parts of src/commands/dps.js).
 
-use dps_core::config::constants::{SKELETON_MASTER_CHEST_CATA, SKELETON_MASTER_CHEST_CLASSES};
+use dps_core::config::constants::{CLEAR_BOOTS_CLASSES, SKELETON_MASTER_CHEST_CATA, SKELETON_MASTER_CHEST_CLASSES};
 use dps_core::model::{Blessings, DpsResult, ProfileMenu};
 use dps_core::{Class, FloorMode, Mode, Target};
 use std::collections::HashMap;
@@ -103,6 +103,7 @@ pub struct Session {
     pub floor_mode: FloorMode,
     pub blessings: Option<Blessings>,
     pub any_chest: bool,
+    pub no_clear_boots: bool,
     pub upgrade_mode: UpgradeMode,
     /// The account name as Mojang spells it (unescaped).
     pub name: String,
@@ -133,6 +134,7 @@ impl Session {
             floor_mode: FloorMode::Master,
             blessings: Some(Blessings::default()),
             any_chest: false,
+            no_clear_boots: false,
             upgrade_mode: UpgradeMode::All,
             name,
             cata_level: None,
@@ -151,18 +153,20 @@ impl Session {
 
     /// The plan currently shown (`s.coins[planKey(s)]`).
     pub fn current(&self) -> Option<&Arc<DpsResult>> {
-        self.coins.get(plan_key(self.upgrade_mode, self.any_chest))
+        self.coins.get(&plan_key(self.upgrade_mode, self.any_chest, self.no_clear_boots))
     }
 }
 
-/// JS `planKey(s)`: `all`, `max`, `all:anyChest`, `max:anyChest`.
-pub fn plan_key(upgrade_mode: UpgradeMode, any_chest: bool) -> &'static str {
-    match (upgrade_mode, any_chest) {
-        (UpgradeMode::All, false) => "all",
-        (UpgradeMode::Max, false) => "max",
-        (UpgradeMode::All, true) => "all:anyChest",
-        (UpgradeMode::Max, true) => "max:anyChest",
+/// JS `planKey(s)`: `all` / `max`, then `:anyChest` and `:noClearBoots` when set (`max:anyChest:noClearBoots`).
+pub fn plan_key(upgrade_mode: UpgradeMode, any_chest: bool, no_clear_boots: bool) -> String {
+    let mut key = upgrade_mode.js_name().to_string();
+    if any_chest {
+        key.push_str(":anyChest");
     }
+    if no_clear_boots {
+        key.push_str(":noClearBoots");
+    }
+    key
 }
 
 /// JS `skeletonMasterChestRule(cls, cataLevel)`.
@@ -173,6 +177,11 @@ pub fn skeleton_master_chest_rule(cls: Class, cata_level: Option<f64>) -> bool {
 /// JS `chestToggle(s)`: the Skeleton Master chest button shows only where the rule applies.
 pub fn chest_toggle(s: &Session) -> bool {
     skeleton_master_chest_rule(s.cls, s.cata_level)
+}
+
+/// JS `clearBootsToggle(s)`: the clear boots button shows for the classes that swap boots for the clear.
+pub fn clear_boots_toggle(s: &Session) -> bool {
+    CLEAR_BOOTS_CLASSES.contains(&s.cls)
 }
 
 /// JS `pageCount(s)`.
@@ -195,6 +204,24 @@ mod tests {
         assert!(!skeleton_master_chest_rule(Class::Mage, Some(40.0)));
         assert!(!skeleton_master_chest_rule(Class::Arch, Some(35.0)));
         assert!(!skeleton_master_chest_rule(Class::Arch, None));
+    }
+
+    #[test]
+    fn clear_boots_button_and_plan_keys() {
+        assert_eq!(plan_key(UpgradeMode::All, false, false), "all");
+        assert_eq!(plan_key(UpgradeMode::Max, true, false), "max:anyChest");
+        assert_eq!(plan_key(UpgradeMode::All, false, true), "all:noClearBoots");
+        assert_eq!(plan_key(UpgradeMode::Max, true, true), "max:anyChest:noClearBoots");
+        let labels = |s: &Session| crate::embed::buttons("x", s).to_string();
+        // Archer / Berserker at any Catacombs level get the button (on by default); Mage does not.
+        let mut s = Session::new(Class::Bers, "x".into(), 0);
+        s.cata_level = Some(20.0);
+        assert!(clear_boots_toggle(&s) && labels(&s).contains("Clear boots: on") && !labels(&s).contains(":chest"));
+        s.no_clear_boots = true;
+        assert!(labels(&s).contains("Clear boots: off"));
+        assert!(s.current().is_none());
+        let mage = Session::new(Class::Mage, "x".into(), 0);
+        assert!(!clear_boots_toggle(&mage) && !labels(&mage).contains("clearboots"));
     }
 
     #[test]

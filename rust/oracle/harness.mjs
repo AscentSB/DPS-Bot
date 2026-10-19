@@ -23,12 +23,12 @@ export async function loadBot() {
 // builds them, plus ctx.weights = weights (planUpgrades sets it before the first availableUpgrades call).
 export function prepareCase(b, member, job) {
   const { makeContext, weightsFor, buildLoadout } = b.upgrades;
-  const { cls, target = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings, anyChest = false } = job;
+  const { cls, target = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings, anyChest = false, noClearBoots = false } = job;
   const ctx = makeContext({
     cls, cataLevel: member.cataLevel, secrets: member.secrets, power: member.power, tuning: member.tuning,
     profileSpeed: member.profileSpeed, petProfile: member.petProfile, archerLevel: member.archerLevel,
     berserkLevel: member.berserkLevel, mageLevel: member.mageLevel, combatLevel: member.combatLevel,
-    skills: member.skills, slayers: member.slayers, collections: member.collections, profileStats: member.profileStats, upgradeMode, mode, floorMode, blessings, anyChest, resource: b.snap.resource,
+    skills: member.skills, slayers: member.slayers, collections: member.collections, profileStats: member.profileStats, upgradeMode, mode, floorMode, blessings, anyChest, noClearBoots, resource: b.snap.resource,
   });
   const weights = weightsFor(cls, target, mode, ctx.floorMode);
   const loadout = buildLoadout(member, ctx, weights);

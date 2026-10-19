@@ -23,7 +23,7 @@ for (const f of fs.existsSync(timingDir) ? fs.readdirSync(timingDir).sort() : []
 const kindOf = (c) => {
   const j = c.job;
   if (j.menu === 'profile') return `profile-${j.cls}`;
-  return `${j.cls}-${j.mode}-${j.floorMode}${j.upgradeMode === 'max' ? '-max' : ''}${j.anyChest ? '-anychest' : ''}`;
+  return `${j.cls}-${j.mode}-${j.floorMode}${j.upgradeMode === 'max' ? '-max' : ''}${j.anyChest ? '-anychest' : ''}${j.noClearBoots ? '-noclearboots' : ''}`;
 };
 const perCase = {};
 const missing = [];

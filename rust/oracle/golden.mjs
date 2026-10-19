@@ -85,9 +85,9 @@ for (const c of queue) {
     console.log(`${c.id}: member has an error (${member.error}), skipped`);
     continue;
   }
-  const { cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest } = c.job;
+  const { cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, noClearBoots } = c.job;
   // What runInWorker sends (src/commands/dps.js) plus what the plan worker adds: resource and frozen prices, no pool.
-  const job = { member, cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, resource: bot.snap.resource, prices: bot.prices };
+  const job = { member, cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, noClearBoots, resource: bot.snap.resource, prices: bot.prices };
   let result;
   const cpu0 = process.cpuUsage();
   const t0 = performance.now();

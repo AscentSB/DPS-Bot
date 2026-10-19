@@ -175,8 +175,9 @@ pub fn build_loadout(model: &mut Model, ctx: &mut Ctx, weights: Weights, member:
         let owned = l.owned.clone();
         by_slot[pos].1.retain(|&(id, _)| boss_boots_allowed(&owned, &model.item(id).id, cls));
     }
-    // Clear boots: your fastest boots, worn during the clear for speed. Mage clears in RCM armor, so it has none.
-    l.clear_boots = if CLEAR_BOOTS_CLASSES.contains(&cls) && ctx.mode != Mode::Rcm {
+    // Clear boots: your fastest boots, worn during the clear for speed. Mage clears in RCM armor, so it has none;
+    // neither does Archer / Berserker with the clear boots button off.
+    l.clear_boots = if ctx.clear_boots_used() {
         let pos = slot_pos(Slot::Gear(GearSlot::Armor(BOOTS as u8)));
         let speed = |m: &Model, x: Option<ItemId>| x.map(|i| m.contribution(i, 0).global.get0(dps_core::Stat::Speed)).unwrap_or(0.0);
         let mut best: Option<ItemId> = None;

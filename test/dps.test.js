@@ -86,3 +86,28 @@ test('the Skeleton Master chest button shows for Archer / Berserker at cata 36+ 
   assert.match(updates.at(-1).embeds[0].toJSON().description, /any/);
   for (const id of ['c1', 'c2', 'c3', 'c4']) { clearTimeout(testing.sessions.get(id).timer); testing.sessions.delete(id); }
 });
+
+test('the clear boots button shows for Archer / Berserker at any cata, is on by default and switches plans', async () => {
+  const { testing, handleButton } = await import('../src/commands/dps.js');
+  const damage = { wither: 1, dragon: 1, tuning: {} };
+  const plan = (label) => ({ plan: { steps: [{ label, cost: 1e6, gain: 1, perMillion: 1 }], startDamage: damage, endDamage: damage }, tuningSplit: null });
+  const session = (cls, cataLevel) => ({ cls, mode: 'lcm', floorMode: 'master', name: 'x', view: 'coins', page: 0, upgradeMode: 'all', owner: 'u', anyChest: false, noClearBoots: false,
+    member: { cataLevel }, coins: { all: plan('swap'), 'all:noClearBoots': plan('onepair'), 'all:anyChest:noClearBoots': plan('anyonepair') }, usedAt: Date.now() });
+  const updates = [];
+  const click = (id, action) => handleButton({ customId: `dps:${id}:${action}`, user: { id: 'u' }, update: async (m) => updates.push(m) });
+  const button = (m, action) => m.components.flatMap((r) => r.toJSON().components).find((c) => c.custom_id.split(':')[2] === action);
+  for (const [id, cls, cata, shown] of [['b1', 'arch', 40, true], ['b2', 'bers', 20, true], ['b3', 'mage', 40, false]]) {
+    testing.sessions.set(id, session(cls, cata));
+    await click(id, 'next');
+    assert.equal(Boolean(button(updates.at(-1), 'clearboots')), shown, `${cls} c${cata}`);
+  }
+  assert.equal(button(updates.at(-3), 'clearboots').label, 'Clear boots: on');
+  await click('b1', 'clearboots');
+  assert.equal(testing.sessions.get('b1').noClearBoots, true);
+  assert.equal(button(updates.at(-1), 'clearboots').label, 'Clear boots: off');
+  assert.match(updates.at(-1).embeds[0].toJSON().description, /onepair/);
+  assert.match(updates.at(-1).embeds[0].toJSON().footer.text, /No clear boots/);
+  await click('b1', 'chest');
+  assert.match(updates.at(-1).embeds[0].toJSON().description, /anyonepair/);
+  for (const id of ['b1', 'b2', 'b3']) { clearTimeout(testing.sessions.get(id).timer); testing.sessions.delete(id); }
+});

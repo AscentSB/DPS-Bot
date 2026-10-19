@@ -38,6 +38,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - If an item will later be replaced, do not put many coins into it (25M doomed cap per replaced piece). Replacing early items is fine.
 - Floor-scaled dungeon drops are priced from fully boosted (50%) listings at the highest floor the player can enter: c36+ F10, c34-35 F9, c32-33 F8. Drops below F10 follow the 25M cap.
 - Archer and Berserker at cata 36+: Skeleton Master Chestplate is the only chestplate (infinite arrows), unless the reply's "Skeleton Master chest" button is turned off. Necron's legs and boots should win the other slots.
+- Archer and Berserker swap to clear boots (fastest owned, e.g. Maxor's) for the clear by default. The reply's "Clear boots" button turned off means no clear boots and no clear boots buys: the boss boots also carry the clear speed (speed cap via tuning).
 - Golden Necron Head is free at 50 completions ("Claim" step). Diamond Necron Head = Golden + 8 Enchanted Diamond Blocks (~1.6M), upgrades transfer.
 - Armor bundles: any mix of pieces can be bought as one step. Copy bundles exist for all classes.
 - Mage: detect the RCM Hyperion among 2+ blades. Spare blades become a dual-wield copy, dragon weapon or boss weapon, costing only missing upgrades.

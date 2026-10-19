@@ -29,12 +29,12 @@ const hash = (s) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0))
 
 function mkCtx(member, job, over) {
   const m = { ...member, ...over };
-  const { cls, target = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings, anyChest = false } = job;
+  const { cls, target = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings, anyChest = false, noClearBoots = false } = job;
   const ctx = U.makeContext({
     cls, cataLevel: m.cataLevel, secrets: m.secrets, power: m.power, tuning: m.tuning, profileSpeed: m.profileSpeed,
     petProfile: m.petProfile, archerLevel: m.archerLevel, berserkLevel: m.berserkLevel, mageLevel: m.mageLevel,
     combatLevel: m.combatLevel, skills: m.skills, slayers: m.slayers, collections: m.collections,
-    profileStats: m.profileStats, upgradeMode, mode, floorMode, blessings, anyChest, resource,
+    profileStats: m.profileStats, upgradeMode, mode, floorMode, blessings, anyChest, noClearBoots, resource,
   });
   const weights = U.weightsFor(cls, target, mode, ctx.floorMode);
   ctx.weights = weights;

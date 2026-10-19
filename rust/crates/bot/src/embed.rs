@@ -1,7 +1,7 @@
 //! The /dps embed and buttons (port of buildEmbed, buttons, tuningText, statsText, ... in src/commands/dps.js).
 //! They produce serde_json values that serialize to the same JSON discord.js sends.
 
-use crate::session::{chest_toggle, page_count, Session, UpgradeMode, View, FREE_STEP_COINS, PAGE_SIZE};
+use crate::session::{chest_toggle, clear_boots_toggle, page_count, Session, UpgradeMode, View, FREE_STEP_COINS, PAGE_SIZE};
 use dps_core::config::constants::class_info;
 use dps_core::jsfmt::{format_coins, js_string, math_round, to_fixed, to_locale_string};
 use dps_core::model::{Damage, StatLine, TargetStats, Weights};
@@ -387,6 +387,7 @@ pub fn build_embed(s: &Session) -> Value {
         )),
         blessing_text(s),
         (chest_toggle(s) && s.any_chest).then(|| "Any chestplate allowed (Skeleton Master Chestplate not forced).".to_string()),
+        (clear_boots_toggle(s) && s.no_clear_boots).then(|| "No clear boots: the boss boots also carry the clear speed.".to_string()),
         unverified.then(|| "(?) = not in the public API; skip it if you already have it.".to_string()),
     ]
     .into_iter()
@@ -415,7 +416,7 @@ fn button(id: &str, action: &str, label: &str, style: u8, disabled: bool) -> Val
     json!({"type": 2, "custom_id": format!("dps:{id}:{action}"), "label": label, "style": style, "disabled": disabled})
 }
 
-/// JS `buttons(id, s)`: the action rows (the second row only where the chest rule applies).
+/// JS `buttons(id, s)`: the action rows (the second row holds the Archer / Berserker chest and clear boots toggles).
 pub fn buttons(id: &str, s: &Session) -> Value {
     let pages = page_count(s);
     let coins = s.view == View::Coins;
@@ -427,16 +428,31 @@ pub fn buttons(id: &str, s: &Session) -> Value {
         button(id, "profile", "Profile upgrades", if profile { PRIMARY } else { SECONDARY }, profile),
         button(id, "levels", if s.upgrade_mode == UpgradeMode::All { "Show max levels" } else { "Show every level" }, SECONDARY, !coins),
     ]});
-    if !chest_toggle(s) {
+    let mut toggles = Vec::new();
+    // Archer / Berserker: on (default) keeps the Skeleton Master Chestplate as the only chestplate.
+    if chest_toggle(s) {
+        toggles.push(button(
+            id,
+            "chest",
+            if s.any_chest { "Skeleton Master chest: off" } else { "Skeleton Master chest: forced" },
+            if s.any_chest { SECONDARY } else { PRIMARY },
+            !coins,
+        ));
+    }
+    // Archer / Berserker: on (default) swaps to faster clear boots for the clear; off keeps one pair for both.
+    if clear_boots_toggle(s) {
+        toggles.push(button(
+            id,
+            "clearboots",
+            if s.no_clear_boots { "Clear boots: off" } else { "Clear boots: on" },
+            if s.no_clear_boots { SECONDARY } else { PRIMARY },
+            !coins,
+        ));
+    }
+    if toggles.is_empty() {
         return json!([row]);
     }
-    json!([row, {"type": 1, "components": [button(
-        id,
-        "chest",
-        if s.any_chest { "Skeleton Master chest: off" } else { "Skeleton Master chest: forced" },
-        if s.any_chest { SECONDARY } else { PRIMARY },
-        !coins,
-    )]}])
+    json!([row, {"type": 1, "components": toggles}])
 }
 
 #[cfg(test)]
@@ -461,6 +477,7 @@ mod tests {
         s.floor_mode = FloorMode::from_js(g("floorMode").unwrap()).unwrap();
         s.blessings = serde_json::from_value::<Option<Blessings>>(v["blessings"].clone()).unwrap();
         s.any_chest = v["anyChest"].as_bool().unwrap_or(false);
+        s.no_clear_boots = v["noClearBoots"].as_bool().unwrap_or(false);
         s.upgrade_mode = UpgradeMode::from_js(g("upgradeMode").unwrap()).unwrap();
         s.cata_level = v["member"]["cataLevel"].as_f64();
         if let Some(c) = v["coins"].as_object() {

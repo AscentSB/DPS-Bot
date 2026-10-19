@@ -63,6 +63,7 @@ pub struct CtxInit {
     pub blessings: Option<Blessings>,
     pub collections: Option<Collections>,
     pub any_chest: bool,
+    pub no_clear_boots: bool,
     pub resource: Arc<Resource>,
 }
 
@@ -90,6 +91,7 @@ impl CtxInit {
             blessings: None,
             collections: None,
             any_chest: false,
+            no_clear_boots: false,
             resource,
         }
     }
@@ -116,6 +118,7 @@ impl CtxInit {
         init.floor_mode = FloorMode::from_js(&job.floor_mode)?;
         init.blessings = Some(job.blessings);
         init.any_chest = job.any_chest;
+        init.no_clear_boots = job.no_clear_boots;
         Some(init)
     }
 }
@@ -195,6 +198,7 @@ pub struct Ctx {
     pub blessings: Blessings,
     pub collections: Option<Collections>,
     pub any_chest: bool,
+    pub no_clear_boots: bool,
     pub resource: Arc<Resource>,
     pub d: Arc<CtxDerived>,
     pub tuning_plan: TuningPlan,
@@ -255,6 +259,7 @@ impl Ctx {
             blessings,
             collections: init.collections,
             any_chest: init.any_chest,
+            no_clear_boots: init.no_clear_boots,
             resource: init.resource,
             d: Arc::new(placeholder_derived()),
             tuning_plan: TuningPlan { len: 0, sinks: [TuneSink { stat: Stat::Strength, share: 0.0, per_point: 0.0 }; 6] },
@@ -313,6 +318,12 @@ impl Ctx {
     #[inline]
     pub fn skeleton_master_chest_forced(&self) -> bool {
         !self.any_chest && skeleton_master_chest_rule(self.cls, self.cata_level)
+    }
+
+    /// JS `clearBootsUsed(ctx)`: Archer / Berserker swap to separate clear boots unless the button turns them off.
+    #[inline]
+    pub fn clear_boots_used(&self) -> bool {
+        CLEAR_BOOTS_CLASSES.contains(&self.cls) && self.mode != Mode::Rcm && !self.no_clear_boots
     }
 
     /// JS `excludedItem(id, ctx)`: items a class never uses.

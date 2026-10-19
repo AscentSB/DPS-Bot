@@ -182,7 +182,7 @@ impl World {
             None => PowerField::Unknown,
         };
         // Clear boots.
-        if CLEAR_BOOTS_CLASSES.contains(&cls) && self.ctx.mode != Mode::Rcm {
+        if self.ctx.clear_boots_used() {
             let mut best: Option<ItemId> = None;
             for &b in &by_slot[5].1 {
                 let speed = |x: ItemId| self.model.contribution(x, 0).global.get0(Stat::Speed);
@@ -1030,6 +1030,17 @@ fn clear_boots_and_pets_perks() {
     let both = w.build(&[new_it(&res, "TERMINATOR"), new_it(&res, "POWER_WITHER_BOOTS"), new_it(&res, "SPEED_WITHER_BOOTS")], &[], &[], &[]);
     assert_eq!(w.model.item(both.clear_boots.unwrap()).id, "SPEED_WITHER_BOOTS");
     assert!(w.eval(&both).speed - w.eval(&necron_only).speed >= 0.0);
+
+    // Clear boots button off (noClearBoots): no clear boots, so the boss boots carry the speed.
+    for cls in [Class::Arch, Class::Bers] {
+        let on = mk_ctx(cls, 50.0, &res, |_| {});
+        let off = mk_ctx(cls, 50.0, &res, |i| i.no_clear_boots = true);
+        assert!(on.clear_boots_used() && !off.clear_boots_used());
+        let mut w = World::new(off, weights(cls));
+        let one = w.build(&[new_it(&res, "TERMINATOR"), new_it(&res, "POWER_WITHER_BOOTS"), new_it(&res, "SPEED_WITHER_BOOTS")], &[], &[], &[]);
+        assert_eq!(one.clear_boots, None);
+    }
+    assert!(!mk_ctx(Class::Mage, 50.0, &res, |_| {}).clear_boots_used());
 
     // Wither Skeleton: a wither-only damage perk.
     let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |_| {}), weights(Class::Arch));

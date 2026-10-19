@@ -1,5 +1,5 @@
 import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CLASSES, BLESSING_LIMITS, blessingsWith } from '../config/constants.js';
+import { CLASSES, BLESSING_LIMITS, CLEAR_BOOTS_CLASSES, blessingsWith } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { skeletonMasterChestRule } from '../calc/upgrades.js';
@@ -105,10 +105,12 @@ function title(s) {
   return `${escapeMarkdown(s.name)} · ${CLASSES[s.cls].label}${set}`;
 }
 
-// Coin plans are cached per level mode and per Skeleton Master chest setting.
-const planKey = (s) => `${s.upgradeMode}${s.anyChest ? ':anyChest' : ''}`;
+// Coin plans are cached per level mode, Skeleton Master chest setting and clear boots setting.
+const planKey = (s) => `${s.upgradeMode}${s.anyChest ? ':anyChest' : ''}${s.noClearBoots ? ':noClearBoots' : ''}`;
 // The Skeleton Master chest button shows only where the rule applies (Archer / Berserker at the cata gate).
 const chestToggle = (s) => skeletonMasterChestRule(s.cls, s.member?.cataLevel);
+// The clear boots button shows for the classes that swap boots for the clear (Archer / Berserker).
+const clearBootsToggle = (s) => CLEAR_BOOTS_CLASSES.includes(s.cls);
 
 export function pageCount(s) {
   const rows = s.view === 'profile' ? s.profile?.rows ?? [] : s.coins?.[planKey(s)]?.plan.steps ?? [];
@@ -143,7 +145,7 @@ export function buildEmbed(s) {
       { name: `Stats (now → after all ${plan.steps.length})`, value: statsText(s, plan.startDamage.stats, plan.endDamage.stats, s.coins[planKey(s)].weights) },
       { name: 'Tuning', value: tuningText(plan.startDamage.tuning, s.coins[planKey(s)].tuningSplit) },
     )
-    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, blessingText(s), chestToggle(s) && s.anyChest ? 'Any chestplate allowed (Skeleton Master Chestplate not forced).' : null, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
+    .setFooter({ text: [`Page ${s.page + 1}/${pageCount(s)} · ${s.upgradeMode === 'max' ? 'Max levels' : 'Every level'} · Each step assumes the ones above it. Prices: bazaar and auction lowest BIN.`, blessingText(s), chestToggle(s) && s.anyChest ? 'Any chestplate allowed (Skeleton Master Chestplate not forced).' : null, clearBootsToggle(s) && s.noClearBoots ? 'No clear boots: the boss boots also carry the clear speed.' : null, unverified ? '(?) = not in the public API; skip it if you already have it.' : null].filter(Boolean).join('\n') })
     .setColor(0x8e44ad);
 }
 
@@ -157,12 +159,18 @@ function buttons(id, s) {
     // All levels lists Duplex I, II, ... separately; max levels jumps straight to the max level at its cost.
     new ButtonBuilder().setCustomId(`dps:${id}:levels`).setLabel(s.upgradeMode === 'all' ? 'Show max levels' : 'Show every level').setStyle(ButtonStyle.Secondary).setDisabled(s.view !== 'coins'),
   );
-  if (!chestToggle(s)) return [row];
+  const toggles = [];
   // Archer / Berserker: on (default) keeps the Skeleton Master Chestplate as the only chestplate.
-  return [row, new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`dps:${id}:chest`).setLabel(s.anyChest ? 'Skeleton Master chest: off' : 'Skeleton Master chest: forced')
-      .setStyle(s.anyChest ? ButtonStyle.Secondary : ButtonStyle.Primary).setDisabled(s.view !== 'coins'),
-  )];
+  if (chestToggle(s)) {
+    toggles.push(new ButtonBuilder().setCustomId(`dps:${id}:chest`).setLabel(s.anyChest ? 'Skeleton Master chest: off' : 'Skeleton Master chest: forced')
+      .setStyle(s.anyChest ? ButtonStyle.Secondary : ButtonStyle.Primary).setDisabled(s.view !== 'coins'));
+  }
+  // Archer / Berserker: on (default) swaps to faster clear boots for the clear; off keeps one pair for both.
+  if (clearBootsToggle(s)) {
+    toggles.push(new ButtonBuilder().setCustomId(`dps:${id}:clearboots`).setLabel(s.noClearBoots ? 'Clear boots: off' : 'Clear boots: on')
+      .setStyle(s.noClearBoots ? ButtonStyle.Secondary : ButtonStyle.Primary).setDisabled(s.view !== 'coins'));
+  }
+  return toggles.length ? [row, new ActionRowBuilder().addComponents(...toggles)] : [row];
 }
 
 function prune() {
@@ -229,7 +237,7 @@ export async function execute(interaction) {
   // Blessing levels: Discord enforces the ranges; blessingsWith falls back to the defaults for anything else.
   const chosen = blessingsWith({ power: interaction.options.getInteger?.('power') ?? undefined, wisdom: interaction.options.getInteger?.('wisdom') ?? undefined, time: interaction.options.getInteger?.('time') ?? undefined });
   const blessings = { power: chosen.power.level, wisdom: chosen.wisdom.level, time: chosen.time.level };
-  const job = { cls, target: interaction.options.getString('target'), mode, floorMode, blessings, anyChest: false };
+  const job = { cls, target: interaction.options.getString('target'), mode, floorMode, blessings, anyChest: false, noClearBoots: false };
   // Replies never repeat the typed IGN or raw error text, so user input cannot reach the message.
   if (!isValidIgn(name)) {
     return interaction.reply({ content: 'That is not a valid Minecraft username (2 to 16 letters, digits or underscores).', ephemeral: true });
@@ -272,7 +280,7 @@ export async function execute(interaction) {
 // For tests: the session store and timer start.
 export const testing = { sessions, startTimer };
 
-// Back / Next / Coin upgrades / Profile upgrades / levels / Skeleton Master chest.
+// Back / Next / Coin upgrades / Profile upgrades / levels / Skeleton Master chest / clear boots.
 export async function handleButton(interaction) {
   const [, id, action] = interaction.customId.split(':');
   const s = sessions.get(id);
@@ -286,8 +294,9 @@ export async function handleButton(interaction) {
   if (action === 'coins' || action === 'profile') { s.view = action; s.page = 0; }
   if (action === 'levels') { s.upgradeMode = s.upgradeMode === 'all' ? 'max' : 'all'; s.page = 0; }
   if (action === 'chest' && chestToggle(s)) { s.anyChest = !s.anyChest; s.page = 0; }
+  if (action === 'clearboots' && clearBootsToggle(s)) { s.noClearBoots = !s.noClearBoots; s.page = 0; }
   // Profile upgrades and the max-level plan are worked out the first time they are opened.
-  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, blessings: s.blessings, anyChest: s.anyChest, member: s.member };
+  const job = { cls: s.cls, target: s.target, mode: s.mode, floorMode: s.floorMode, blessings: s.blessings, anyChest: s.anyChest, noClearBoots: s.noClearBoots, member: s.member };
   const missing = s.view === 'profile' ? !s.profile : !s.coins[planKey(s)];
   if (missing) {
     await interaction.deferUpdate();
@@ -306,6 +315,7 @@ export async function handleButton(interaction) {
       s.view = 'coins';
       s.upgradeMode = 'all';
       s.anyChest = false;
+      s.noClearBoots = false;
       const what = action === 'levels' ? 'the max-level list' : 'that list';
       await interaction.followUp({ content: `${err instanceof PlanTimeoutError ? `Working out ${what} took too long and was stopped.` : `Could not work out ${what}.`} Showing the every-level coin list instead. Try again in a minute.`, ephemeral: true });
     }

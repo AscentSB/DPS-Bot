@@ -1723,3 +1723,23 @@ test('a step bought from an NPC says which NPC in its label', async () => {
   assert.ok(labels.includes('Buy Intimidation Ring (Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)'), labels.join(', '));
   assert.ok(labels.some((l) => l.startsWith('Buy Zombie Talisman + Recombobulator (Zombie Talisman from Combat Merchant)')), labels.filter((l) => /Zombie/.test(l)).join(', '));
 });
+
+test('clear boots button off (noClearBoots): no clear boots or clear boots buys, so the boss boots carry the speed', () => {
+  const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 45 } }],
+    ['POWER_WITHER_BOOTS', { id: 'POWER_WITHER_BOOTS', name: "Necron's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 40, CRITICAL_DAMAGE: 30 } }]]);
+  const w = weightsFor('arch');
+  const p = { get: () => ({ price: 1e5, source: 'AH' }) };
+  for (const cls of ['arch', 'bers']) {
+    const on = makeContext({ cls, cataLevel: 50, resource: res });
+    const off = makeContext({ cls, cataLevel: 50, noClearBoots: true, resource: res });
+    const gear = () => profile([...items([{ id: 'TERMINATOR' }]), newItem('POWER_WITHER_BOOTS', res), newItem('SPEED_WITHER_BOOTS', res)]);
+    const swap = buildLoadout(gear(), on, w);
+    const one = buildLoadout(gear(), off, w);
+    assert.equal(swap.clearBoots.id, 'SPEED_WITHER_BOOTS', cls);
+    assert.equal(one.clearBoots, null, cls);
+    assert.ok(evaluate(one, off, w).speed <= evaluate(swap, on, w).speed, cls);
+    const bare = buildLoadout(profile(items([{ id: 'TERMINATOR' }])), off, w);
+    assert.ok(!availableUpgrades(bare, off, p).some((u) => u.label.includes('clear boots')), cls);
+    assert.ok(availableUpgrades(buildLoadout(profile(items([{ id: 'TERMINATOR' }])), on, w), on, p).some((u) => u.label.includes('clear boots')), cls);
+  }
+});

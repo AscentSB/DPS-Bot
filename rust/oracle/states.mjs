@@ -134,8 +134,8 @@ for (const id of ids) {
     rounds.set(round, (rounds.get(round) ?? 0) + 1);
   };
 
-  const { cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest } = c.job;
-  const result = await bot.runDps({ member, cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, resource: bot.snap.resource, prices: bot.prices });
+  const { cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, noClearBoots } = c.job;
+  const result = await bot.runDps({ member, cls, target, mode, floorMode, upgradeMode, menu, limit, blessings, anyChest, noClearBoots, resource: bot.snap.resource, prices: bot.prices });
   globalThis.__oracleState = undefined;
   fs.closeSync(fd);
   fs.renameSync(tmp, file);

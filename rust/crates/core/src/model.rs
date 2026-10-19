@@ -445,6 +445,9 @@ pub struct DpsJob {
     pub blessings: Blessings,
     #[serde(default)]
     pub any_chest: bool,
+    /// Archer / Berserker with the clear boots button off: no separate clear boots.
+    #[serde(default)]
+    pub no_clear_boots: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]

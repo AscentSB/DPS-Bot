@@ -82,6 +82,9 @@ export function skeletonMasterChestRule(cls, cataLevel) {
   return SKELETON_MASTER_CHEST_CLASSES.includes(cls) && (cataLevel ?? 0) >= SKELETON_MASTER_CHEST_CATA;
 }
 const skeletonMasterChestForced = (ctx) => !ctx.anyChest && skeletonMasterChestRule(ctx.cls, ctx.cataLevel);
+// Archer / Berserker swap to separate clear boots (e.g. Maxor's) for the clear unless the /dps button turns them
+// off (ctx.noClearBoots): then the boss boots also carry the clear speed.
+const clearBootsUsed = (ctx) => CLEAR_BOOTS_CLASSES.includes(ctx.cls) && ctx.mode !== 'rcm' && !ctx.noClearBoots;
 
 // Items a class never uses. The Mage boss set also never uses Maxor's Boots: the clear is done in the RCM set, and
 // the boss only needs 450 speed (Storm's Boots win).
@@ -139,11 +142,11 @@ function dragonItems(l) {
 // Master Skulls or dragons). Mage LCM only; everything else is Master Mode.
 // mode: Mage only, 'lcm' (boss set, mage beam) or 'rcm' (clear set, Wither Impact, 500 speed).
 // upgradeMode: 'all' lists every level (Duplex I, II, ...); 'max' jumps straight to the max level at its cost.
-export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, collections = null, anyChest = false, resource }) {
+export function makeContext({ cls, cataLevel, secrets = 0, power = null, tuning = null, profileSpeed = 0, petProfile = {}, archerLevel = 0, berserkLevel = 0, mageLevel = 0, combatLevel = 0, skills, slayers, profileStats = null, upgradeMode = 'all', mode = 'lcm', floorMode = 'master', blessings = null, collections = null, anyChest = false, noClearBoots = false, resource }) {
   const player = skills !== undefined || slayers !== undefined ? { cataLevel, skills: skills ?? null, slayers: slayers ?? null } : null;
   // The Normal Mode toggle is for Mage only, boss set and clear set (F7 Archer / Berserker damage is scored in Master Mode).
   const floor = cls === 'mage' ? floorMode : 'master';
-  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), collections, anyChest: Boolean(anyChest), resource };
+  return { cls, cataLevel, secrets, power, tuning, profileSpeed, petProfile, archerLevel, berserkLevel, mageLevel, combatLevel, player, profileStats, upgradeMode, mode, floorMode: floor, blessings: blessingsWith(blessings ?? {}), collections, anyChest: Boolean(anyChest), noClearBoots: Boolean(noClearBoots), resource };
 }
 
 // A clean item bought from the market. Dungeonizable gear is assumed converted and 5-starred.
@@ -243,8 +246,8 @@ export function buildLoadout(profile, ctx, weights) {
   loadout.witherImpact = loadout.blades.some(hasWitherImpact);
   bySlot.BOOTS = bySlot.BOOTS.filter((b) => bossBootsAllowed(loadout.owned, b.id, ctx.cls));
   // Clear boots: your fastest boots, worn during the clear for speed (e.g. Maxor's), swapped out for the boss.
-  // Mage clears in RCM armor, so it has none.
-  loadout.clearBoots = CLEAR_BOOTS_CLASSES.includes(ctx.cls) && ctx.mode !== 'rcm'
+  // Mage clears in RCM armor, so it has none; neither does Archer / Berserker with the clear boots button off.
+  loadout.clearBoots = clearBootsUsed(ctx)
     ? bySlot.BOOTS.reduce((best, b) => (bootsSpeed(b, ctx) > bootsSpeed(best, ctx) ? b : best), null)
     : null;
   loadout = selectPet(loadout, ctx, weights);
@@ -867,7 +870,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
   // Clear boots: any boots faster than your current clear boots, worn only during the clear.
   const clearSpeed = bootsSpeed(loadout.clearBoots, ctx);
-  for (const [id, info] of CLEAR_BOOTS_CLASSES.includes(cls) && ctx.mode !== 'rcm' ? resource : []) {
+  for (const [id, info] of clearBootsUsed(ctx) ? resource : []) {
     if (info.category !== 'BOOTS' || loadout.owned.has(id) || !meetsRequirements(info, ctx.player)) continue;
     const boots = newItem(id, resource);
     if (bootsSpeed(boots, ctx) <= clearSpeed) continue;

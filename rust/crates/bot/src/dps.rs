@@ -74,6 +74,7 @@ fn job_of(s: &Session, upgrade_mode: UpgradeMode, menu: &str, limit: Option<usiz
         limit,
         blessings: s.blessings.unwrap_or_default(),
         any_chest: s.any_chest,
+        no_clear_boots: s.no_clear_boots,
     }
 }
 
@@ -185,7 +186,7 @@ impl Flow {
                 return edit(&i, if e == PlanError::Timeout { PLAN_TOO_LONG } else { GENERIC_FAILURE }).await;
             }
         };
-        s.coins.insert(plan_key(UpgradeMode::All, false).to_string(), Arc::new(result));
+        s.coins.insert(plan_key(UpgradeMode::All, false, false), Arc::new(result));
         self.prune();
         let id = i.id.clone();
         let now = Instant::now();
@@ -302,6 +303,10 @@ impl Flow {
                     s.any_chest = !s.any_chest;
                     s.page = 0;
                 }
+                "clearboots" if clear_boots_toggle(s) => {
+                    s.no_clear_boots = !s.no_clear_boots;
+                    s.page = 0;
+                }
                 _ => {}
             }
             let missing = match s.view {
@@ -332,7 +337,7 @@ impl Flow {
             let job = if s.view == View::Profile { job_of(s, UpgradeMode::All, "profile", None) } else { job_of(s, s.upgrade_mode, "coins", Some(PLAN_STEPS)) };
             (s.view, s.upgrade_mode, job, live.member.clone(), cancel)
         };
-        let any_chest = job.any_chest;
+        let (any_chest, no_clear_boots) = (job.any_chest, job.no_clear_boots);
         let outcome = self.engine.run(member, job, cancel).await;
         let same = |flow: &Flow| flow.sessions.lock().get(id).is_some_and(|e| Arc::ptr_eq(e, &entry));
         let stored = {
@@ -347,7 +352,7 @@ impl Flow {
                         None => Err(PlanError::Failed("no profile menu".into())),
                     },
                     View::Coins => {
-                        live.s.coins.insert(plan_key(upgrade_mode, any_chest).to_string(), Arc::new(r));
+                        live.s.coins.insert(plan_key(upgrade_mode, any_chest, no_clear_boots), Arc::new(r));
                         Ok(())
                     }
                 },
@@ -365,6 +370,7 @@ impl Flow {
                 live.s.view = View::Coins;
                 live.s.upgrade_mode = UpgradeMode::All;
                 live.s.any_chest = false;
+                live.s.no_clear_boots = false;
             }
             let what = if action == "levels" { "the max-level list" } else { "that list" };
             let lead = if err == PlanError::Timeout { format!("Working out {what} took too long and was stopped.") } else { format!("Could not work out {what}.") };
