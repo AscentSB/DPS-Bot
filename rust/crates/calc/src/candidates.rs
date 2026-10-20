@@ -36,7 +36,8 @@ use dps_core::drops::{buy_price_id, drop_base_rarity};
 use dps_core::jsfmt;
 use dps_core::kinds::Mode;
 use std::sync::Arc;
-use dps_core::model::{Gem, ItemInfo, ItemState, Pet, PriceTables, Resource, Weights};
+use dps_core::model::{Gem, ItemInfo, ItemState, Pet, PriceSource, PriceTables, Resource, Weights};
+use crate::profile::truthy;
 use dps_core::pets::{all_pet_types, effective_tier, max_pet_level, pet_stats, pet_tiers};
 use dps_core::requirements::{meets_requirements, Player};
 use dps_core::stat::Stat;
@@ -964,6 +965,10 @@ impl<'a> B<'a> {
                         continue;
                     }
                 }
+            }
+            // Quest accessories (soulbound) an NPC sells for coins are profile upgrades, not buys.
+            if is_acc && info.soulbound.as_ref().is_some_and(truthy) && self.prices.get(id).is_some_and(|(_, src)| src == PriceSource::Npc) {
+                continue;
             }
             if !is_acc && !is_rag && !self.has_useful_stats(ri, id) && !(id == IMPLOSION_BELT_ID && ctx.mode == Mode::Rcm) {
                 continue;

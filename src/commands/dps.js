@@ -6,6 +6,7 @@ import { skeletonMasterChestRule } from '../calc/upgrades.js';
 import { runInWorker, PlanTimeoutError, PlanCancelledError } from '../worker/client.js';
 import { pricesReady } from '../api/prices.js';
 import { usage } from '../lib/usage.js';
+import { formatCoins } from '../lib/format.js';
 
 // A /dps message goes inactive after this long without a button press (its buttons are removed, its data freed and
 // any calculation it started is stopped). Change it here.
@@ -65,12 +66,7 @@ function tuningText(tuning, split) {
 // Steps under this many coins are free (claimed items).
 const FREE_STEP_COINS = 1000;
 
-export function formatCoins(n) {
-  if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-  return `${Math.round(n)}`;
-}
+export { formatCoins };
 
 function damageText(d, rcm) {
   return rcm ? `${formatCoins(d.wither)} per Wither Impact` : `Withers ${formatCoins(d.wither)}\nDragons ${formatCoins(d.dragon)}`;

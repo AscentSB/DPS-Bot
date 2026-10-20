@@ -21,6 +21,7 @@ import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../
 import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor, buyPriceId } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
+import { formatCoins } from '../lib/format.js';
 import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL } from '../config/profile.js';
 import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 
@@ -745,6 +746,8 @@ export function availableUpgrades(loadout, ctx, prices) {
     const isAcc = cat === ACCESSORY_CATEGORY;
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
+    // Quest accessories (soulbound) an NPC sells for coins are profile upgrades, not buys.
+    if (isAcc && info.soulbound && prices.get(id)?.source === 'NPC') continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls) && !(id === IMPLOSION_BELT_ID && ctx.mode === 'rcm')) continue;
     if (cat === 'BOOTS' && !bossBootsAllowed(loadout.owned, id, cls)) continue;
     // A buy can come bundled with the changes it would get straight away (reforge, recombobulator, enrichment),
@@ -1516,26 +1519,29 @@ export function profileUpgrades(loadout, ctx, weights, prices = null) {
         { collections: { ...ctx.collections, maxed: ctx.collections.maxed + 1 } });
     }
   }
-  // Free quest accessories (soulbound, no price): only the ones that raise accessory (magical) power. In an upgrade
-  // chain, only the next tier that does (a Campfire badge that stays the same rarity is skipped).
+  // Quest accessories (soulbound): free ones (no price) and ones an NPC sells for coins (the cost is in the label).
+  // Only the ones that raise accessory (magical) power. In an upgrade chain, only the next tier that does (a
+  // Campfire badge that stays the same rarity is skipped).
   if (prices) {
     const { resource } = ctx;
     const accIds = new Set(loadout.accessories.keys());
     const apNow = totalAccessoryPower(loadout, resource);
     const best = new Map();
     for (const [id, info] of resource) {
-      if (info.category !== ACCESSORY_CATEGORY || !info.soulbound || loadout.accessories.has(id) || prices.get(id)) continue;
+      const price = prices.get(id);
+      if (info.category !== ACCESSORY_CATEGORY || !info.soulbound || loadout.accessories.has(id) || (price && price.source !== 'NPC')) continue;
       if (accessorySuperseded(id, accIds, resource) || !meetsRequirements(info, ctx.player)) continue;
       const next = { ...loadout, accessories: new Map(loadout.accessories).set(id, newItem(id, resource)) };
       const ap = totalAccessoryPower(next, resource) - apNow;
       if (!(ap > 0)) continue;
       const family = accessoryFamily(id) ?? id;
       const prev = best.get(family);
-      if (!prev || accessoryChainPosition(id) < accessoryChainPosition(prev.id)) best.set(family, { id, info, next, ap });
+      if (!prev || accessoryChainPosition(id) < accessoryChainPosition(prev.id)) best.set(family, { id, info, next, ap, price });
     }
-    for (const { id, info, next, ap } of best.values()) {
+    for (const { id, info, next, ap, price } of best.values()) {
       const note = ITEM_STATS[id]?.note;
-      tryLoadout(`${cleanName(info.name ?? id)} (free quest accessory: +${ap} magical power${note ? `, ${note}` : ''})`, next);
+      const kind = price ? `quest accessory, ${formatCoins(price.price)} coins from ${[...new Set(price.npc.map((b) => b.npc))].join(', ')}` : 'free quest accessory';
+      tryLoadout(`${cleanName(info.name ?? id)} (${kind}: +${ap} magical power${note ? `, ${note}` : ''})`, next);
     }
   }
   return { rows: rows.sort((a, b) => b.gain - a.gain), damage: base };

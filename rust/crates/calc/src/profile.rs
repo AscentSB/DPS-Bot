@@ -11,13 +11,13 @@ use dps_core::config::item_stats::item_stats;
 use dps_core::config::pets::{GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS};
 use dps_core::config::profile::{HARP_SONGS, SB_STRENGTH_EVERY, SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL};
 use dps_core::data::{accessory_chain_position, accessory_family};
-use dps_core::jsfmt::{js_string, to_locale_string};
-use dps_core::model::{PriceTables, Weights};
+use dps_core::jsfmt::{format_coins, js_string, to_locale_string};
+use dps_core::model::{PriceSource, PriceTables, Weights};
 use dps_core::requirements::{meets_requirements, Player};
 use dps_core::text::clean_name;
 use indexmap::IndexMap;
 
-fn truthy(v: &serde_json::Value) -> bool {
+pub(crate) fn truthy(v: &serde_json::Value) -> bool {
     match v {
         serde_json::Value::Null => false,
         serde_json::Value::Bool(b) => *b,
@@ -185,8 +185,9 @@ pub fn profile_upgrades(
             }
         }
     }
-    // Free quest accessories (soulbound, no price): only the ones that raise accessory (magical) power. In an upgrade
-    // chain, only the next tier that does (a Campfire badge that stays the same rarity is skipped).
+    // Quest accessories (soulbound): free ones (no price) and ones an NPC sells for coins (the cost is in the label).
+    // Only the ones that raise accessory (magical) power. In an upgrade chain, only the next tier that does (a
+    // Campfire badge that stays the same rarity is skipped).
     if let Some(prices) = prices {
         let resource = ctx.resource.clone();
         let acc_ids: Vec<String> = {
@@ -201,7 +202,7 @@ pub fn profile_upgrades(
             if info.category.as_deref() != Some(ACCESSORY_CATEGORY)
                 || !info.soulbound.as_ref().is_some_and(truthy)
                 || acc_ids.iter().any(|x| x == id)
-                || prices.get(id).is_some()
+                || prices.get(id).is_some_and(|(_, src)| src != PriceSource::Npc)
             {
                 continue;
             }
@@ -233,7 +234,19 @@ pub fn profile_upgrades(
             let gain = weighted_gain(&base, &ev.evaluate(&picked), &weights);
             if gain > 1e-9 {
                 let name = clean_name(info.name.as_deref().unwrap_or(&id));
-                let label = format!("{} (free quest accessory: +{} magical power{})", name, js_string(ap), note.map(|n| format!(", {n}")).unwrap_or_default());
+                let kind = match prices.get(&id) {
+                    Some((price, _)) => {
+                        let mut npcs: Vec<&str> = Vec::new();
+                        for (_, npc) in prices.npc_route(&id) {
+                            if !npcs.contains(&npc) {
+                                npcs.push(npc);
+                            }
+                        }
+                        format!("quest accessory, {} coins from {}", format_coins(price), npcs.join(", "))
+                    }
+                    None => "free quest accessory".to_string(),
+                };
+                let label = format!("{} ({}: +{} magical power{})", name, kind, js_string(ap), note.map(|n| format!(", {n}")).unwrap_or_default());
                 rows.push((label, gain));
             }
         }

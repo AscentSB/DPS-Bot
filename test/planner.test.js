@@ -1513,12 +1513,15 @@ test('free quest accessories go in profile upgrades, only when magical power ris
     acc('CAMPFIRE_TALISMAN_1', 'Campfire Initiate Badge I', 'COMMON'), acc('CAMPFIRE_TALISMAN_2', 'Campfire Initiate Badge II', 'COMMON'),
     acc('CAMPFIRE_TALISMAN_3', 'Campfire Initiate Badge III', 'COMMON'), acc('CAMPFIRE_TALISMAN_4', 'Campfire Adept Badge I', 'UNCOMMON'),
     acc('CAMPFIRE_TALISMAN_5', 'Campfire Adept Badge II', 'UNCOMMON'), acc('TWO_IQ_POINT', '2 IQ Points', 'UNCOMMON'),
-    acc('PRICED_TALISMAN', 'Priced Talisman', 'RARE')]);
+    acc('PRICED_TALISMAN', 'Priced Talisman', 'RARE'), acc('NPC_TOOTH', 'Npc Tooth', 'RARE')]);
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
   const w = weightsFor('mage');
   const l = buildLoadout(profile([newItem('HYPERION', res), newItem('CAMPFIRE_TALISMAN_1', res)]), ctx, w);
-  const p = { get: (id) => (id === 'PRICED_TALISMAN' ? { price: 1e6, source: 'AH' } : null) };
+  const p = { get: (id) => (id === 'PRICED_TALISMAN' ? { price: 1e6, source: 'AH' } : id === 'NPC_TOOTH' ? { price: 1e6, source: 'NPC', npc: [{ id, npc: 'Odger' }] } : null) };
   const labels = profileUpgrades(l, ctx, w, p).rows.map((r) => r.label);
+  // A quest accessory an NPC sells for coins stays a profile upgrade (cost in the label), never a coin buy.
+  assert.ok(labels.some((x) => /^Npc Tooth \(quest accessory, 1\.00M coins from Odger: \+\d+ magical power\)$/.test(x)));
+  assert.ok(!availableUpgrades(l, ctx, p).some((u) => /Npc Tooth/.test(u.label)));
   assert.ok(labels.includes('Campfire Adept Badge I (free quest accessory: +2 magical power)'));
   assert.ok(!labels.some((x) => /Initiate Badge (II|III)|Adept Badge II|Priced/.test(x)));
   assert.ok(labels.includes('2 IQ Points (free quest accessory: +5 magical power, +2% intelligence)'));
