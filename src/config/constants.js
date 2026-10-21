@@ -77,6 +77,12 @@ export const SPEED_CAP = 500;
 export const SPEED_CAP_BY_CLASS = { mage: 450 };
 // The Mage RCM clear set needs the full 500.
 export const speedCap = (cls, mode) => (mode === 'rcm' ? SPEED_CAP : SPEED_CAP_BY_CLASS[cls] ?? SPEED_CAP);
+// In dungeons every point of speed over 100 counts for 2/3 (200 -> 167, 300 -> 233). The caps above are dungeon
+// speed, so 500 needs 700 on the stat sheet.
+export const DUNGEON_SPEED_FREE = 100;
+export const DUNGEON_SPEED_KEPT = 2 / 3;
+export const dungeonSpeed = (speed) => (speed > DUNGEON_SPEED_FREE ? DUNGEON_SPEED_FREE + (speed - DUNGEON_SPEED_FREE) * DUNGEON_SPEED_KEPT : speed);
+export const sheetSpeedFor = (dungeon) => (dungeon > DUNGEON_SPEED_FREE ? DUNGEON_SPEED_FREE + (dungeon - DUNGEON_SPEED_FREE) / DUNGEON_SPEED_KEPT : dungeon);
 // Classes that wear separate clear boots (e.g. Maxor's) and swap for the boss. Mage clears in RCM armor,
 // so its boss gear is scored on its own, with no clear boots.
 export const CLEAR_BOOTS_CLASSES = ['arch', 'bers'];

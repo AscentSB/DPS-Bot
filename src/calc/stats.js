@@ -3,7 +3,7 @@ import {
   ARMOR_SLOTS, CLASS_WEAPON_CATEGORIES, GENERAL_MEDALLION_ID, RAGNAROCK_MULTIPLIER, CHIMERA_PER_LEVEL,
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE, LUST_FOR_BLOOD_PER_LEVEL,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
-  DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
+  DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, sheetSpeedFor, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
   WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, DEFAULT_MAXED_COLLECTIONS, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
@@ -537,12 +537,14 @@ function distribute(stats, points, ctx) {
 }
 
 // Tuning order: attack speed up to the cap, then speed up to the cap, then DPS stats.
-// speed / attackSpeed: what the player has from everything except tuning.
+// speed / attackSpeed: what the player has from everything except tuning (speed as on the stat sheet).
 // asMult: percent boost on attack speed, which also raises what each tuning point gives.
 export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_CAP, asMult = 1) {
   const asPoints = Math.min(points, Math.max(0, Math.ceil((ATTACK_SPEED_CAP - attackSpeed) / (TUNING_PER_POINT.attackSpeed * asMult) - 1e-9)));
   const left = points - asPoints;
-  const speedPoints = Math.min(left, Math.max(0, Math.ceil((speedCap(ctx?.cls, ctx?.mode) + (ctx?.speedCapBonus ?? 0) - speed) / TUNING_PER_POINT.speed)));
+  // The cap is dungeon speed (over 100 counts for 2/3), so points fill the stat sheet up to sheetSpeedFor(cap).
+  const target = sheetSpeedFor(speedCap(ctx?.cls, ctx?.mode) + (ctx?.speedCapBonus ?? 0));
+  const speedPoints = Math.min(left, Math.max(0, Math.ceil((target - speed) / TUNING_PER_POINT.speed - 1e-9)));
   const stats = { attackSpeed: asPoints * TUNING_PER_POINT.attackSpeed, speed: speedPoints * TUNING_PER_POINT.speed };
   distribute(stats, left - speedPoints, ctx);
   return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };

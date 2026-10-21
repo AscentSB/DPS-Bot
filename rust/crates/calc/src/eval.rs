@@ -104,7 +104,7 @@ impl EvalResult {
             intelligence: self.stats[t].intelligence,
             ability_damage: self.stats[t].ability_damage,
             attack_speed: self.attack_speeds[t],
-            speed: self.speed,
+            speed: dungeon_speed(self.speed),
         };
         Damage {
             wither: self.damage[0],
@@ -269,10 +269,9 @@ pub fn tuning_allocation(
         jsmath::max(0.0, ((ATTACK_SPEED_CAP - attack_speed) / (TUNING_PER_POINT_ATTACK_SPEED * as_mult) - 1e-9).ceil()),
     );
     let left = points - as_points;
-    let speed_points = jsmath::min(
-        left,
-        jsmath::max(0.0, ((ctx.speed_cap() + speed_cap_bonus - speed) / TUNING_PER_POINT_SPEED).ceil()),
-    );
+    // The cap is dungeon speed (over 100 counts for 2/3), so points fill the stat sheet up to sheetSpeedFor(cap).
+    let target = sheet_speed_for(ctx.speed_cap() + speed_cap_bonus);
+    let speed_points = jsmath::min(left, jsmath::max(0.0, ((target - speed) / TUNING_PER_POINT_SPEED - 1e-9).ceil()));
     let mut out = TuningAllocation {
         attack_speed: as_points * TUNING_PER_POINT_ATTACK_SPEED,
         speed: speed_points * TUNING_PER_POINT_SPEED,

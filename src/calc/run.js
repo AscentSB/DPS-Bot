@@ -1,4 +1,5 @@
 import { makeContext, buildLoadout, planUpgrades, weightsFor, profileUpgrades } from './upgrades.js';
+import { dungeonSpeed } from '../config/constants.js';
 
 // One /dps run from a read profile (readMember output). Returns plain data only, so it can cross a worker
 // thread: { weights, menu, plan?: { steps, startDamage, endDamage }, tuningSplit?, profile?: { rows, damage } }.
@@ -16,7 +17,7 @@ export async function runDps({ member, cls, target, upgradeMode = 'all', mode = 
   // Stats shown with the damage (after tuning), per target: the dragon pet and dragon set can change them.
   const STAT_KEYS = ['strength', 'critDamage', 'critChance', 'intelligence', 'abilityDamage'];
   const stats = (d) => Object.fromEntries(['wither', 'dragon'].map((t) => [t, {
-    ...Object.fromEntries(STAT_KEYS.map((k) => [k, d.stats?.[t]?.[k] ?? 0])), attackSpeed: d.attackSpeeds?.[t] ?? 0, speed: d.speed ?? 0,
+    ...Object.fromEntries(STAT_KEYS.map((k) => [k, d.stats?.[t]?.[k] ?? 0])), attackSpeed: d.attackSpeeds?.[t] ?? 0, speed: dungeonSpeed(d.speed ?? 0),
   }]));
   const damage = (d) => ({ wither: d.wither, dragon: d.dragon, ap: d.ap, tuning: d.tuning, stats: stats(d) });
   if (menu === 'profile') {

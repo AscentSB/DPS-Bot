@@ -114,6 +114,31 @@ pub fn speed_cap(cls: Class, mode: Mode) -> f64 {
     }
 }
 
+/// In dungeons every point of speed over 100 counts for 2/3 (200 -> 167, 300 -> 233). The caps above are dungeon
+/// speed, so 500 needs 700 on the stat sheet.
+pub const DUNGEON_SPEED_FREE: f64 = 100.0;
+pub const DUNGEON_SPEED_KEPT: f64 = 2.0 / 3.0;
+
+/// JS `dungeonSpeed(speed)`.
+#[inline]
+pub fn dungeon_speed(speed: f64) -> f64 {
+    if speed > DUNGEON_SPEED_FREE {
+        DUNGEON_SPEED_FREE + (speed - DUNGEON_SPEED_FREE) * DUNGEON_SPEED_KEPT
+    } else {
+        speed
+    }
+}
+
+/// JS `sheetSpeedFor(dungeon)`.
+#[inline]
+pub fn sheet_speed_for(dungeon: f64) -> f64 {
+    if dungeon > DUNGEON_SPEED_FREE {
+        DUNGEON_SPEED_FREE + (dungeon - DUNGEON_SPEED_FREE) / DUNGEON_SPEED_KEPT
+    } else {
+        dungeon
+    }
+}
+
 pub const CLEAR_BOOTS_CLASSES: [Class; 2] = [Class::Arch, Class::Bers];
 pub const EXTRA_SPEED: f64 = 0.0;
 

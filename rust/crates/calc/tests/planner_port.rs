@@ -485,17 +485,28 @@ fn mk_alloc(cls: Class, split: &[(Stat, f64)], speed_cap_bonus: f64, points: f64
 #[test]
 fn tuning_points_fill_speed_then_crit() {
     let split = [(Stat::CritChance, 1.0)];
-    let a = mk_alloc(Class::Arch, &split, 0.0, 200.0, 380.0, 100.0, 1.0);
+    let a = mk_alloc(Class::Arch, &split, 0.0, 200.0, 580.0, 100.0, 1.0);
     assert_eq!(a.speed_points, 80.0);
     assert_eq!(a.speed, 120.0);
     assert!((a.dps[..a.dps_len].iter().find(|(k, _)| *k == Stat::CritChance).unwrap().1 - 24.0).abs() < 1e-9);
     let b = mk_alloc(Class::Arch, &split, 0.0, 50.0, 300.0, 100.0, 1.0);
     assert_eq!(b.speed_points, 50.0);
     assert_eq!(b.dps_len, 0);
-    assert_eq!(mk_alloc(Class::Arch, &split, 0.0, 100.0, 520.0, 100.0, 1.0).speed_points, 0.0);
+    assert_eq!(mk_alloc(Class::Arch, &split, 0.0, 100.0, 720.0, 100.0, 1.0).speed_points, 0.0);
     // attack speed first
-    let c = mk_alloc(Class::Arch, &split, 0.0, 300.0, 440.0, 70.0, 1.0);
+    let c = mk_alloc(Class::Arch, &split, 0.0, 300.0, 640.0, 70.0, 1.0);
     assert_eq!((c.attack_speed_points, c.speed_points, c.dps_points), (100.0, 40.0, 160.0));
+}
+
+#[test]
+fn dungeon_speed_counts_two_thirds_over_100() {
+    use dps_core::config::constants::{dungeon_speed, sheet_speed_for};
+    assert_eq!(dungeon_speed(80.0), 80.0);
+    assert!((dungeon_speed(200.0) - 166.67).abs() < 0.01);
+    assert!((dungeon_speed(300.0) - 233.33).abs() < 0.01);
+    close(dungeon_speed(700.0), 500.0);
+    close(sheet_speed_for(500.0), 700.0);
+    close(sheet_speed_for(450.0), 625.0);
 }
 
 #[test]
@@ -503,8 +514,8 @@ fn ender_dragon_superior_and_black_cat_tuning() {
     let split = [(Stat::CritChance, 1.0)];
     assert_eq!(mk_alloc(Class::Arch, &split, 0.0, 300.0, 500.0, 73.0 * 1.1, 1.1).attack_speed_points, 60.0);
     assert_eq!(mk_alloc(Class::Arch, &split, 0.0, 300.0, 500.0, 73.0, 1.0).attack_speed_points, 90.0);
-    // Black Cat lifts the speed target from 500 to 600.
-    assert_eq!(mk_alloc(Class::Arch, &[(Stat::CritDamage, 1.0)], 100.0, 200.0, 500.0, 100.0, 1.0).speed_points, 67.0);
+    // Black Cat lifts the speed target from 500 to 600 (850 on the sheet).
+    assert_eq!(mk_alloc(Class::Arch, &[(Stat::CritDamage, 1.0)], 100.0, 200.0, 750.0, 100.0, 1.0).speed_points, 67.0);
 }
 
 #[test]
@@ -516,7 +527,7 @@ fn mage_rcm_tuning() {
     });
     assert!(ctx.is_rcm());
     ctx.set_tuning_split(None);
-    let t = tuning_allocation(100.0, 420.0, &ctx, 0.0, 100.0, 1.0);
+    let t = tuning_allocation(100.0, 620.0, &ctx, 0.0, 100.0, 1.0);
     assert_eq!(t.speed_points, 54.0);
     close(t.dps[..t.dps_len].iter().find(|(k, _)| *k == Stat::Intelligence).unwrap().1, 92.0);
     let wt = weights_for(Class::Mage, None, Mode::Rcm, FloorMode::Master);

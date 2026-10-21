@@ -228,8 +228,9 @@ test('Forbidden Blessing makes the Power blessing stronger', () => {
 test('tuning points fill speed up to 500 first; only leftover points reach crit stats', async () => {
   const { tuningAllocation } = await import('../src/calc/stats.js');
   const ctx = { cls: 'arch', tuning: { split: { critChance: 1 } } };
-  // 200 points, 380 speed: 80 points to speed (120 speed), 120 points to crit chance (0.2 each).
-  const a = tuningAllocation(200, 380, ctx);
+  // 500 dungeon speed is 700 on the sheet. 200 points, 580 speed: 80 points to speed (120 speed), 120 points to
+  // crit chance (0.2 each).
+  const a = tuningAllocation(200, 580, ctx);
   assert.equal(a.speedPoints, 80);
   assert.equal(a.stats.speed, 120);
   assert.ok(Math.abs(a.stats.critChance - 24) < 1e-9);
@@ -237,8 +238,18 @@ test('tuning points fill speed up to 500 first; only leftover points reach crit 
   const b = tuningAllocation(50, 300, ctx);
   assert.equal(b.speedPoints, 50);
   assert.equal(b.stats.critChance, undefined);
-  // Already at 500: all points go to crit.
-  assert.equal(tuningAllocation(100, 520, ctx).speedPoints, 0);
+  // Already at 500 (720 on the sheet): all points go to crit.
+  assert.equal(tuningAllocation(100, 720, ctx).speedPoints, 0);
+});
+
+test('dungeon speed: every point over 100 counts for 2/3', async () => {
+  const { dungeonSpeed, sheetSpeedFor } = await import('../src/config/constants.js');
+  assert.equal(dungeonSpeed(80), 80);
+  close(dungeonSpeed(200), 166.67, 0.01);
+  close(dungeonSpeed(300), 233.33, 0.01);
+  close(dungeonSpeed(700), 500);
+  close(sheetSpeedFor(500), 700);
+  close(sheetSpeedFor(450), 625);
 });
 
 test('a speed upgrade below 500 frees tuning points for crit; past 500 it does nothing', () => {
@@ -247,15 +258,15 @@ test('a speed upgrade below 500 frees tuning points for crit; past 500 it does n
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, tuning: { split: { critChance: 1 } } });
   const loadout = { ...buildLoadout(profile([...items([{ id: 'TERMINATOR' }]), newItem('FAST_BOOTS', res)]), ctx, w), power: 'silky' };
   // Give the bag plenty of tuning points.
-  loadout.accessories = new Map(Array.from({ length: 200 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
+  loadout.accessories = new Map(Array.from({ length: 400 }, (_, i) => [`A${i}`, { id: `A${i}`, category: 'ACCESSORY', baseRarity: 'MYTHIC', enchants: {} }]));
   const base = evaluate(loadout, ctx, w);
-  assert.ok(base.speed >= 500 && base.tuning.speed > 0);
+  assert.ok(base.speed >= 700 && base.tuning.speed > 0);
   const faster = evaluate({ ...loadout, shards: { OBSIDIAN_DEFENDER: 10 } }, ctx, w);
   assert.ok(faster.tuning.speed < base.tuning.speed);
   assert.ok(faster.stats.dragon.critChance > base.stats.dragon.critChance);
   // Past 500 with no speed points left to free, more speed changes nothing.
   const capped = { ...loadout, armor: { BOOTS: { ...newItem('FAST_BOOTS', res), id: 'FAST_BOOTS' } }, shards: {} };
-  const res2 = new Map([...res, ['FAST_BOOTS', { ...res.get('FAST_BOOTS'), stats: { WALK_SPEED: 450 } }]]);
+  const res2 = new Map([...res, ['FAST_BOOTS', { ...res.get('FAST_BOOTS'), stats: { WALK_SPEED: 650 } }]]);
   const ctx2 = { ...ctx, resource: res2 };
   const c1 = evaluate(capped, ctx2, w);
   const c2 = evaluate({ ...capped, shards: { OBSIDIAN_DEFENDER: 10 } }, ctx2, w);
@@ -351,7 +362,7 @@ test('Terminator volleys: 4/s at 100 attack speed, 3.33/s at 99; arrows = 3 + Du
 test('tuning fills attack speed to 100, then speed to 500, then crit', async () => {
   const { tuningAllocation } = await import('../src/calc/stats.js');
   const ctx = { cls: 'arch', tuning: { split: { critChance: 1 } } };
-  const a = tuningAllocation(300, 440, ctx, 70); // 100 points AS, 40 points speed, 160 crit
+  const a = tuningAllocation(300, 640, ctx, 70); // 100 points AS, 40 points speed (to 700 = 500 in dungeons), 160 crit
   assert.equal(a.attackSpeedPoints, 100);
   assert.equal(a.speedPoints, 40);
   assert.equal(a.dpsPoints, 160);
@@ -717,8 +728,8 @@ test('Mage RCM: scored on Wither Impact, needs a Necron blade, tunes speed to 50
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource, mode: 'rcm' });
   assert.ok(isRcm(ctx));
   assert.deepEqual(weightsFor('mage', null, 'rcm'), { wither: 100, dragon: 0 });
-  // 100 points at 420 speed: 54 to speed (500), the rest to intelligence (2 each).
-  const t = tuningAllocation(100, 420, ctx);
+  // 100 points at 620 speed: 54 to speed (700 = 500 in dungeons), the rest to intelligence (2 each).
+  const t = tuningAllocation(100, 620, ctx);
   assert.equal(t.speedPoints, 54);
   close(t.stats.intelligence, 92);
   const w = weightsFor('mage', null, 'rcm');
@@ -983,8 +994,8 @@ test('pet perks from the clarifications: Pigman, Tiger, T-Rex, Lion, Griffin, An
   close(ps('GRIFFIN').stats.additiveStrength, 0.15);
   close(ps('ANKYLOSAURUS').special.perkStrength, 500);
   close(ps('BLACK_CAT').special.speedCapBonus, 100);
-  // Black Cat lifts the speed target from 500 to 600.
-  assert.equal(tuningAllocation(200, 500, { cls: 'arch', speedCapBonus: 100, tuning: { split: { critDamage: 1 } } }).speedPoints, 67);
+  // Black Cat lifts the speed target from 500 to 600 (850 on the sheet).
+  assert.equal(tuningAllocation(200, 750, { cls: 'arch', speedCapBonus: 100, tuning: { split: { critDamage: 1 } } }).speedPoints, 67);
   // Death's Touch adds damage; Stampede only counts in the RCM clear.
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource });
   const w = weightsFor('mage');
@@ -1135,8 +1146,9 @@ test("with Maxor's boots, the boss boots are Maxor's or Necron's only", () => {
 
 test("mage fills speed to 450 only and picks boss boots freely, with no clear boots", async () => {
   const { tuningAllocation } = await import('../src/calc/stats.js');
-  assert.equal(tuningAllocation(100, 420, { cls: 'mage', tuning: { split: { critDamage: 1 } } }).speedPoints, 20);
-  assert.equal(tuningAllocation(100, 420, { cls: 'arch', tuning: { split: { critDamage: 1 } } }).speedPoints, 54);
+  // 450 / 500 dungeon speed is 625 / 700 on the sheet.
+  assert.equal(tuningAllocation(100, 595, { cls: 'mage', tuning: { split: { critDamage: 1 } } }).speedPoints, 20);
+  assert.equal(tuningAllocation(100, 595, { cls: 'arch', tuning: { split: { critDamage: 1 } } }).speedPoints, 70);
   const res = new Map([...resource,
     ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 10 } }],
     ['WISE_WITHER_BOOTS', { id: 'WISE_WITHER_BOOTS', name: "Storm's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { INTELLIGENCE: 250, CRITICAL_DAMAGE: 10 } }]]);
