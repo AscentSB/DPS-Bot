@@ -1174,6 +1174,21 @@ test("upgrade mode 'max' jumps straight to the max level at its own cost", () =>
   assert.ok(labels('max').some((x) => x.startsWith('1st–5th Master Stars on')));
 });
 
+test("upgrade mode 'max' offers only the best buyable accessory of a family (Wither Relic, not Wither Artifact)", () => {
+  const res = new Map([...resource, ['WITHER_ARTIFACT', { id: 'WITHER_ARTIFACT', name: 'Wither Artifact', category: 'ACCESSORY', tier: 'EPIC' }]]);
+  const buys = (mode, p) => {
+    const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res, upgradeMode: mode });
+    const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
+    return availableUpgrades(l, ctx, p).map((u) => u.label).filter((x) => /^Buy Wither (Artifact|Relic)/.test(x));
+  };
+  const all = { get: (id) => ({ price: 1e6, source: 'AH', id }) };
+  assert.ok(buys('all', all).some((x) => x.startsWith('Buy Wither Artifact')));
+  assert.ok(buys('max', all).length && buys('max', all).every((x) => x.startsWith('Buy Wither Relic')));
+  // No Wither Relic on sale: the artifact is the best you can buy.
+  const noRelic = { get: (id) => (id === 'WITHER_RELIC' ? null : { price: 1e6, source: 'AH', id }) };
+  assert.ok(buys('max', noRelic).some((x) => x.startsWith('Buy Wither Artifact')));
+});
+
 test('Tier Boost: an Epic Ender Dragon with a Tier Boost plays as Legendary; Kat upgrade + new item is offered', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const legendary = petStats({ type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null }).stats;

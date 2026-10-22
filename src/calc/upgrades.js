@@ -14,7 +14,7 @@ import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import { ITEM_STATS } from '../config/itemStats.js';
 import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, accessoryChainPosition, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, accessoryFamilyRank, accessoryChainPosition, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
@@ -732,6 +732,16 @@ export function availableUpgrades(loadout, ctx, prices) {
   const accIds = new Set(loadout.accessories.keys());
   const worn = [loadout.weapon, loadout.rag, ...Object.values(loadout.armor), ...Object.values(loadout.equipment), ...dragonItems(loadout)].filter(Boolean);
   const dragonSet = hasDragonSet(ctx);
+  // Max levels: only the best buyable accessory of each family is offered (Wither Relic, never Wither Artifact).
+  const topAccRank = new Map();
+  if (ctx.upgradeMode === 'max') {
+    for (const [id, info] of resource) {
+      const family = info.category === ACCESSORY_CATEGORY && accessoryFamily(id);
+      if (!family || loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player) || excludedItem(id, ctx)) continue;
+      if ((info.soulbound && prices.get(id)?.source === 'NPC') || !prices.get(buyPriceId(id, resource, ctx.cataLevel))) continue;
+      topAccRank.set(family, Math.max(topAccRank.get(family) ?? -Infinity, accessoryFamilyRank(id, resource)));
+    }
+  }
   for (const [id, info] of resource) {
     if (loadout.owned.has(id) || UNBUYABLE_TIERS.has(info.tier) || !meetsRequirements(info, ctx.player)) continue;
     if (excludedItem(id, ctx)) continue;
@@ -746,6 +756,7 @@ export function availableUpgrades(loadout, ctx, prices) {
     const isAcc = cat === ACCESSORY_CATEGORY;
     if (!isRag && !isWeapon && !isArmor && !isEquip && !isAcc) continue;
     if (isAcc && accessorySuperseded(id, accIds, resource)) continue;
+    if (isAcc && accessoryFamilyRank(id, resource) < (topAccRank.get(accessoryFamily(id)) ?? -Infinity)) continue;
     // Quest accessories (soulbound) an NPC sells for coins are profile upgrades, not buys.
     if (isAcc && info.soulbound && prices.get(id)?.source === 'NPC') continue;
     if (!isAcc && !isRag && !hasUsefulStats(id, resource, cls) && !(id === IMPLOSION_BELT_ID && ctx.mode === 'rcm')) continue;

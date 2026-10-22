@@ -933,6 +933,28 @@ impl<'a> B<'a> {
                 worn_into.insert(u.id);
             }
         }
+        // Max levels: only the best buyable accessory of each family is offered (Wither Relic, never Wither Artifact).
+        let mut top_acc_rank: FxHashMap<&'static str, i64> = FxHashMap::default();
+        if ctx.upgrade_mode == UpgradeMode::Max {
+            for (id, info) in resource.iter() {
+                let Some(fam) = (info.category.as_deref() == Some(ACCESSORY_CATEGORY)).then(|| accessory_family(id)).flatten() else { continue };
+                if l.owned.contains(id)
+                    || info.tier.as_deref().is_some_and(|t| UNBUYABLE_TIERS.contains(&t))
+                    || !meets_requirements(Some(info), Some(self.player))
+                    || ctx.excluded_item(id)
+                {
+                    continue;
+                }
+                if (info.soulbound.as_ref().is_some_and(truthy) && self.prices.get(id).is_some_and(|(_, src)| src == PriceSource::Npc))
+                    || self.prices.get(&buy_price_id(id, resource, ctx.cata_level)).is_none()
+                {
+                    continue;
+                }
+                let rank = family_rank(drop_base_rarity(id, resource), id);
+                let top = top_acc_rank.entry(fam).or_insert(i64::MIN);
+                *top = (*top).max(rank);
+            }
+        }
         for (ri, (id, info)) in resource.iter().enumerate() {
             let cat = info.category.as_deref();
             let is_rag = id == RAGNAROCK_ID;
@@ -962,6 +984,9 @@ impl<'a> B<'a> {
                     let mine = family_rank(drop_base_rarity(id, resource), id);
                     let my_kind = self.model.find_kind(id);
                     if by_family.get(fam).is_some_and(|v| v.iter().any(|&(k, r)| Some(k) != my_kind && r >= mine)) {
+                        continue;
+                    }
+                    if top_acc_rank.get(fam).is_some_and(|&top| mine < top) {
                         continue;
                     }
                 }

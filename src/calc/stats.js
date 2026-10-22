@@ -474,6 +474,11 @@ function familyRank(rarity, id) {
   return statRarityIndex(rarity) * 100 + (CHAIN_POSITION.get(id) ?? 0);
 }
 
+// Higher is better within a family (by base rarity, then chain position).
+export function accessoryFamilyRank(id, resource) {
+  return familyRank(dropBaseRarity(id, resource), id);
+}
+
 // True when an owned accessory of the same family is at least as good (by base rarity when the resource is
 // given, otherwise by chain position), so this one would add nothing.
 export function accessorySuperseded(id, accessoryIds, resource) {
