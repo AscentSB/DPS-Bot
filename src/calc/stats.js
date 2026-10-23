@@ -695,7 +695,9 @@ function tuned({ buckets, acc, pets, speeds }, loadout, c, targets) {
   const speedTarget = targets.length === 1 ? targets[0] : 'wither';
   const speedBeforeTuning = speeds[speedTarget];
   const asNeed = (b) => (ATTACK_SPEED_CAP - attackSpeedOf(b)) / (TUNING_PER_POINT.attackSpeed * (1 + b.additiveAttackSpeed));
-  const binding = targets.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), targets[0]);
+  // F7 has no dragons, so the dragon pet's attack speed never sets the points.
+  const fought = c.floorMode === 'normal' && targets.length > 1 ? targets.filter((t) => t !== 'dragon') : targets;
+  const binding = fought.reduce((a, t) => (asNeed(buckets[t]) > asNeed(buckets[a]) ? t : a), fought[0]);
   // Attack speed only matters for shortbows (shots per second) and the mage beam; otherwise no points go to it.
   const needsAttackSpeed = (c.cls === 'mage' && !isRcm(c)) || Boolean(ITEM_STATS[loadout.weapon?.id]?.shotTicks);
   // Black Cat raises the speed cap, so the speed target goes up with it.

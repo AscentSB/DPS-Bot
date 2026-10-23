@@ -624,10 +624,12 @@ fn tuned(
     let as_need = |b: &Bucket| {
         (ATTACK_SPEED_CAP - attack_speed_of(b)) / (TUNING_PER_POINT_ATTACK_SPEED * (1.0 + b.get(Stat::AdditiveAttackSpeed)))
     };
-    let mut binding = targets[0];
-    if targets.len() > 1 {
+    // F7 has no dragons, so the dragon pet's attack speed never sets the points.
+    let fought: &[usize] = if ctx.floor_mode == FloorMode::Normal && targets.len() > 1 { &[0] } else { targets };
+    let mut binding = fought[0];
+    if fought.len() > 1 {
         let mut best = as_need(&pre.buckets[binding]);
-        for &t in targets {
+        for &t in fought {
             let v = as_need(&pre.buckets[t]);
             if v > best {
                 binding = t;

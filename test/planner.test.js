@@ -1366,6 +1366,26 @@ test('Mage: a Tier Boosted Ender Dragon is only used if attack speed still reach
   assert.equal(l2.activePets.dragon?.type, 'ENDER_DRAGON');
 });
 
+test("F7 has no dragons: the dragon slot's attack speed never sets the tuning, so Golden Dragon + Chimera keeps withers", () => {
+  const res = new Map(resource);
+  const bag = Array.from({ length: 80 }, (_, i) => {
+    res.set(`TEST_ACC_${i}`, { id: `TEST_ACC_${i}`, name: `Test ${i}`, category: 'ACCESSORY', tier: 'LEGENDARY' });
+    return newItem(`TEST_ACC_${i}`, res);
+  });
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, floorMode: 'normal', resource: res,
+    profileStats: { sbLevel: 0, harpSongs: [], cakes: [{ stat: 'speed', amount: 700 }] }, petProfile: { bank: 50e6, goldCollection: 1e9 } });
+  const w = weightsFor('mage', null, 'lcm', 'normal');
+  const gd = { type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const ed = { type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: null };
+  const hype = { ...newItem('HYPERION', res), enchants: { ultimate_chimera: 5 } };
+  const l = buildLoadout(profile([hype, ...bag], { pets: [gd, ed] }), ctx, w);
+  assert.equal(l.activePets.wither.type, 'GOLDEN_DRAGON');
+  assert.equal(evaluate(l, ctx, w).tuning.attackSpeed, 0);
+  // An empty dragon slot (no attack speed) changes nothing on F7.
+  const r = evaluate({ ...l, activePets: { wither: gd, dragon: null } }, ctx, w);
+  assert.equal(r.tuning.attackSpeed, 0);
+});
+
 test('Mage never gets clear boots (boss set and clear set); the clear set comes from the RCM plan', () => {
   const res = new Map([...resource, ['SPEED_WITHER_BOOTS', { id: 'SPEED_WITHER_BOOTS', name: "Maxor's Boots", category: 'BOOTS', tier: 'LEGENDARY', dungeon_item: true, stats: { WALK_SPEED: 30, CRITICAL_DAMAGE: 45 } }]]);
   const p = { get: () => ({ price: 1e6, source: 'BZ' }) };

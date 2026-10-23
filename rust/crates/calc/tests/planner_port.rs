@@ -942,6 +942,40 @@ fn tier_boosted_ender_dragon_for_mage() {
 }
 
 #[test]
+fn f7_dragon_slot_never_sets_attack_speed_tuning() {
+    let accs: Vec<Value> = (0..80)
+        .map(|i| json!({"id": format!("TEST_ACC_{i}"), "name": format!("Test {i}"), "category": "ACCESSORY", "tier": "LEGENDARY"}))
+        .collect();
+    let res = with_items(&base_resource(), accs);
+    let ctx = mk_ctx(Class::Mage, 50.0, &res, |i| {
+        i.mage_level = 50.0;
+        i.combat_level = 60.0;
+        i.floor_mode = FloorMode::Normal;
+        i.pet_profile = PetProfile { bank: Some(50e6), gold_collection: Some(1e9) };
+        i.profile_stats = Some(ProfileStats {
+            sb_level: 0,
+            bop_bonus: None,
+            harp_songs: vec![],
+            cakes: vec![Cake { stat: "speed".into(), amount: 700.0 }],
+        });
+    });
+    let mut w = World::new(ctx, weights_for(Class::Mage, None, Mode::Lcm, FloorMode::Normal));
+    let gd = pet("GOLDEN_DRAGON", "LEGENDARY", None);
+    let ed = pet("ENDER_DRAGON", "LEGENDARY", None);
+    let hype = with(new_it(&res, "HYPERION"), |i| enchants(i, &[("ultimate_chimera", 5)]));
+    let mut items = vec![hype];
+    items.extend((0..80).map(|i| new_it(&res, &format!("TEST_ACC_{i}"))));
+    let l = w.build(&items, &[gd.clone(), ed], &[], &[]);
+    let gd_id = w.model.pet_id(&gd);
+    assert_eq!(l.active_pets[0], Some(gd_id));
+    assert_eq!(w.eval(&l).tuning.attack_speed, 0.0);
+    // An empty dragon slot (no attack speed) changes nothing on F7.
+    let mut l2 = l.clone();
+    l2.active_pets = [Some(gd_id), None];
+    assert_eq!(w.eval(&l2).tuning.attack_speed, 0.0);
+}
+
+#[test]
 fn fire_aspect_and_first_strike() {
     let res = with_items(
         &base_resource(),
