@@ -55,6 +55,6 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 ## Profile upgrades (no coins)
 
 - Skills, slayers, class and cata levels, SkyBlock level, Harp songs.
-- Gold collection digits (Golden Dragon), one row per unmaxed collection when The One is worn.
+- Gold collection digits (Golden Dragon), one row per unmaxed collection when The One is worn. The Gold row's label shows the strength against the main boss with what raises it: the pet item, Chimera on the weapon (active Golden Dragon) and a Chimera Ragnarock (strongest owned pet), e.g. "+11.1 strength, +81.6 with Chimera".
 - Quest accessories (soulbound), listed only when magical power rises: free ones (unpriced) and ones an NPC sells for coins (Odger's teeth, Lucius, Kuudra Follower; the cost and NPC go in the label, never in the coin list). In a chain, list only the next tier that changes rarity.
 - 2 IQ Points shows as "+2% intelligence" (additive intelligence).

@@ -1554,6 +1554,35 @@ test('Gold collection: the next digit is a profile upgrade for a Golden Dragon o
   assert.ok(!profileUpgrades(none, ctx, w).rows.some((r) => /Gold collection/.test(r.label)));
 });
 
+test('Gold collection row: the strength counts the pet item, Chimera on the weapon and a Chimera Ragnarock', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, resource, petProfile: { bank: 1e9, goldCollection: 54321 } });
+  const w = weightsFor('mage');
+  const hype = (enchants) => ({ ...newItem('HYPERION', resource), enchants });
+  const rag = (enchants) => ({ ...newItem('RAGNAROCK_AXE', resource), enchants });
+  const row = (heldItem, items) => {
+    const l = buildLoadout(profile(items, { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem }] }), ctx, w);
+    return profileUpgrades(l, ctx, w).rows.find((r) => /Gold collection/.test(r.label)).label;
+  };
+  const strength = (label, sources) => {
+    const m = label.match(/^Gold collection to 100,000 \(Golden Dragon: \+11\.1 strength, \+([\d.]+) with (.+)\)$/);
+    assert.ok(m, label);
+    assert.equal(m[2], sources);
+    return Number(m[1]);
+  };
+  // Labels round to 0.1.
+  const near = (a, b) => assert.ok(Math.abs(a - b) <= 0.05 + 1e-9, `${a} != ${b}`);
+  // Chimera copies the pet's strength with the Hyperion's own boost (stars and Catacombs).
+  const boost = itemContribution(hype({}), ctx).global.strength / 150;
+  assert.equal(row(null, [hype({})]), 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)');
+  near(strength(row('ANTIQUE_REMEDIES', [hype({})]), 'Antique Remedies'), 11.1 * 1.8);
+  near(strength(row(null, [hype({ ultimate_chimera: 5 })]), 'Chimera'), 11.1 * (1 + boost));
+  // The Ragnarock casts with the pet's strength only through its own Chimera, then gives 1.5x its strength.
+  assert.equal(row(null, [hype({}), rag({})]), 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)');
+  near(strength(row(null, [hype({}), rag({ ultimate_chimera: 5 })]), 'Ragnarock'), 11.1 * 2.5);
+  near(strength(row('ANTIQUE_REMEDIES', [hype({ ultimate_chimera: 5 }), rag({ ultimate_chimera: 5 })]), 'Antique Remedies, Chimera and Ragnarock'),
+    11.1 * 1.8 * (2.5 + boost));
+});
+
 test('free quest accessories go in profile upgrades, only when magical power rises (next Campfire badge that changes rarity); IQ Points show +% intelligence', () => {
   const acc = (id, name, tier, extra = {}) => [id, { id, name, category: 'ACCESSORY', tier, soulbound: 'SOLO', ...extra }];
   const res = new Map([...resource,

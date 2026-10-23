@@ -942,6 +942,37 @@ fn tier_boosted_ender_dragon_for_mage() {
 }
 
 #[test]
+fn gold_collection_row_counts_pet_item_chimera_and_ragnarock() {
+    let res = res();
+    let mut w = World::new(
+        mk_ctx(Class::Mage, 50.0, &res, |i| {
+            i.mage_level = 50.0;
+            i.combat_level = 60.0;
+            i.pet_profile = PetProfile { bank: Some(1e9), gold_collection: Some(54321.0) };
+        }),
+        weights(Class::Mage),
+    );
+    let hype = |list: &[(&str, i32)]| with(new_it(&res, "HYPERION"), |i| enchants(i, list));
+    let rag = |list: &[(&str, i32)]| with(new_it(&res, "RAGNAROCK_AXE"), |i| enchants(i, list));
+    let row = |w: &mut World, held: Option<&str>, items: &[ItemState]| -> String {
+        let l = w.build(items, &[pet("GOLDEN_DRAGON", "LEGENDARY", held)], &[], &[]);
+        let (rows, _) = profile_upgrades(&mut w.model, &w.ctx, w.w, &l, None);
+        rows.into_iter().map(|r| r.0).find(|s| s.starts_with("Gold collection")).expect("gold row")
+    };
+    let label = |s: &str| format!("Gold collection to 100,000 (Golden Dragon: +11.1 strength{s})");
+    let chim = [("ultimate_chimera", 5)];
+    assert_eq!(row(&mut w, None, &[hype(&[])]), label(""));
+    assert_eq!(row(&mut w, Some("ANTIQUE_REMEDIES"), &[hype(&[])]), label(", +20 with Antique Remedies"));
+    assert_eq!(row(&mut w, None, &[hype(&chim)]), label(", +81.6 with Chimera"));
+    assert_eq!(row(&mut w, None, &[hype(&[]), rag(&[])]), label(""));
+    assert_eq!(row(&mut w, None, &[hype(&[]), rag(&chim)]), label(", +27.8 with Ragnarock"));
+    assert_eq!(
+        row(&mut w, Some("ANTIQUE_REMEDIES"), &[hype(&chim), rag(&chim)]),
+        label(", +176.8 with Antique Remedies, Chimera and Ragnarock")
+    );
+}
+
+#[test]
 fn f7_dragon_slot_never_sets_attack_speed_tuning() {
     let accs: Vec<Value> = (0..80)
         .map(|i| json!({"id": format!("TEST_ACC_{i}"), "name": format!("Test {i}"), "category": "ACCESSORY", "tier": "LEGENDARY"}))

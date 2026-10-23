@@ -914,6 +914,16 @@ pub fn evaluate(model: &Model, ctx: &Ctx, l: &Loadout, weights: &Weights) -> Eva
     evaluate_with(model, ctx, l, &extras)
 }
 
+/// JS `flatStrength(loadout, ctx, weights)`: strength against each target before tuning and % boosts, after pet
+/// items, Chimera and Ragnarock have counted the pet's strength (profile row labels).
+pub fn flat_strength(model: &Model, ctx: &Ctx, l: &Loadout, weights: &Weights) -> [f64; 2] {
+    let extras = active_extras(model, ctx, l, Some(weights));
+    let variant = (l.has_medallion(model) && model.secret_digit_medallion != 0.0) as usize;
+    let gears = [l.gear_view(false), l.gear_view(true)];
+    let pre = buckets_before_tuning(model, ctx, l, &extras, &gears, variant, false);
+    [pre.buckets[0].get(Stat::Strength), pre.buckets[1].get(Stat::Strength)]
+}
+
 pub fn evaluate_scoring(model: &Model, ctx: &Ctx, l: &Loadout, weights: &Weights) -> EvalResult {
     let extras = active_extras(model, ctx, l, Some(weights));
     let skip1 = ctx.d.rcm && weights.dragon == 0.0 && l.dragon_gear.is_none();

@@ -1073,6 +1073,14 @@ export function selectPet(loadout, ctx, weights) {
   return { ...loadout, activePets };
 }
 
+// Strength against each target before tuning and % boosts, after pet items, Chimera and Ragnarock have counted
+// the pet's strength (profile row labels).
+export function flatStrength(loadout, ctx, weights) {
+  const c = { ...ctx, secretDigit: secretDigitFor(loadout, ctx) };
+  const { buckets } = bucketsBeforeTuning(loadout, c, activeExtras(loadout, ctx, weights));
+  return { wither: buckets.wither.strength, dragon: buckets.dragon.strength };
+}
+
 // Damage against each target for the loadout. Returns { wither, dragon, stats, ap, extras }.
 export function evaluate(loadout, ctx, weights) {
   const extras = activeExtras(loadout, ctx, weights);

@@ -8,12 +8,13 @@ use crate::{Ctx, Loadout, Model};
 use dps_core::config::constants::{ACCESSORY_CATEGORY, CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS};
 use dps_core::config::enchants::enchant;
 use dps_core::config::item_stats::item_stats;
-use dps_core::config::pets::{GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS};
+use dps_core::config::pets::{pet_item, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS};
 use dps_core::config::profile::{HARP_SONGS, SB_STRENGTH_EVERY, SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL};
 use dps_core::data::{accessory_chain_position, accessory_family};
-use dps_core::jsfmt::{format_coins, js_string, to_locale_string};
+use dps_core::jsfmt::{format_coins, js_string, math_round, to_locale_string};
 use dps_core::model::{PriceSource, PriceTables, Weights};
 use dps_core::requirements::{meets_requirements, Player};
+use dps_core::stat::Stat;
 use dps_core::text::clean_name;
 use indexmap::IndexMap;
 
@@ -25,6 +26,58 @@ pub(crate) fn truthy(v: &serde_json::Value) -> bool {
         serde_json::Value::String(s) => !s.is_empty(),
         _ => true,
     }
+}
+
+/// JS `goldStrengthText(loadout, ctx, weights, changes)`: a Gold collection digit's strength against the main boss,
+/// "+11.1 strength" or with what raises it ("+11.1 strength, +81.6 with Antique Remedies, Chimera and Ragnarock").
+fn gold_strength_text(model: &Model, ctx: &Ctx, weights: &Weights, loadout: &Loadout, gold: f64) -> String {
+    let t = if weights.wither >= weights.dragon { 0 } else { 1 };
+    let mut c2 = ctx.clone();
+    c2.pet_profile.gold_collection = Some(gold);
+    c2.rederive();
+    // Pet strength depends on the Gold collection, so the changed context may need a model of its own.
+    let m2: Model;
+    let l2: Loadout;
+    let (m, l): (&Model, &Loadout) = if model.accepts(&c2) {
+        (model, loadout)
+    } else {
+        let mut fresh = Model::new(&c2);
+        let ser = loadout.to_serialized(model);
+        l2 = Loadout::from_serialized(&mut fresh, &ser, c2.pet_profile.bank).expect("loadout round trip");
+        m2 = fresh;
+        (&m2, &l2)
+    };
+    let total = crate::eval::flat_strength(m, &c2, l, weights)[t] - crate::eval::flat_strength(model, ctx, loadout, weights)[t];
+    let gdrag = |p: Option<crate::ids::PetId>| p.filter(|&p| m.pet(p).kind == "GOLDEN_DRAGON");
+    let active = gdrag(l.active_pets[t]);
+    let weapon = l.gear_view(t == 1).weapon;
+    let chimera = active.is_some() && weapon.is_some_and(|w| m.flags(w).chimera_level > 0.0 && !m.flags(w).is_rag_id);
+    let mut strongest: Option<crate::ids::PetId> = None;
+    for &p in &l.pets.ids {
+        if strongest.is_none_or(|s| m.pets[p.index()].pet_strength > m.pets[s.index()].pet_strength) {
+            strongest = Some(p);
+        }
+    }
+    let rag_pet = if l.rag.is_some_and(|r| m.flags(r).chimera_level > 0.0) { gdrag(strongest) } else { None };
+    let item = [active, rag_pet].into_iter().flatten().find_map(|p| {
+        m.pet(p).held_item.as_deref().and_then(pet_item).filter(|i| i.mult.iter().any(|&(k, v)| k == Stat::Strength && v != 0.0))
+    });
+    let mut sources: Vec<&str> = Vec::new();
+    if let Some(i) = item {
+        sources.push(i.name);
+    }
+    if chimera {
+        sources.push("Chimera");
+    }
+    if rag_pet.is_some() {
+        sources.push("Ragnarock");
+    }
+    let list = match sources.split_last() {
+        None => return "+11.1 strength".to_string(),
+        Some((last, [])) => last.to_string(),
+        Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
+    };
+    format!("+11.1 strength, +{} with {list}", js_string(math_round(total * 10.0) / 10.0))
 }
 
 /// JS `profileUpgrades(loadout, ctx, weights, prices)`: `(rows sorted by gain, the damage now)`. `prices` (optional)
@@ -139,10 +192,11 @@ pub fn profile_upgrades(
             let digits = js_string(gold.floor().max(0.0)).len();
             if (digits as f64) < GOLD_COLLECTION_DIGITS {
                 let target = 10f64.powi(digits as i32);
+                let text = gold_strength_text(model, ctx, &weights, loadout, target);
                 try_ctx(
                     model,
                     &mut rows,
-                    format!("Gold collection to {} (Golden Dragon: +11.1 strength)", to_locale_string(target)),
+                    format!("Gold collection to {} (Golden Dragon: {text})", to_locale_string(target)),
                     &|c| c.pet_profile.gold_collection = Some(target),
                 );
             }

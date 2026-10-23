@@ -14,7 +14,7 @@ import { ITEM_UPGRADES } from '../config/itemUpgrades.js';
 import { ITEM_STATS } from '../config/itemStats.js';
 import {
   evaluate, weightedGain, loadoutKey, baseItemStats, isDungeon, isWeaponCategory, itemRarity, canRecomb, allReforges,
-  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, accessoryFamilyRank, accessoryChainPosition, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm,
+  getReforge, reforgeAppliesTo, gemStat, accessorySuperseded, accessoryFamily, accessoryFamilyRank, accessoryChainPosition, hasWitherImpact, statRarity, itemContribution, shardLevel, totalAccessoryPower, selectPet, dpsPets, gearView, isRcm, flatStrength,
 } from './stats.js';
 import { PET_ITEMS, BUY_RARITIES, TIER_BOOST_ID, KAT_UPGRADES, KAT_LEVEL_DISCOUNT, KAT_FLOWER_ID, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS } from '../config/pets.js';
 import { allPetTypes, petTiers, petStats, maxPetLevel, effectiveTier } from '../lib/pets.js';
@@ -1465,6 +1465,27 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
 }
 
 
+// A Gold collection digit's strength against the main boss: "+11.1 strength", or with what raises it
+// ("+11.1 strength, +81.6 with Antique Remedies, Chimera and Ragnarock"). The pet item boosts it, Chimera on the
+// weapon copies it from the active Golden Dragon, and a Chimera Ragnarock casts with the strongest owned pet.
+function goldStrengthText(loadout, ctx, weights, changes) {
+  const t = weights.wither >= weights.dragon ? 'wither' : 'dragon';
+  const next = { ...ctx, ...changes };
+  const total = flatStrength(loadout, next, weights)[t] - flatStrength(loadout, ctx, weights)[t];
+  const gdrag = (pet) => (pet?.type === 'GOLDEN_DRAGON' ? pet : null);
+  const active = gdrag(loadout.activePets?.[t]);
+  const weapon = gearView(loadout, t).weapon;
+  const chimera = active && (weapon?.enchants?.ultimate_chimera ?? 0) > 0 && weapon.id !== RAGNAROCK_ID;
+  let strongest = null;
+  for (const pet of loadout.pets) if (!strongest || petStats(pet, next.petProfile).petStrength > petStats(strongest, next.petProfile).petStrength) strongest = pet;
+  const ragPet = (loadout.rag?.enchants?.ultimate_chimera ?? 0) > 0 ? gdrag(strongest) : null;
+  const item = [active, ragPet].map((pet) => PET_ITEMS[pet?.heldItem]).find((i) => i?.mult?.strength);
+  const sources = [item?.name, chimera && 'Chimera', ragPet && 'Ragnarock'].filter(Boolean);
+  if (!sources.length) return '+11.1 strength';
+  const list = sources.length > 1 ? `${sources.slice(0, -1).join(', ')} and ${sources.at(-1)}` : sources[0];
+  return `+11.1 strength, +${Math.round(total * 10) / 10} with ${list}`;
+}
+
 // Profile upgrades (no coins): the next level of each profile stat source, ranked by % damage gained.
 const CLASS_LEVEL_KEY = { arch: 'archerLevel', bers: 'berserkLevel', mage: 'mageLevel' };
 const CLASS_NAME = { arch: 'Archer', bers: 'Berserk', mage: 'Mage' };
@@ -1517,7 +1538,8 @@ export function profileUpgrades(loadout, ctx, weights, prices = null) {
     const digits = String(Math.max(0, Math.floor(gold))).length;
     if (digits < GOLD_COLLECTION_DIGITS) {
       const target = 10 ** digits;
-      tryCtx(`Gold collection to ${target.toLocaleString('en-US')} (Golden Dragon: +11.1 strength)`, { petProfile: { ...ctx.petProfile, goldCollection: target } });
+      const changes = { petProfile: { ...ctx.petProfile, goldCollection: target } };
+      tryCtx(`Gold collection to ${target.toLocaleString('en-US')} (Golden Dragon: ${goldStrengthText(loadout, ctx, weights, changes)})`, changes);
     }
   }
   // The One on a worn necklace: each collection maxed adds its strength.
