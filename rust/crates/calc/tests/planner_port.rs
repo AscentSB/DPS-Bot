@@ -457,6 +457,20 @@ fn hatcessories_and_families() {
     assert!(!accessory_superseded("PESTHUNTER_RELIC", ["PESTHUNTER_ARTIFACT"], None));
 }
 
+#[test]
+fn balloon_hat_missing_from_resource_counts_as_the_hatcessory() {
+    let base = with_items(&base_resource(), vec![json!({"id":"PARTY_HAT_SLOTH","name":"Sloth Hat of Celebration","category":"ACCESSORY","tier":"SPECIAL"})]);
+    let mut r = (*base).clone();
+    dps_core::config::accessories::add_missing_items(&mut r);
+    let res = Arc::new(r);
+    let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |_| {}), weights(Class::Arch));
+    let hat = new_it(&res, "BALLOON_HAT_2024");
+    assert_eq!(hat.category.as_deref(), Some("ACCESSORY"));
+    let l = w.build(&[new_it(&res, "TERMINATOR"), hat], &[], &[], &[]);
+    assert_eq!(w.model.total_accessory_power(l.accessories), 3.0);
+    assert!(accessory_superseded("PARTY_HAT_SLOTH", ["BALLOON_HAT_2024"], Some(&res)));
+}
+
 fn shard_global(w: &World, shards: &[(&str, f64)], cls: Class) -> Loose {
     let _ = w;
     Levels::new(LevelKind::Shards, shards.iter().map(|&(k, v)| (k.to_string(), v)).collect()).shard_stats(cls).global

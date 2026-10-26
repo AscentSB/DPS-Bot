@@ -562,6 +562,19 @@ test('hatcessories: only the best hat counts, the others are duplicates', async 
   assert.deepEqual(counted.sort(), ['PARTY_HAT_CRAB_ANIMATED', 'WITHER_RELIC']);
 });
 
+test('an owned Balloon Hat (missing from the items resource) counts as the hatcessory: no Sloth Hat offered', async () => {
+  const { addMissingItems } = await import('../src/api/hypixel.js');
+  const res = addMissingItems(new Map([...resource, ['PARTY_HAT_SLOTH', { id: 'PARTY_HAT_SLOTH', name: 'Sloth Hat of Celebration', category: 'ACCESSORY', tier: 'SPECIAL' }]]));
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const gear = decodeItems(encode([{ id: 'TERMINATOR' }, { id: 'BALLOON_HAT_2024' }])).map((i) => toItemState(i, res));
+  const l = buildLoadout(profile(gear), ctx, w);
+  assert.ok(l.accessories.has('BALLOON_HAT_2024'));
+  assert.equal(totalAccessoryPower(l, res), 3);
+  const p = { get: (id) => (id === 'PARTY_HAT_SLOTH' ? { price: 1e6, source: 'AH' } : prices.get(id)) };
+  assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('Sloth Hat')));
+});
+
 test('items the resource marks can_recombobulate: false are never offered a recombobulator', () => {
   const res = new Map([...resource,
     ['VOTER_BADGE_SUPREME', { id: 'VOTER_BADGE_SUPREME', name: "Supreme Voter's Badge", category: 'ACCESSORY', tier: 'EPIC', can_recombobulate: false, stats: { STRENGTH: 5 } }],

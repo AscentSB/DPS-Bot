@@ -308,6 +308,27 @@ pub fn is_hatcessory(id: &str) -> bool {
     id.starts_with("PARTY_HAT_") || id.starts_with("BALLOON_HAT_") || id.starts_with("CAKE_HAT_")
 }
 
+/// JS `MISSING_ITEMS` as `(id, name)`: hatcessories the Hypixel items resource leaves out (Special, like the Sloth
+/// Hat). Added to it so an owned one counts in the bag and the other hats are its duplicates.
+pub const MISSING_ITEMS: [(&str, &str); 2] =
+    [("BALLOON_HAT_2024", "5th Anniversary Balloon Hat"), ("BALLOON_HAT_2025", "6th Anniversary Balloon Hat")];
+
+/// JS `addMissingItems(map)`: adds [`MISSING_ITEMS`] unless the resource lists them by now.
+pub fn add_missing_items(map: &mut crate::model::Resource) {
+    for (id, name) in MISSING_ITEMS {
+        if !map.contains_key(id) {
+            let info = crate::model::ItemInfo {
+                id: id.into(),
+                name: Some(name.into()),
+                category: Some("ACCESSORY".into()),
+                tier: Some("SPECIAL".into()),
+                ..Default::default()
+            };
+            map.insert(id.into(), info);
+        }
+    }
+}
+
 pub const NO_RECOMB: [&str; 3] = ["BOOK_OF_PROGRESSION", "PANDORAS_BOX", "RIFT_PRISM"];
 
 /// One entry of JS `ENRICHMENTS`.

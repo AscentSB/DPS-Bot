@@ -109,6 +109,12 @@ export const DEFAULT_TUNING_SPLIT = {
 // Hatcessories (Crab / Sloth Hats of Celebration, Balloon Hats, Cake Hats) all count as one accessory:
 // only your best one gives Accessory Power and stats, the rest are duplicates.
 export const HATCESSORY = /^(PARTY_HAT_|BALLOON_HAT_|CAKE_HAT_)/;
+// Hatcessories the Hypixel items resource leaves out (Special, like the Sloth Hat). Added to it so an owned one
+// counts in the bag and the other hats are its duplicates.
+export const MISSING_ITEMS = [
+  { id: 'BALLOON_HAT_2024', name: '5th Anniversary Balloon Hat', category: 'ACCESSORY', tier: 'SPECIAL' },
+  { id: 'BALLOON_HAT_2025', name: '6th Anniversary Balloon Hat', category: 'ACCESSORY', tier: 'SPECIAL' },
+];
 
 // Accessories that cannot be recombobulated, on top of every item the Hypixel items resource marks
 // with can_recombobulate: false (SkyCrypt SPECIAL_ACCESSORIES).

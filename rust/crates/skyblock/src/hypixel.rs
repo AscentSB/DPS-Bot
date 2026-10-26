@@ -279,6 +279,7 @@ async fn fetch_items(client: &Client, base: &str) -> Result<Arc<Resource>, Strin
             map.insert(i.id.clone(), i);
         }
     }
+    dps_core::config::accessories::add_missing_items(&mut map);
     Ok(Arc::new(map))
 }
 
@@ -363,7 +364,8 @@ mod tests {
         let (r1, r2) = tokio::join!(h.items_resource(), h.items_resource());
         let r1 = r1.unwrap();
         assert!(Arc::ptr_eq(&r1, &r2.unwrap()));
-        assert_eq!(r1.keys().collect::<Vec<_>>(), ["A", "B"]);
+        assert_eq!(r1.keys().collect::<Vec<_>>(), ["A", "B", "BALLOON_HAT_2024", "BALLOON_HAT_2025"]);
+        assert_eq!(r1["BALLOON_HAT_2024"].tier.as_deref(), Some("SPECIAL"));
         assert_eq!(r1["A"].name.as_deref(), Some("a2"));
         assert_eq!(s.hits.load(Ordering::SeqCst), 1);
     }

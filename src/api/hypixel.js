@@ -3,7 +3,7 @@ import { isValidUuid } from './mojang.js';
 import { ITEMS_REFRESH_MS, PROFILE_CACHE_MS } from '../config/constants.js';
 import { decodeItems, toItemState } from '../lib/nbt.js';
 import { cataLevelFromXp, skillLevelFromXp } from '../calc/formulas.js';
-import { TUNING_KEYS } from '../config/accessories.js';
+import { TUNING_KEYS, MISSING_ITEMS } from '../config/accessories.js';
 import { WOLF_SLAYER_XP, WOLF_SLAYER_SPEED_LEVELS, COMBAT_MAX_LEVEL, SLAYER_XP } from '../config/constants.js';
 import { SB_LEVEL_XP, HARP_SONGS, CAKE_STATS } from '../config/profile.js';
 import { SHARDS, SHARDS_CUMULATIVE } from '../config/shards.js';
@@ -22,6 +22,7 @@ export async function getItemsResource() {
     if (!data?.success) throw new Error('Could not load the SkyBlock items resource.');
     const map = new Map();
     for (const item of data.items) map.set(item.id, item);
+    addMissingItems(map);
     itemsCache = { map, fetchedAt: Date.now() };
     return map;
   })().finally(() => { itemsLoading = null; });
@@ -30,6 +31,12 @@ export async function getItemsResource() {
     return itemsCache.map;
   }
   return itemsLoading;
+}
+
+// Items the resource leaves out (Balloon Hats), unless it lists them by now.
+export function addMissingItems(map) {
+  for (const item of MISSING_ITEMS) if (!map.has(item.id)) map.set(item.id, item);
+  return map;
 }
 
 let collectionsCache = { map: null, fetchedAt: 0 };

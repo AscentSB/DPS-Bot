@@ -49,6 +49,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
 - Sharpness and Smite stack on one sword (Hypixel allows both); only Bane of Arthropods conflicts with them.
 - Bank deposit steps merge into one.
+- Hatcessories (Crab, Sloth and Balloon Hats) are one accessory: owning any one blocks the others. Balloon Hats (`BALLOON_HAT_2024`, `BALLOON_HAT_2025`) are missing from the Hypixel items resource, so `MISSING_ITEMS` adds them as Special accessories.
 - "Show max levels": only the best buyable accessory of each family is offered (Wither Relic, never Wither Artifact); a lower tier shows only when the higher ones can't be bought.
 - A step with anything bought from an NPC names the NPC in parentheses: "(buy from Combat Merchant)" for a one-part step, else each NPC item by name ("(Intimidation Ring from Fear Mongerer, Intimidation Talisman from Combat Merchant)").
 
