@@ -1758,6 +1758,35 @@ test('a Hyperion with Ultimate Wise, Swarm or Combo is the RCM one (no Chimera);
   assert.ok(clean.some((l) => l.startsWith('Use your spare Hyperion as the dragon-set weapon')));
 });
 
+test('a max Mage has three Hyperions: an RCM one worn for LCM gets an LCM copy (Chimera), then its dual-wield copy', () => {
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const hype = (enchants) => ({ ...scrolled(newItem('HYPERION', resource)), enchants });
+  const run = (mode, items) => {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, mode, resource });
+    const l = buildLoadout(profile(items), ctx, weightsFor('mage', null, mode));
+    return { ctx, l, ups: availableUpgrades(l, ctx, p) };
+  };
+  const { ctx, l, ups } = run('lcm', [hype({ ultimate_wise: 5, prosecute: 6, giant_killer: 7 })]);
+  const copy = ups.find((u) => u.label.startsWith('LCM Hyperion'));
+  assert.equal(copy.label, 'LCM Hyperion: a second Hyperion like yours with Chimera V (yours stays the RCM one)');
+  // Hyperion + Prosecute, Giant Killer and Chimera books + 3 scrolls (1M each).
+  assert.equal(copy.cost, 7e6);
+  const next = copy.apply(l);
+  assert.deepEqual(next.weapon.enchants, { prosecute: 6, giant_killer: 7, ultimate_chimera: 5 });
+  // The dual-wield copy is the LCM Hyperion's, not the RCM one's.
+  assert.ok(!ups.some((u) => u.label.startsWith('Dual wield')));
+  assert.ok(availableUpgrades(next, ctx, p).some((u) => u.label.startsWith('Dual wield Hyperion: a second copy')));
+  assert.ok(!availableUpgrades(next, ctx, p).some((u) => u.label.startsWith('LCM Hyperion')));
+
+  // RCM: a Chimera Hyperion gets an RCM copy with Swarm.
+  const rcm = run('rcm', [hype({ ultimate_chimera: 5, prosecute: 6 })]);
+  const rcmCopy = rcm.ups.find((u) => u.label.startsWith('RCM Hyperion'));
+  assert.equal(rcmCopy.label, 'RCM Hyperion: a second Hyperion like yours with Swarm V (yours stays the LCM one)');
+  assert.deepEqual(rcmCopy.apply(rcm.l).weapon.enchants, { prosecute: 6, ultimate_swarm: 5 });
+  assert.ok(!run('rcm', [hype({ ultimate_wise: 5 })]).ups.some((u) => /^(RCM|LCM) Hyperion/.test(u.label)));
+  assert.ok(!run('lcm', [hype({})]).ups.some((u) => /^(RCM|LCM) Hyperion/.test(u.label)));
+});
+
 test('Mage LCM RCM blade: Combo counts like Swarm, Chimera marks the LCM blade', () => {
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource });
   const w = weightsFor('mage');

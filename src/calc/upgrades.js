@@ -612,7 +612,26 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Dual wield (LCM): a second copy of a Prosecute Hyperion / Dark Claymore with Execute, swapped in once the boss
     // is low. Priced as the full first copy; counted as DUAL_WIELD_ADDITIVE more additive damage on average.
-    if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)) {
+    // The other Hyperion (a max Mage has three: RCM, LCM and its dual-wield copy). An RCM Hyperion worn for LCM gets
+    // an LCM one, a copy with Chimera in place of its ultimate; an LCM Hyperion worn for RCM gets an RCM one (Swarm).
+    // Priced as the full copy.
+    const kind = item === loadout.weapon && hyperionKind(item);
+    const want = isRcm(ctx) ? 'rcm' : 'lcm';
+    if (kind && kind !== want) {
+      const key = want === 'lcm' ? 'ultimate_chimera' : 'ultimate_swarm';
+      const level = enchantMaxLevel(ENCHANTS[key]);
+      const enchants = Object.fromEntries(Object.entries(item.enchants).filter(([k]) => !k.startsWith('ultimate_')));
+      const copy = { ...item, enchants: { ...enchants, [key]: level } };
+      const ultName = ENCHANTS[key].name ?? titleCase(key.replace(/^ultimate_/, ''));
+      if (enchantParts(key, level, 0, prices)) {
+        push(`${want.toUpperCase()} Hyperion: a second ${name} like yours with ${ultName} ${roman(level)} (yours stays the ${kind.toUpperCase()} one)`,
+          [{ id: item.id }, ...copyParts(copy, prices)], (l) => replaceItem(l, item, copy), { group: `${slot}:otherHyperion` });
+      }
+    }
+
+    // The dual-wield copy is the LCM Hyperion's, never the RCM one's.
+    if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)
+      && hyperionKind(item) !== 'rcm') {
       // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle (never a spare
       // RCM Hyperion made into an LCM one, or the other way round).
       const spare = (loadout.spareBlades ?? []).find((b) => b.id === item.id && sameHyperionKind(b, convertParts(b, item, prices, { prosecute: 'execute' }).item));

@@ -502,6 +502,65 @@ fn hyperion_with_rcm_ultimate_never_gets_chimera_and_chimera_one_never_gets_swar
 }
 
 #[test]
+fn max_mage_has_three_hyperions() {
+    let res = res();
+    let mut prices = dps_core::model::PriceTables::default();
+    for ult in ["CHIMERA", "SWARM"] {
+        for lv in 1..=5 {
+            prices.bazaar.insert(format!("ENCHANTMENT_ULTIMATE_{ult}_{lv}"), 1e6);
+        }
+    }
+    for id in ["ENCHANTMENT_PROSECUTE_6", "ENCHANTMENT_GIANT_KILLER_7", "HYPERION"] {
+        prices.bazaar.insert(id.into(), 1e6);
+    }
+    for s in WITHER_SCROLLS {
+        prices.bazaar.insert(s.into(), 1e6);
+    }
+    let hype = |e: &[(&str, i32)]| with(scrolled(new_it(&res, "HYPERION")), |it| enchants(it, e));
+    let run = |mode: Mode, items: Vec<ItemState>, f: &dyn Fn(&Model, &Ctx, Weights, &Loadout, &[Candidate])| {
+        let mut ctx = mk_ctx(Class::Mage, 50.0, &res, |i| {
+            i.mode = mode;
+            i.mage_level = 50.0;
+        });
+        let w = weights_for(Class::Mage, None, mode, FloorMode::Master);
+        let mut model = Model::new(&ctx);
+        let member = dps_core::model::Member { items, cata_level: 50, mage_level: 50, ..Default::default() };
+        let l = build_loadout(&mut model, &mut ctx, w, &member);
+        let ups = CandidateGen::new().available_upgrades(&mut model, &ctx, w, &prices, &l);
+        f(&model, &ctx, w, &l, &ups);
+    };
+    let has = |ups: &[Candidate], p: &str| ups.iter().any(|c| c.label.starts_with(p));
+    let weapon_enchants = |model: &Model, l: &Loadout| -> Vec<(String, i32)> {
+        model.item(l.weapon.unwrap()).enchants.iter().map(|(k, &v)| (k.clone(), v)).collect()
+    };
+
+    run(Mode::Lcm, vec![hype(&[("ultimate_wise", 5), ("prosecute", 6), ("giant_killer", 7)])], &|model, ctx, w, l, ups| {
+        let c = ups.iter().find(|c| c.label.starts_with("LCM Hyperion")).expect("LCM Hyperion step");
+        assert_eq!(&*c.label, "LCM Hyperion: a second Hyperion like yours with Chimera V (yours stays the RCM one)");
+        // Hyperion + Prosecute, Giant Killer and Chimera books + 3 scrolls (1M each).
+        assert_eq!(c.cost, 7e6);
+        let next = c.edit.apply(&Evaluator::new(model, ctx, w), l);
+        let want: Vec<(String, i32)> = [("prosecute", 6), ("giant_killer", 7), ("ultimate_chimera", 5)].iter().map(|&(k, v)| (k.to_string(), v)).collect();
+        assert_eq!(weapon_enchants(model, &next), want);
+        assert!(!has(ups, "Dual wield"));
+    });
+    // The dual-wield copy comes with the LCM Hyperion.
+    run(Mode::Lcm, vec![hype(&[("ultimate_chimera", 5), ("prosecute", 6), ("giant_killer", 7)])], &|_, _, _, _, ups| {
+        assert!(has(ups, "Dual wield Hyperion: a second copy"));
+        assert!(!has(ups, "LCM Hyperion") && !has(ups, "RCM Hyperion"));
+    });
+    run(Mode::Rcm, vec![hype(&[("ultimate_chimera", 5), ("prosecute", 6)])], &|model, ctx, w, l, ups| {
+        let c = ups.iter().find(|c| c.label.starts_with("RCM Hyperion")).expect("RCM Hyperion step");
+        assert_eq!(&*c.label, "RCM Hyperion: a second Hyperion like yours with Swarm V (yours stays the LCM one)");
+        let next = c.edit.apply(&Evaluator::new(model, ctx, w), l);
+        let want: Vec<(String, i32)> = [("prosecute", 6), ("ultimate_swarm", 5)].iter().map(|&(k, v)| (k.to_string(), v)).collect();
+        assert_eq!(weapon_enchants(model, &next), want);
+    });
+    run(Mode::Rcm, vec![hype(&[("ultimate_wise", 5)])], &|_, _, _, _, ups| assert!(!has(ups, "RCM Hyperion") && !has(ups, "LCM Hyperion")));
+    run(Mode::Lcm, vec![hype(&[])], &|_, _, _, _, ups| assert!(!has(ups, "RCM Hyperion") && !has(ups, "LCM Hyperion")));
+}
+
+#[test]
 fn rcm_blade_score_counts_combo_and_chimera() {
     let res = res();
     let hype = |e: &[(&str, i32)]| with(new_it(&res, "HYPERION"), |it| enchants(it, e));

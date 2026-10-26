@@ -580,13 +580,41 @@ impl<'a> B<'a> {
             let dual = st.dual_wield;
             let info = resource.get(&st.id);
 
-            // Dual wield (LCM).
+            // The other Hyperion (a max Mage has three: RCM, LCM and its dual-wield copy). An RCM Hyperion worn for LCM
+            // gets an LCM one, a copy with Chimera in place of its ultimate; an LCM Hyperion worn for RCM gets an RCM
+            // one (Swarm). Priced as the full copy.
+            let want = if ctx.is_rcm() { Mode::Rcm } else { Mode::Lcm };
+            if let Some(kind) = hyperion_kind(&st).filter(|&k| Some(item) == l.weapon && !copy && k != want) {
+                let key = if want == Mode::Lcm { "ultimate_chimera" } else { "ultimate_swarm" };
+                let ench = enchant(key).expect("ultimate enchant");
+                let level = ench.max_level();
+                let mut cs = st.clone();
+                cs.enchants.retain(|k, _| !k.starts_with("ultimate_"));
+                cs.enchants.insert(key.to_string(), level);
+                if enchant_parts(key, level, 0, self.prices).is_some() {
+                    let ult_name = match ench.name {
+                        Some(n) => n.to_string(),
+                        None => title_case(key.strip_prefix("ultimate_").unwrap_or(key)),
+                    };
+                    let up = |m: Mode| if m == Mode::Rcm { "RCM" } else { "LCM" };
+                    let label = format!("{} Hyperion: a second {name} like yours with {ult_name} {} (yours stays the {} one)", up(want), roman(level), up(kind));
+                    let mut parts = vec![Part::owned(st.id.clone())];
+                    parts.extend(copy_parts(&cs, self.prices));
+                    self.push(label, &parts, group(format!("{slot}:otherHyperion")), |m, bc| {
+                        let next = m.intern_item(cs);
+                        Self::replace(l, m, bc, item, copy, next, ReplacePost::None)
+                    });
+                }
+            }
+
+            // Dual wield (LCM). The dual-wield copy is the LCM Hyperion's, never the RCM one's.
             if weapon_like
                 && (copy || Some(item) != l.rag)
                 && DUAL_WIELD_WEAPONS.contains(&st.id.as_str())
                 && st.enchants.get("prosecute").is_some_and(|&v| v != 0)
                 && !st.dual_wield
                 && !ctx.is_rcm()
+                && hyperion_kind(&st) != Some(Mode::Rcm)
             {
                 // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle (never a
                 // spare RCM Hyperion made into an LCM one, or the other way round).
