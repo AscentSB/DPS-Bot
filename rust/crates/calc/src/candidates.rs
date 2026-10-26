@@ -588,8 +588,12 @@ impl<'a> B<'a> {
                 && !st.dual_wield
                 && !ctx.is_rcm()
             {
-                // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle.
-                let spare = l.spare_blades.iter().copied().find(|&b| self.model.item(b).id == st.id);
+                // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle (never a
+                // spare RCM Hyperion made into an LCM one, or the other way round).
+                let spare = l.spare_blades.iter().copied().find(|&b| {
+                    let b = self.model.item(b);
+                    b.id == st.id && same_hyperion_kind(b, &convert_parts(b, &st, self.prices, &[("prosecute", "execute")]).0)
+                });
                 let (parts, label) = match spare {
                     Some(s) => {
                         let (_, parts, names) = convert_parts(&self.model.item(s).clone(), &st, self.prices, &[("prosecute", "execute")]);
@@ -659,6 +663,9 @@ impl<'a> B<'a> {
                         continue;
                     }
                     if ench.chimera && ctx.mode == Mode::Rcm {
+                        continue;
+                    }
+                    if !keeps_hyperion_kind(&st, ench.key) {
                         continue;
                     }
                     // First Strike V on a Prosecute weapon stays: never swapped for Triple Strike (IV or less is).
@@ -881,6 +888,9 @@ impl<'a> B<'a> {
             for (dragon, src_id) in targets {
                 let src: ItemState = self.model.item(src_id).clone();
                 let (item_state, parts, _) = convert_parts(&sst, &src, self.prices, &[]);
+                if !same_hyperion_kind(&sst, &item_state) {
+                    continue;
+                }
                 let label = format!(
                     "Use your spare {spare_name}{} with {}'s upgrades (missing ones only)",
                     if dragon { " as the dragon-set weapon" } else { " as the boss weapon" },

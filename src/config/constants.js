@@ -181,6 +181,9 @@ export const BOSS_SWARM_ENEMIES = 1;
 export const RCM_SWARM_ENEMIES = 7;
 // The only enchants that raise Wither Impact damage on the clear set, in Master Mode and Normal Mode alike.
 export const RCM_ENCHANTS = ['giant_killer', 'prosecute', 'ultimate_swarm', 'smite'];
+// A Hyperion with one of these ultimates is the RCM one, with Chimera the LCM one. Neither is enchanted into the other.
+export const HYPERION_ID = 'HYPERION';
+export const RCM_ULTIMATES = ['ultimate_wise', 'ultimate_swarm', 'ultimate_combo'];
 // Thunderlord strikes every 3rd hit.
 export const THUNDERLORD_EVERY = 3;
 // Mage boss set at or above this DPS (against a boss) also counts First Strike in Master Mode.

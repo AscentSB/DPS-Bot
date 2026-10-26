@@ -2,6 +2,7 @@ import {
   CLASSES, CLASS_WEAPON_CATEGORIES, ARMOR_SLOTS, EQUIPMENT_SLOTS, ACCESSORY_CATEGORY, MASTER_STAR_IDS,
   MAX_MASTER_STARS, MAX_STARS, DUAL_WIELD_WEAPONS, IMPLOSION_BELT_ID, HOT_POTATO, FUMING_POTATO, ART_OF_WAR, RECOMBOBULATOR_ID, RAGNAROCK_ID,
   MAX_UPGRADES_LISTED, BLACKSMITH_REFORGE_COST, ARMOR_REFORGE, equipmentSlot, MAXOR_BOOTS_ID, NECRON_BOOTS_ID, CLEAR_BOOTS_CLASSES, CLASS_EXCLUDED_ITEMS, WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, SA_CLOAK_IDS, blessingsWith, SKELETON_MASTER_CHEST_CLASSES, SKELETON_MASTER_CHESTS, SKELETON_MASTER_CHEST_CATA,
+  HYPERION_ID, RCM_ULTIMATES,
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS, skippedSwordEnchant } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
@@ -506,7 +507,26 @@ function combineParts(book, from, to, prices) {
 // Ender Slayer point to the boss.
 function rcmBladeScore(b) {
   const e = b.enchants ?? {};
-  return 3 * Boolean(e.ultimate_wise) + 2 * Boolean(e.giant_killer) + Boolean(e.ultimate_swarm) - 2 * Boolean(e.titan_killer) - Boolean(e.ender_slayer);
+  return 3 * Boolean(e.ultimate_wise) + 2 * Boolean(e.giant_killer) + Boolean(e.ultimate_swarm) + Boolean(e.ultimate_combo)
+    - 2 * Boolean(e.titan_killer) - Boolean(e.ender_slayer) - 3 * Boolean(e.ultimate_chimera);
+}
+
+// 'rcm' for a Hyperion with Ultimate Wise, Swarm or Combo, 'lcm' for one with Chimera, else null.
+function hyperionKind(item) {
+  if (item?.id !== HYPERION_ID) return null;
+  const e = item.enchants ?? {};
+  return RCM_ULTIMATES.some((k) => e[k]) ? 'rcm' : e.ultimate_chimera ? 'lcm' : null;
+}
+
+// False when this ultimate would make the RCM Hyperion an LCM one (Chimera) or the LCM one an RCM one (Swarm).
+function keepsHyperionKind(item, key) {
+  const kind = hyperionKind(item);
+  return !kind || !key.startsWith('ultimate_') || (kind === 'rcm') === RCM_ULTIMATES.includes(key);
+}
+
+// A spare blade raised to `next` stays the same kind of Hyperion.
+function sameHyperionKind(spare, next) {
+  return !hyperionKind(spare) || hyperionKind(next) === hyperionKind(spare);
 }
 
 // A spare blade raised to match `src`: the enchants it lacks (only the levels missing), potato books, master stars,
@@ -593,8 +613,9 @@ export function availableUpgrades(loadout, ctx, prices) {
     // Dual wield (LCM): a second copy of a Prosecute Hyperion / Dark Claymore with Execute, swapped in once the boss
     // is low. Priced as the full first copy; counted as DUAL_WIELD_ADDITIVE more additive damage on average.
     if (weaponLike && item !== loadout.rag && DUAL_WIELD_WEAPONS.includes(item.id) && item.enchants?.prosecute && !item.dualWield && !isRcm(ctx)) {
-      // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle.
-      const spare = (loadout.spareBlades ?? []).find((b) => b.id === item.id);
+      // A spare copy you own only needs the upgrades it is missing, listed in the label as one bundle (never a spare
+      // RCM Hyperion made into an LCM one, or the other way round).
+      const spare = (loadout.spareBlades ?? []).find((b) => b.id === item.id && sameHyperionKind(b, convertParts(b, item, prices, { prosecute: 'execute' }).item));
       const conv = spare && convertParts(spare, item, prices, { prosecute: 'execute' });
       const parts = conv ? conv.parts : [{ id: item.id }, ...copyParts(item, prices)];
       const label = !conv ? `Dual wield ${name}: a second copy with Execute in place of Prosecute`
@@ -623,6 +644,7 @@ export function availableUpgrades(loadout, ctx, prices) {
         if (ench.items && !ench.items.includes(item.id)) continue;
         if (ench.classes && !ench.classes.includes(cls)) continue;
         if (ench.chimera && ctx.mode === 'rcm') continue;
+        if (!keepsHyperionKind(item, key)) continue;
         // First Strike V on a Prosecute weapon stays: never swapped for Triple Strike (IV or less is).
         if (key === 'triple_strike' && (item.enchants?.first_strike ?? 0) >= 5 && item.enchants?.prosecute) continue;
         const current = item.enchants?.[key] ?? 0;
@@ -715,6 +737,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       if (hasDragonSet(ctx) && !loadout.dragonGear?.weapon && loadout.weapon) targets.push(['dragon', loadout.weapon]);
       for (const [set, src] of targets) {
         const { item, parts } = convertParts(spare, src, prices);
+        if (!sameHyperionKind(spare, item)) continue;
         push(`Use your spare ${spareName}${set === 'dragon' ? ' as the dragon-set weapon' : ' as the boss weapon'} with ${cleanName(src.name ?? src.id)}'s upgrades (missing ones only)`,
           parts.length ? parts : [{ coins: 1 }], (l) => {
             const next = cloneLoadout(l);

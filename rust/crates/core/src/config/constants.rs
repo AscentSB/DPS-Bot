@@ -215,6 +215,9 @@ pub const fn arrow_damage(cls: Class) -> f64 {
 pub const BOSS_SWARM_ENEMIES: f64 = 1.0;
 pub const RCM_SWARM_ENEMIES: f64 = 7.0;
 pub const RCM_ENCHANTS: [&str; 4] = ["giant_killer", "prosecute", "ultimate_swarm", "smite"];
+/// A Hyperion with one of these ultimates is the RCM one, with Chimera the LCM one. Neither is enchanted into the other.
+pub const HYPERION_ID: &str = "HYPERION";
+pub const RCM_ULTIMATES: [&str; 3] = ["ultimate_wise", "ultimate_swarm", "ultimate_combo"];
 pub const THUNDERLORD_EVERY: f64 = 3.0;
 pub const MAGE_FIRST_STRIKE_DPS: f64 = 1e9;
 

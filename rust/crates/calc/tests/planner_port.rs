@@ -458,6 +458,58 @@ fn hatcessories_and_families() {
 }
 
 #[test]
+fn hyperion_with_rcm_ultimate_never_gets_chimera_and_chimera_one_never_gets_swarm() {
+    let res = res();
+    let mut prices = dps_core::model::PriceTables::default();
+    for ult in ["CHIMERA", "SWARM"] {
+        for lv in 1..=5 {
+            prices.bazaar.insert(format!("ENCHANTMENT_ULTIMATE_{ult}_{lv}"), 1e6);
+        }
+    }
+    for id in ["ENCHANTMENT_EXECUTE_6", "ENCHANTMENT_PROSECUTE_6", "HYPERION"] {
+        prices.bazaar.insert(id.into(), 1e6);
+    }
+    let hype = |e: &[(&str, i32)]| with(scrolled(new_it(&res, "HYPERION")), |it| enchants(it, e));
+    let labels = |mode: Mode, items: Vec<ItemState>| -> Vec<String> {
+        let mut ctx = mk_ctx(Class::Mage, 50.0, &res, |i| {
+            i.mode = mode;
+            i.mage_level = 50.0;
+        });
+        let w = weights_for(Class::Mage, None, mode, FloorMode::Master);
+        let mut model = Model::new(&ctx);
+        let member = dps_core::model::Member { items, cata_level: 50, mage_level: 50, ..Default::default() };
+        let l = build_loadout(&mut model, &mut ctx, w, &member);
+        CandidateGen::new().available_upgrades(&mut model, &ctx, w, &prices, &l).iter().map(|c| c.label.to_string()).collect()
+    };
+    for ult in ["ultimate_wise", "ultimate_swarm", "ultimate_combo"] {
+        assert!(!labels(Mode::Lcm, vec![hype(&[(ult, 5)])]).iter().any(|l| l.starts_with("Chimera")), "{ult}");
+    }
+    assert!(labels(Mode::Lcm, vec![hype(&[])]).iter().any(|l| l.starts_with("Chimera")));
+    for mode in [Mode::Lcm, Mode::Rcm] {
+        assert!(!labels(mode, vec![hype(&[("ultimate_chimera", 5)])]).iter().any(|l| l.starts_with("Swarm")), "{mode:?}");
+    }
+    assert!(labels(Mode::Rcm, vec![hype(&[])]).iter().any(|l| l.starts_with("Swarm")));
+
+    // A spare RCM Hyperion is never made into the LCM dual-wield copy or dragon-set weapon.
+    let rcm = || hype(&[("ultimate_wise", 5), ("giant_killer", 7)]);
+    let lcm = || hype(&[("ultimate_chimera", 5), ("prosecute", 6)]);
+    let swarm = labels(Mode::Lcm, vec![rcm(), hype(&[("ultimate_swarm", 5)]), lcm()]);
+    assert!(!swarm.iter().any(|l| l.contains("spare")), "{swarm:?}");
+    assert!(swarm.iter().any(|l| l.starts_with("Dual wield Hyperion: a second copy")), "{swarm:?}");
+    let clean = labels(Mode::Lcm, vec![rcm(), hype(&[]), lcm()]);
+    assert!(clean.iter().any(|l| l.starts_with("Dual wield Hyperion: your spare one")), "{clean:?}");
+    assert!(clean.iter().any(|l| l.starts_with("Use your spare Hyperion as the dragon-set weapon")), "{clean:?}");
+}
+
+#[test]
+fn rcm_blade_score_counts_combo_and_chimera() {
+    let res = res();
+    let hype = |e: &[(&str, i32)]| with(new_it(&res, "HYPERION"), |it| enchants(it, e));
+    assert_eq!(dps_calc::parts::rcm_blade_score(&hype(&[("ultimate_combo", 5)])), 1.0);
+    assert_eq!(dps_calc::parts::rcm_blade_score(&hype(&[("ultimate_chimera", 5), ("giant_killer", 7)])), -1.0);
+}
+
+#[test]
 fn balloon_hat_missing_from_resource_counts_as_the_hatcessory() {
     let base = with_items(&base_resource(), vec![json!({"id":"PARTY_HAT_SLOTH","name":"Sloth Hat of Celebration","category":"ACCESSORY","tier":"SPECIAL"})]);
     let mut r = (*base).clone();

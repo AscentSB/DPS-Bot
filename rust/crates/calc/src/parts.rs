@@ -350,8 +350,40 @@ pub fn reforge_cost_cached(reforge: &Reforge, id: &str, category: Option<&str>, 
 pub fn rcm_blade_score(b: &ItemState) -> f64 {
     let e = |k: &str| b.enchants.get(k).copied().unwrap_or(0) != 0;
     3.0 * e("ultimate_wise") as i32 as f64 + 2.0 * e("giant_killer") as i32 as f64 + e("ultimate_swarm") as i32 as f64
+        + e("ultimate_combo") as i32 as f64
         - 2.0 * e("titan_killer") as i32 as f64
         - e("ender_slayer") as i32 as f64
+        - 3.0 * e("ultimate_chimera") as i32 as f64
+}
+
+/// JS `hyperionKind(item)`: `Rcm` for a Hyperion with Ultimate Wise, Swarm or Combo, `Lcm` for one with Chimera.
+pub fn hyperion_kind(item: &ItemState) -> Option<Mode> {
+    if item.id != HYPERION_ID {
+        return None;
+    }
+    let e = |k: &str| item.enchants.get(k).copied().unwrap_or(0) != 0;
+    if RCM_ULTIMATES.iter().any(|k| e(k)) {
+        Some(Mode::Rcm)
+    } else if e("ultimate_chimera") {
+        Some(Mode::Lcm)
+    } else {
+        None
+    }
+}
+
+/// JS `keepsHyperionKind(item, key)`: false when this ultimate would make the RCM Hyperion an LCM one (Chimera) or the
+/// LCM one an RCM one (Swarm).
+pub fn keeps_hyperion_kind(item: &ItemState, key: &str) -> bool {
+    match hyperion_kind(item) {
+        None => true,
+        Some(kind) => !key.starts_with("ultimate_") || (kind == Mode::Rcm) == RCM_ULTIMATES.contains(&key),
+    }
+}
+
+/// JS `sameHyperionKind(spare, next)`: a spare blade raised to `next` stays the same kind of Hyperion.
+pub fn same_hyperion_kind(spare: &ItemState, next: &ItemState) -> bool {
+    let kind = hyperion_kind(spare);
+    kind.is_none() || hyperion_kind(next) == kind
 }
 
 /// JS `convertParts(spare, src, prices, swap)`: a spare blade raised to match `src`. Returns the new item, its parts

@@ -1736,6 +1736,38 @@ test('Mage LCM: the RCM Hyperion (Ultimate Wise, Giant Killer) is kept for the c
   assert.equal(dual2.cost, 11e6);
 });
 
+test('a Hyperion with Ultimate Wise, Swarm or Combo is the RCM one (no Chimera); one with Chimera is the LCM one (no Swarm)', () => {
+  const p = { get: () => ({ price: 1e6, source: 'BZ' }) };
+  const hype = (enchants) => ({ ...scrolled(newItem('HYPERION', resource)), enchants });
+  const labels = (mode, items) => {
+    const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, mode, resource });
+    return availableUpgrades(buildLoadout(profile(items), ctx, weightsFor('mage', null, mode)), ctx, p).map((u) => u.label);
+  };
+  for (const ult of ['ultimate_wise', 'ultimate_swarm', 'ultimate_combo']) assert.ok(!labels('lcm', [hype({ [ult]: 5 })]).some((l) => /^Chimera/.test(l)), ult);
+  assert.ok(labels('lcm', [hype({})]).some((l) => /^Chimera/.test(l)));
+  for (const mode of ['lcm', 'rcm']) assert.ok(!labels(mode, [hype({ ultimate_chimera: 5 })]).some((l) => /^Swarm/.test(l)), mode);
+  assert.ok(labels('rcm', [hype({})]).some((l) => /^Swarm/.test(l)));
+
+  // A spare RCM Hyperion is never made into the LCM dual-wield copy: a second copy is bought instead.
+  const lcm = hype({ ultimate_chimera: 5, prosecute: 6 });
+  const dual = labels('lcm', [hype({ ultimate_wise: 5, giant_killer: 7 }), hype({ ultimate_swarm: 5 }), lcm]).find((l) => l.startsWith('Dual wield Hyperion'));
+  assert.ok(dual.startsWith('Dual wield Hyperion: a second copy'), dual);
+  assert.ok(!labels('lcm', [hype({ ultimate_wise: 5, giant_killer: 7 }), hype({ ultimate_swarm: 5 }), lcm]).some((l) => /spare/.test(l)));
+  const clean = labels('lcm', [hype({ ultimate_wise: 5, giant_killer: 7 }), hype({}), lcm]);
+  assert.ok(clean.some((l) => l.startsWith('Dual wield Hyperion: your spare one')));
+  assert.ok(clean.some((l) => l.startsWith('Use your spare Hyperion as the dragon-set weapon')));
+});
+
+test('Mage LCM RCM blade: Combo counts like Swarm, Chimera marks the LCM blade', () => {
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, resource });
+  const w = weightsFor('mage');
+  const hype = (enchants) => ({ ...scrolled(newItem('HYPERION', resource)), enchants });
+  const combo = hype({ ultimate_combo: 5 });
+  assert.equal(buildLoadout(profile([combo, hype({ ultimate_chimera: 5 })]), ctx, w).rcmBlade, combo);
+  // Giant Killer alone would make it the RCM blade, but it has Chimera.
+  assert.equal(buildLoadout(profile([hype({ ultimate_chimera: 5, giant_killer: 7 }), hype({})]), ctx, w).rcmBlade, null);
+});
+
 test('floor-scaled armor buys use the fully boosted price for the highest floor you can enter; Skeleton Master chest rule starts at Catacombs 36', () => {
   const sm = ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true, tiered_stats: { CRITICAL_DAMAGE: [22, 23, 25, 27, 30, 32, 35, 38, 41, 45] } }];
   const sa = ['SHADOW_ASSASSIN_CHESTPLATE', { id: 'SHADOW_ASSASSIN_CHESTPLATE', name: 'Shadow Assassin Chestplate', category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 500 } }];
