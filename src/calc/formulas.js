@@ -128,7 +128,8 @@ export function defenseMultiplier(defense) {
   return 1 - defense / (defense + 100);
 }
 
-// All damage above 1,000,000 has a 90% reduction.
+// Boss mobs (Withers, dragons) always take 90% less damage, at any hit size. Not applied: every target here is a boss,
+// so it scales every score alike and never changes the ranking; the shown damage is before it.
 
 // Expected hit for a given crit chance:
 //   cc <= 100:       crit * cc/100 + noncrit * (1 - cc/100)

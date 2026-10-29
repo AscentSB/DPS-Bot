@@ -194,6 +194,9 @@ pub fn defense_multiplier(defense: f64) -> f64 {
     1.0 - defense / (defense + 100.0)
 }
 
+// Boss mobs (Withers, dragons) always take 90% less damage, at any hit size. Not applied: every target here is a boss,
+// so it scales every score alike and never changes the ranking; the shown damage is before it.
+
 /// Final stats as `finalStats()` returns them (the fields the damage formulas read; `intelligence` and
 /// `ability_damage` count as 0 when the JS object lacks them).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
