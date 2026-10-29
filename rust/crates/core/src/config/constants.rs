@@ -48,6 +48,9 @@ pub const fn target_defense(t: Target) -> f64 {
     }
 }
 
+/// JS `BOSS_DAMAGE_TAKEN`: boss mobs take 90% less damage; applied only to the shown boss damage.
+pub const BOSS_DAMAGE_TAKEN: f64 = 0.1;
+
 pub const BASE_DAMAGE: f64 = 5.0;
 
 /// One dungeon blessing: JS `BLESSINGS[name]` (`{ level, stats }`).

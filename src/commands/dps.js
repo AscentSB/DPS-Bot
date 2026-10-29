@@ -1,5 +1,5 @@
 import { escapeMarkdown, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CLASSES, BLESSING_LIMITS, CLEAR_BOOTS_CLASSES, blessingsWith } from '../config/constants.js';
+import { CLASSES, BLESSING_LIMITS, BOSS_DAMAGE_TAKEN, CLEAR_BOOTS_CLASSES, blessingsWith } from '../config/constants.js';
 import { getMinecraftProfile, isValidIgn } from '../api/mojang.js';
 import { getItemsResource, getCollectionsResource, getSelectedProfile, readMember } from '../api/hypixel.js';
 import { skeletonMasterChestRule } from '../calc/upgrades.js';
@@ -68,8 +68,10 @@ const FREE_STEP_COINS = 1000;
 
 export { formatCoins };
 
+// Boss damage is shown as it lands (after the 90% boss reduction); the clear set (RCM) hits clear mobs.
 function damageText(d, rcm) {
-  return rcm ? `${formatCoins(d.wither)} per Wither Impact` : `Withers ${formatCoins(d.wither)}\nDragons ${formatCoins(d.dragon)}`;
+  const boss = (n) => formatCoins(n * BOSS_DAMAGE_TAKEN);
+  return rcm ? `${formatCoins(d.wither)} per Wither Impact` : `Withers ${boss(d.wither)}\nDragons ${boss(d.dragon)}`;
 }
 
 // Stats that matter for each class: Mage RCM only uses speed, intelligence and ability damage.

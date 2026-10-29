@@ -32,6 +32,10 @@ export const TARGET_DEFENSE = {
   dragon: 12500,
 };
 
+// Boss mobs (Withers, dragons) take 90% less damage, at any hit size. Only the shown boss damage applies it; the
+// ranking doesn't need it (it scales every boss score alike). The clear set (RCM) hits clear mobs, so it's unreduced.
+export const BOSS_DAMAGE_TAKEN = 0.1;
+
 // damage = BASE_DAMAGE + weapon_damage
 export const BASE_DAMAGE = 5;
 

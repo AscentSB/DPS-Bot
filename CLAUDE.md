@@ -25,12 +25,12 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 
 - Dungeon speed: every point over 100 counts for 2/3 (200 -> 167, 300 -> 233). The speed caps (500, Mage boss 450) are dungeon speed, so 500 needs 700 on the stat sheet; tuning fills to that and the reply shows dungeon speed.
 - Defense: Withers 9000, dragons 12500. Archer and Berserker use arrows per volley and attack speed.
-- Boss mobs always take 90% less damage, at any hit size (not "above 1,000,000"). Every target is a boss, so it isn't applied: it never changes the ranking, and shown damage is before it.
+- Boss mobs always take 90% less damage, at any hit size (not "above 1,000,000"). Every target is a boss, so scoring skips it (it never changes the ranking), but the shown "Damage now / after" boss numbers apply it (x0.1, `BOSS_DAMAGE_TAKEN`). RCM (per Wither Impact) hits clear mobs and stays unreduced.
 - Tuning is shared by both bosses and fills attack speed to 100 for whichever needs more. F7 (Mage normal floor) has no dragons, so only the withers count there.
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
 - Legion: 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
 - Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (level/2 %, max 25, doubled solo), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
-- Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). The owner was asked whether it should double instead; unconfirmed.
+- Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). Confirmed by the owner: +50%, it does not double.
 - The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
 - Solo class ("stats are doubled"): only the bonus from class level doubles, never the base you get for choosing the class (Mage intelligence 250 + 2 x 5 per level). Exception still to check: Mage cooldown reduction has no base here and doubles whole, but alldata measures solo CDR at about 1.52x, not 2x, so it likely has a base too.
 - Berserker additive damage: Warrior (Combat level) + Berserk class bonus (40 + 2 x 0.75 per level) + Lust for Blood (2 x 12 per level, 1200 at Berserk 50 solo).

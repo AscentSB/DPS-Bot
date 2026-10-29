@@ -129,7 +129,7 @@ export function defenseMultiplier(defense) {
 }
 
 // Boss mobs (Withers, dragons) always take 90% less damage, at any hit size. Not applied: every target here is a boss,
-// so it scales every score alike and never changes the ranking; the shown damage is before it.
+// so it scales every score alike and never changes the ranking. The shown boss damage applies it (BOSS_DAMAGE_TAKEN).
 
 // Expected hit for a given crit chance:
 //   cc <= 100:       crit * cc/100 + noncrit * (1 - cc/100)

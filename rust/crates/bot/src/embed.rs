@@ -2,7 +2,7 @@
 //! They produce serde_json values that serialize to the same JSON discord.js sends.
 
 use crate::session::{chest_toggle, clear_boots_toggle, page_count, Session, UpgradeMode, View, FREE_STEP_COINS, PAGE_SIZE};
-use dps_core::config::constants::class_info;
+use dps_core::config::constants::{class_info, BOSS_DAMAGE_TAKEN};
 use dps_core::jsfmt::{format_coins, js_string, math_round, to_fixed, to_locale_string};
 use dps_core::model::{Damage, StatLine, TargetStats, Weights};
 use dps_core::model::Map;
@@ -208,7 +208,11 @@ pub fn damage_text(d: &Damage, rcm: bool) -> String {
     if rcm {
         format!("{} per Wither Impact", format_coins(d.wither))
     } else {
-        format!("Withers {}\nDragons {}", format_coins(d.wither), format_coins(d.dragon))
+        format!(
+            "Withers {}\nDragons {}",
+            format_coins(d.wither * BOSS_DAMAGE_TAKEN),
+            format_coins(d.dragon * BOSS_DAMAGE_TAKEN)
+        )
     }
 }
 
