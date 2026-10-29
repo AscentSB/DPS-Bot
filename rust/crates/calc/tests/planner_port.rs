@@ -582,6 +582,39 @@ fn balloon_hat_missing_from_resource_counts_as_the_hatcessory() {
     assert!(accessory_superseded("PARTY_HAT_SLOTH", ["BALLOON_HAT_2024"], Some(&res)));
 }
 
+#[test]
+fn cake_hat_missing_from_resource_counts_as_the_hatcessory() {
+    let base = with_items(&base_resource(), vec![json!({"id":"PARTY_HAT_CRAB","name":"Crab Hat of Celebration","category":"ACCESSORY","tier":"SPECIAL"})]);
+    let mut r = (*base).clone();
+    dps_core::config::accessories::add_missing_items(&mut r);
+    let res = Arc::new(r);
+    let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |_| {}), weights(Class::Arch));
+    let hat = new_it(&res, "CAKE_HAT_2026");
+    assert_eq!(hat.category.as_deref(), Some("ACCESSORY"));
+    let l = w.build(&[new_it(&res, "TERMINATOR"), hat], &[], &[], &[]);
+    assert_eq!(w.model.total_accessory_power(l.accessories), 3.0);
+    assert!(accessory_superseded("PARTY_HAT_CRAB", ["CAKE_HAT_2026"], Some(&res)));
+}
+
+#[test]
+fn equal_hatcessories_count_the_enriched_one() {
+    let res = res();
+    let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |_| {}), weights(Class::Arch));
+    let hat = |id: &str, enrichment: Option<&str>| ItemState {
+        id: id.into(),
+        name: id.into(),
+        category: Some("ACCESSORY".into()),
+        base_rarity: "SPECIAL".into(),
+        enrichment: enrichment.map(Into::into),
+        ..Default::default()
+    };
+    let ids: Vec<ItemId> =
+        [hat("BALLOON_HAT_2024", None), hat("PARTY_HAT_CRAB_ANIMATED", Some("critical_damage"))].iter().map(|i| w.intern(i)).collect();
+    let bag = w.model.intern_bag(&ids);
+    let counted: Vec<String> = w.model.counted_accessories(bag).iter().map(|&i| w.model.item(i).id.clone()).collect();
+    assert_eq!(counted, ["PARTY_HAT_CRAB_ANIMATED"]);
+}
+
 fn shard_global(w: &World, shards: &[(&str, f64)], cls: Class) -> Loose {
     let _ = w;
     Levels::new(LevelKind::Shards, shards.iter().map(|&(k, v)| (k.to_string(), v)).collect()).shard_stats(cls).global

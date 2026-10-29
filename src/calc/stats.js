@@ -504,8 +504,10 @@ export function countedAccessories(loadout) {
   return [...out, ...best.values()];
 }
 
+// Equal members (all hatcessories are equal) go to the enriched one, so an enriched Crab Hat in the bag beats a bare
+// Balloon Hat in the ender chest.
 function itemFamilyRank(item) {
-  return familyRank(itemRarity(item), item.id) * 2 + (item.recomb ? 1 : 0);
+  return (familyRank(itemRarity(item), item.id) * 2 + (item.recomb ? 1 : 0)) * 2 + (item.enrichment ? 1 : 0);
 }
 
 function statRarityIndex(rarity) {

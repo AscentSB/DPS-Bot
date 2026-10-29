@@ -403,7 +403,9 @@ impl Model {
         let family = accessory_family(&st.id);
         let rarity = item_rarity(&st.base_rarity, st.recomb, &st.id);
         let rank_idx = rarity_index(stat_rarity(rarity)).map(|i| i as i64).unwrap_or(-1);
-        let acc_rank = (rank_idx * 100 + accessory_chain_position(&st.id) as i64) * 2 + st.recomb as i64;
+        // JS `itemFamilyRank`: equal members (all hatcessories are equal) go to the enriched one.
+        let acc_rank = ((rank_idx * 100 + accessory_chain_position(&st.id) as i64) * 2 + st.recomb as i64) * 2
+            + st.enrichment.is_some() as i64;
         let has_wi = WITHER_IMPACT_WEAPONS.contains(&st.id.as_str())
             && (st.scrolls.iter().any(|s| s == ULTIMATE_WITHER_SCROLL)
                 || WITHER_SCROLLS.iter().all(|w| st.scrolls.iter().any(|s| s == w)));

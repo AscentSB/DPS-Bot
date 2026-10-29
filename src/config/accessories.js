@@ -114,6 +114,7 @@ export const HATCESSORY = /^(PARTY_HAT_|BALLOON_HAT_|CAKE_HAT_)/;
 export const MISSING_ITEMS = [
   { id: 'BALLOON_HAT_2024', name: '5th Anniversary Balloon Hat', category: 'ACCESSORY', tier: 'SPECIAL' },
   { id: 'BALLOON_HAT_2025', name: '6th Anniversary Balloon Hat', category: 'ACCESSORY', tier: 'SPECIAL' },
+  { id: 'CAKE_HAT_2026', name: '7th Anniversary Cake Hat', category: 'ACCESSORY', tier: 'SPECIAL' },
 ];
 
 // Accessories that cannot be recombobulated, on top of every item the Hypixel items resource marks

@@ -575,6 +575,24 @@ test('an owned Balloon Hat (missing from the items resource) counts as the hatce
   assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('Sloth Hat')));
 });
 
+test('an owned Cake Hat (missing from the items resource) counts as the hatcessory: no other hat offered', async () => {
+  const { addMissingItems } = await import('../src/api/hypixel.js');
+  const res = addMissingItems(new Map([...resource, ['PARTY_HAT_CRAB', { id: 'PARTY_HAT_CRAB', name: 'Crab Hat of Celebration', category: 'ACCESSORY', tier: 'SPECIAL' }]]));
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const gear = decodeItems(encode([{ id: 'TERMINATOR' }, { id: 'CAKE_HAT_2026' }])).map((i) => toItemState(i, res));
+  const l = buildLoadout(profile(gear), ctx, weightsFor('arch'));
+  assert.ok(l.accessories.has('CAKE_HAT_2026'));
+  const p = { get: (id) => (/_HAT_/.test(id) ? { price: 1e6, source: 'AH' } : prices.get(id)) };
+  assert.ok(!availableUpgrades(l, ctx, p).some((u) => /^Buy .*Hat/.test(u.label)));
+});
+
+test('equal hatcessories: the enriched one counts, whichever was read first', async () => {
+  const { countedAccessories } = await import('../src/calc/stats.js');
+  const hat = (id, enrichment = null) => ({ id, name: id, category: 'ACCESSORY', baseRarity: 'SPECIAL', recomb: false, enrichment, enchants: {}, gems: { slots: {}, unlocked: [] } });
+  const loadout = { accessories: new Map([['BALLOON_HAT_2024', hat('BALLOON_HAT_2024')], ['PARTY_HAT_CRAB_ANIMATED', hat('PARTY_HAT_CRAB_ANIMATED', 'critical_damage')]]) };
+  assert.deepEqual(countedAccessories(loadout).map((i) => i.id), ['PARTY_HAT_CRAB_ANIMATED']);
+});
+
 test('items the resource marks can_recombobulate: false are never offered a recombobulator', () => {
   const res = new Map([...resource,
     ['VOTER_BADGE_SUPREME', { id: 'VOTER_BADGE_SUPREME', name: "Supreme Voter's Badge", category: 'ACCESSORY', tier: 'EPIC', can_recombobulate: false, stats: { STRENGTH: 5 } }],

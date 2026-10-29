@@ -310,8 +310,11 @@ pub fn is_hatcessory(id: &str) -> bool {
 
 /// JS `MISSING_ITEMS` as `(id, name)`: hatcessories the Hypixel items resource leaves out (Special, like the Sloth
 /// Hat). Added to it so an owned one counts in the bag and the other hats are its duplicates.
-pub const MISSING_ITEMS: [(&str, &str); 2] =
-    [("BALLOON_HAT_2024", "5th Anniversary Balloon Hat"), ("BALLOON_HAT_2025", "6th Anniversary Balloon Hat")];
+pub const MISSING_ITEMS: [(&str, &str); 3] = [
+    ("BALLOON_HAT_2024", "5th Anniversary Balloon Hat"),
+    ("BALLOON_HAT_2025", "6th Anniversary Balloon Hat"),
+    ("CAKE_HAT_2026", "7th Anniversary Cake Hat"),
+];
 
 /// JS `addMissingItems(map)`: adds [`MISSING_ITEMS`] unless the resource lists them by now.
 pub fn add_missing_items(map: &mut crate::model::Resource) {
