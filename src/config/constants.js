@@ -181,7 +181,8 @@ export const IMPLOSION_BELT_MULTIPLIER = 1.25;
 export const FEROCITY_EFFECTIVENESS = 0.5;
 
 // Arrows: Archer always uses Nansorb Arrows, Berserker always Bouncy Arrows. Both add 5 base damage to the bow;
-// their special effects (piercing, bouncing) do nothing against one boss.
+// their special effects (piercing, bouncing) do nothing against one boss. Nansorb's damage multiplies only on a
+// bounce, which never happens against a boss (stats team, 2026-10-30), so it is not a multiplier here.
 export const ARROW_DAMAGE = { arch: 5, bers: 5 };
 
 // Swarm: enemies within 10 blocks. One boss at a time; RCM clears hit packs of mobs.
