@@ -27,7 +27,8 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Defense: Withers 9000, dragons 12500. Archer and Berserker use arrows per volley and attack speed.
 - Boss mobs always take 90% less damage, at any hit size (not "above 1,000,000"). Every target is a boss, so scoring skips it (it never changes the ranking), but the shown "Damage now / after" boss numbers apply it (x0.1, `BOSS_DAMAGE_TAKEN`). RCM (per Wither Impact) hits clear mobs and stays unreduced.
 - Tuning is shared by both bosses and fills attack speed to 100 for whichever needs more. F7 (Mage normal floor) has no dragons, so only the withers count there.
-- Sharpness VII and Smite VII give +50% each (owner, 2026-10-30; the wiki's 65 and 100 are out of date).
+- Sharpness and Smite give 5/10/15/20/30/40/50% (0.23.5, the mob types release; owner confirms VI and VII).
+- The only SkyBlock wiki to trust is https://hypixelskyblock.minecraft.wiki/ (owner, 2026-10-30).
 - Solo Archer Doubleshot: 151% at Archer 50 (1.01 + 1% per level): one extra full-damage arrow plus a 51% chance of another.
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
 - Legion: 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.

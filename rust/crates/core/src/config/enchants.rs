@@ -128,13 +128,13 @@ pub static ENCHANTS: &[Enchant] = &[
     },
     Enchant { key: "vicious", categories: SWORDS_BOW, stats: &[(Stat::Ferocity, &[0.0, 0.0, 3.0, 4.0, 5.0])], ..BASE },
     // Hypixel lets Sharpness and Smite sit on the same sword, so they do not conflict.
-    // Sharpness VII and Smite VII give +50% and Smite VI +40% (stats team, 2026-10-30: the mob types release
-    // changed them). The other levels are the wiki's, unchecked.
+    // Sharpness and Smite: 5/10/15/20/30/40/50%, changed in SkyBlock 0.23.5 (2025-10-15), the mob types release.
+    // Source: hypixelskyblock.minecraft.wiki; the stats team confirms VI and VII.
     Enchant {
         key: "sharpness",
         categories: SWORDS,
         melee: true,
-        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 50.0])],
+        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0])],
         conflicts: &["bane_of_arthropods"],
         ..BASE
     },
@@ -155,7 +155,7 @@ pub static ENCHANTS: &[Enchant] = &[
         categories: SWORDS,
         target: StatTarget::Wither,
         clear_mobs: true,
-        stats: &[(Stat::AdditiveDamage, &[10.0, 20.0, 30.0, 40.0, 60.0, 40.0, 50.0])],
+        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0])],
         conflicts: &["bane_of_arthropods"],
         ..BASE
     },
