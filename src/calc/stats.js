@@ -140,7 +140,7 @@ export function petProfileOf(loadout, ctx) {
 
 // Shadow Assassin Cloak averaged over every hit: one hit in (cooldown x hits per second) gets 1.1x.
 export function saCloakMultiplier(hitsPerSecond, ctx) {
-  const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * MAGE_COOLDOWN_REDUCTION_BASE + Math.min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0)) : 0;
+  const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * MAGE_COOLDOWN_REDUCTION_BASE + Math.min(MAGE_COOLDOWN_REDUCTION_MAX, Math.floor(MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0))) : 0;
   const hitsPerCooldown = Math.max(1, SA_CLOAK_COOLDOWN_S * (1 - reduction / 100) * hitsPerSecond);
   return 1 + (SA_CLOAK_MULTIPLIER - 1) / hitsPerCooldown;
 }

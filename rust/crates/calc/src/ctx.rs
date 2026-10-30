@@ -367,7 +367,7 @@ pub fn sa_cloak_multiplier(hits_per_second: f64, ctx: Option<&Ctx>) -> f64 {
     let reduction = match ctx {
         Some(c) if c.cls == Class::Mage => {
             SOLO_CLASS_MULTIPLIER * MAGE_COOLDOWN_REDUCTION_BASE
-                + jsmath::min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * c.mage_level)
+                + jsmath::min(MAGE_COOLDOWN_REDUCTION_MAX, (MAGE_COOLDOWN_REDUCTION_PER_LEVEL * c.mage_level).floor())
         }
         _ => 0.0,
     };

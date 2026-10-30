@@ -159,7 +159,8 @@ export const DEFAULT_MAXED_COLLECTIONS = 90;
 export const SA_CLOAK_IDS = ['SHADOW_ASSASSIN_CLOAK', 'STARRED_SHADOW_ASSASSIN_CLOAK'];
 export const SA_CLOAK_MULTIPLIER = 1.1;
 export const SA_CLOAK_COOLDOWN_S = 3;
-// Mage cooldown reduction: 25% base (doubled when solo) + Mage level / 2 percent (max 25): 75% solo at level 50.
+// Mage cooldown reduction: 25% base (doubled when solo) + Mage level / 2 percent rounded down (max 25): 75% solo at
+// level 50, 73% at 47 (the class lines show whole numbers).
 export const MAGE_COOLDOWN_REDUCTION_BASE = 25;
 export const MAGE_COOLDOWN_REDUCTION_PER_LEVEL = 0.5;
 export const MAGE_COOLDOWN_REDUCTION_MAX = 25;
