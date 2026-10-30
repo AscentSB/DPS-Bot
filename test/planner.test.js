@@ -1239,13 +1239,13 @@ test('Tier Boost: an Epic Ender Dragon with a Tier Boost plays as Legendary; Kat
   assert.ok(availableUpgrades(buy, ctx, p).some((u) => u.label === 'Buy Ender Dragon Pet (Epic, level 100) + Tier Boost'));
 });
 
-test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berserker 40 + 1.5 per level additive, Warrior from Combat', async () => {
+test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berserker 2 x 40 + 0.75 per level additive, Warrior from Combat', async () => {
   const { classAdditiveDamage, archerMultiplier } = await import('../src/calc/stats.js');
   close(archerMultiplier({ cls: 'arch', archerLevel: 50 }), 1.8);
   close(archerMultiplier({ cls: 'bers', archerLevel: 50 }), 1);
   close(classAdditiveDamage({ cls: 'arch', combatLevel: 60 }), 210);
-  // Berserk class bonus (40 + 2 x 37.5 = 115) plus Lust for Blood (1200 at Berserk 50 solo).
-  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 115 + 1200);
+  // Berserk class bonus (2 x 40 + 37.5 = 117.5) plus Lust for Blood (600 at Berserk 50; only bases double solo).
+  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 117.5 + 600);
   close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 210);
 });
 
@@ -1537,8 +1537,8 @@ test('LCM scroll step names the Shadow Assassin Cloak ability; RCM does not', ()
 });
 
 test('Shadow Assassin Cloak: one 1.1x hit per 3s (less Mage cooldown reduction), averaged over every hit', () => {
-  // Mage 50 solo: 50% cooldown reduction, 1.5s. 4 beam hits a second: 6 hits per cooldown.
-  close(saCloakMultiplier(4, { cls: 'mage', mageLevel: 50 }), 1 + 0.1 / 6);
+  // Mage 50 solo: 2 x 25 + 25 = 75% cooldown reduction, 0.75s. 4 beam hits a second: 3 hits per cooldown.
+  close(saCloakMultiplier(4, { cls: 'mage', mageLevel: 50 }), 1 + 0.1 / 3);
   // Berserker: 3s, 1 hit a second.
   close(saCloakMultiplier(1, { cls: 'bers' }), 1 + 0.1 / 3);
   // 12 hits per cooldown: 1.0083x.

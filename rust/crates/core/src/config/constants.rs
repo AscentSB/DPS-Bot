@@ -28,7 +28,7 @@ pub const SOLO_CLASS_MULTIPLIER: f64 = 2.0;
 pub const ARCHER_ARROW_DAMAGE_PER_LEVEL: f64 = 0.8;
 pub const BERSERK_DAMAGE_BASE: f64 = 40.0;
 pub const BERSERK_DAMAGE_PER_LEVEL: f64 = 0.75;
-/// Berserker Lust for Blood: additive damage, 1200 at Berserk 50 when solo (12 per level, doubled solo).
+/// Berserker Lust for Blood: additive damage, 600 at Berserk 50 (12 per level; per-level parts are not doubled solo).
 pub const LUST_FOR_BLOOD_PER_LEVEL: f64 = 12.0;
 pub const WARRIOR_PER_LEVEL: f64 = 4.0;
 pub const WARRIOR_PER_LEVEL_AFTER_50: f64 = 1.0;
@@ -194,6 +194,7 @@ pub const DEFAULT_MAXED_COLLECTIONS: f64 = 90.0;
 pub const SA_CLOAK_IDS: [&str; 2] = ["SHADOW_ASSASSIN_CLOAK", "STARRED_SHADOW_ASSASSIN_CLOAK"];
 pub const SA_CLOAK_MULTIPLIER: f64 = 1.1;
 pub const SA_CLOAK_COOLDOWN_S: f64 = 3.0;
+pub const MAGE_COOLDOWN_REDUCTION_BASE: f64 = 25.0;
 pub const MAGE_COOLDOWN_REDUCTION_PER_LEVEL: f64 = 0.5;
 pub const MAGE_COOLDOWN_REDUCTION_MAX: f64 = 25.0;
 pub const MAGE_ABILITY_DAMAGE_BASE: f64 = 5.0;

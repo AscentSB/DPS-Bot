@@ -29,11 +29,11 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Tuning is shared by both bosses and fills attack speed to 100 for whichever needs more. F7 (Mage normal floor) has no dragons, so only the withers count there.
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
 - Legion: 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
-- Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (level/2 %, max 25, doubled solo), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
+- Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (25% base doubled solo + level/2 %, max 25: 75% at Mage 50), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
 - Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). Confirmed by the owner: +50%, it does not double.
 - The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
-- Solo class ("stats are doubled"): only the bonus from class level doubles, never the base you get for choosing the class (Mage intelligence 250 + 2 x 5 per level). Exception still to check: Mage cooldown reduction has no base here and doubles whole, but alldata measures solo CDR at about 1.52x, not 2x, so it likely has a base too.
-- Berserker additive damage: Warrior (Combat level) + Berserk class bonus (40 + 2 x 0.75 per level) + Lust for Blood (2 x 12 per level, 1200 at Berserk 50 solo).
+- Solo class ("stats are doubled"): only each passive's base doubles, never the class-level part (Mage intelligence 2 x 250 + 5 per level, CDR 2 x 25 + level/2, ability damage 2 x 5 + 1 per 5 levels, Berserk 2 x 40 + 0.75 per level). Measured on 769 ADR solo-class lines (alldata combat-solo-class): after - before is the same for every player whatever the level, and before minus that is exactly the per-level value at the tab-list class level. Archer arrow damage still uses 2 x 0.8 per level: the lines show a +50 base and a level part near 165 at high level that 0.8/level doesn't explain, and no Archer class level was recorded to fit it.
+- Berserker additive damage: Warrior (Combat level) + Berserk class bonus (2 x 40 + 0.75 per level) + Lust for Blood (12 per level, 600 at Berserk 50; per-level parts don't double solo).
 - Pets: no fixed pet per boss. The owned pet that does the most damage against each boss is active (RCM still keeps an owned Golden Dragon).
 - Golden Dragon strength uses gold collection digits (the player's own gold only) and the bank: co-op bank on co-ops, the one bank on solo profiles. Members with a deletion notice count as gone.
 

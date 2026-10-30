@@ -366,8 +366,8 @@ impl Ctx {
 pub fn sa_cloak_multiplier(hits_per_second: f64, ctx: Option<&Ctx>) -> f64 {
     let reduction = match ctx {
         Some(c) if c.cls == Class::Mage => {
-            SOLO_CLASS_MULTIPLIER
-                * jsmath::min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * c.mage_level)
+            SOLO_CLASS_MULTIPLIER * MAGE_COOLDOWN_REDUCTION_BASE
+                + jsmath::min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * c.mage_level)
         }
         _ => 0.0,
     };
@@ -447,7 +447,7 @@ fn derive(ctx: &Ctx) -> CtxDerived {
     let combat = ctx.combat_level;
     let warrior = WARRIOR_PER_LEVEL * jsmath::min(combat, 50.0) + WARRIOR_PER_LEVEL_AFTER_50 * jsmath::max(0.0, combat - 50.0);
     let berserk = if ctx.cls == Class::Bers {
-        BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * ctx.berserk_level
+        SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_BASE + (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * ctx.berserk_level
     } else {
         0.0
     };
@@ -458,7 +458,7 @@ fn derive(ctx: &Ctx) -> CtxDerived {
         for (bow, b) in prefix[t].iter_mut().enumerate() {
             b.add(misc.stats, 1.0);
             if ctx.cls == Class::Mage {
-                b.add_one(Stat::Intelligence, MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * ctx.mage_level, 1.0);
+                b.add_one(Stat::Intelligence, SOLO_CLASS_MULTIPLIER * MAGE_INT_BASE + MAGE_INT_PER_LEVEL * ctx.mage_level, 1.0);
             }
             b.add_loose(&totals, 1.0);
             if bow == 1 {
@@ -468,8 +468,8 @@ fn derive(ctx: &Ctx) -> CtxDerived {
             if ctx.cls == Class::Mage {
                 b.add_one(
                     Stat::AbilityDamage,
-                    MAGE_ABILITY_DAMAGE_BASE
-                        + SOLO_CLASS_MULTIPLIER * MAGE_ABILITY_DAMAGE_PER_5_LEVELS * (ctx.mage_level / 5.0).floor(),
+                    SOLO_CLASS_MULTIPLIER * MAGE_ABILITY_DAMAGE_BASE
+                        + MAGE_ABILITY_DAMAGE_PER_5_LEVELS * (ctx.mage_level / 5.0).floor(),
                     1.0,
                 );
                 let ench = ctx.skills.as_ref().and_then(|s| s.get("ENCHANTING")).map(|&l| l as f64).unwrap_or(ENCHANTING_MAX_LEVEL as f64);
@@ -494,7 +494,7 @@ fn derive(ctx: &Ctx) -> CtxDerived {
             1.0
         },
         berserk_melee_multiplier: 1.0
-            + (BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * ctx.berserk_level) / 100.0,
+            + (SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_BASE + BERSERK_DAMAGE_PER_LEVEL * ctx.berserk_level) / 100.0,
         profile_totals: totals,
         prefix,
         secret_digit_medallion: dps_core::formulas::secret_digits(ctx.secrets),

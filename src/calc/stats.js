@@ -4,7 +4,7 @@ import {
   LEGION_PER_LEVEL, LEGION_PLAYERS, MAGE_BEAM_TICKS, MAGE_INT_BASE, MAGE_INT_PER_LEVEL, SOLO_CLASS_MULTIPLIER, ARCHER_ARROW_DAMAGE_PER_LEVEL, BERSERK_DAMAGE_BASE, LUST_FOR_BLOOD_PER_LEVEL,
   BERSERK_DAMAGE_PER_LEVEL, WARRIOR_PER_LEVEL, WARRIOR_PER_LEVEL_AFTER_50, COMBAT_CRIT_CHANCE_PER_LEVEL, LEGION_GROUPED_PLAYERS, MAX_STARS, MAX_REFORGE_ITEMS, ATTACK_SPEED_CAP, TICKS_PER_SECOND,
   DOUBLESHOT_BASE, DOUBLESHOT_PER_LEVEL, BASE_SPEED, speedCap, sheetSpeedFor, CLEAR_BOOTS_CLASSES, EXTRA_SPEED, DUNGEON_POTION,
-  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, DEFAULT_MAXED_COLLECTIONS, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
+  WITHER_IMPACT_WEAPONS, WITHER_SCROLLS, ULTIMATE_WITHER_SCROLL, SA_CLOAK_IDS, SA_CLOAK_MULTIPLIER, DEFAULT_MAXED_COLLECTIONS, SA_CLOAK_COOLDOWN_S, MAGE_COOLDOWN_REDUCTION_BASE, MAGE_COOLDOWN_REDUCTION_PER_LEVEL, MAGE_COOLDOWN_REDUCTION_MAX, MAGE_ABILITY_DAMAGE_BASE, MAGE_ABILITY_DAMAGE_PER_5_LEVELS, ENCHANTING_ABILITY_DAMAGE_PER_LEVEL, ENCHANTING_MAX_LEVEL, LOVING_ABILITY_MULTIPLIER, IMPLOSION_BELT_ID, IMPLOSION_BELT_MULTIPLIER, FABLED_MULTIPLIER, FEROCITY_EFFECTIVENESS, ARROW_DAMAGE, BOSS_SWARM_ENEMIES, RCM_SWARM_ENEMIES, RCM_ENCHANTS, THUNDERLORD_EVERY, MAGE_FIRST_STRIKE_DPS,
 } from '../config/constants.js';
 import { ITEM_STATS, MISC_BUFFS, REFORGE_OVERRIDES } from '../config/itemStats.js';
 import { ENCHANTS } from '../config/enchants.js';
@@ -140,7 +140,7 @@ export function petProfileOf(loadout, ctx) {
 
 // Shadow Assassin Cloak averaged over every hit: one hit in (cooldown x hits per second) gets 1.1x.
 export function saCloakMultiplier(hitsPerSecond, ctx) {
-  const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * Math.min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0)) : 0;
+  const reduction = ctx?.cls === 'mage' ? SOLO_CLASS_MULTIPLIER * MAGE_COOLDOWN_REDUCTION_BASE + Math.min(MAGE_COOLDOWN_REDUCTION_MAX, MAGE_COOLDOWN_REDUCTION_PER_LEVEL * (ctx.mageLevel ?? 0)) : 0;
   const hitsPerCooldown = Math.max(1, SA_CLOAK_COOLDOWN_S * (1 - reduction / 100) * hitsPerSecond);
   return 1 + (SA_CLOAK_MULTIPLIER - 1) / hitsPerCooldown;
 }
@@ -724,15 +724,15 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
   const bossOnly = (stats, target) => { if (!rcm) add(stats, target); };
   const misc = MISC_BUFFS[c.cls] ?? {};
   add(misc.stats);
-  // Mage class intelligence (solo): 250 + 2 x 5 per Mage level.
-  if (c.cls === 'mage') add({ intelligence: MAGE_INT_BASE + SOLO_CLASS_MULTIPLIER * MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
+  // Mage class intelligence (solo): 2 x 250 + 5 per Mage level.
+  if (c.cls === 'mage') add({ intelligence: SOLO_CLASS_MULTIPLIER * MAGE_INT_BASE + MAGE_INT_PER_LEVEL * (c.mageLevel ?? 0) });
   add(profileStatTotals(c));
   // Arrow base damage, added to the bow's (Nansorb for Archer, Bouncy for Berserker).
   for (const t of TARGETS) if (isBow(gear[t].weapon)) add({ damage: ARROW_DAMAGE[c.cls] ?? 0 }, t);
   // Combat skill: +0.5 base crit chance per level.
   add({ critChance: (c.combatLevel ?? 0) * COMBAT_CRIT_CHANCE_PER_LEVEL });
-  // Mage class ability damage (+5, +1 per 5 levels, doubled solo) and Enchanting (+0.5% per level). RCM only uses it.
-  if (c.cls === 'mage') add({ abilityDamage: MAGE_ABILITY_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * MAGE_ABILITY_DAMAGE_PER_5_LEVELS * Math.floor((c.mageLevel ?? 0) / 5) });
+  // Mage class ability damage (+5 doubled solo, +1 per 5 levels) and Enchanting (+0.5% per level). RCM only uses it.
+  if (c.cls === 'mage') add({ abilityDamage: SOLO_CLASS_MULTIPLIER * MAGE_ABILITY_DAMAGE_BASE + MAGE_ABILITY_DAMAGE_PER_5_LEVELS * Math.floor((c.mageLevel ?? 0) / 5) });
   if (c.cls === 'mage') add({ abilityDamage: ENCHANTING_ABILITY_DAMAGE_PER_LEVEL * (c.player?.skills?.ENCHANTING ?? ENCHANTING_MAX_LEVEL) });
   bossOnly(misc.wither, 'wither');
   bossOnly(misc.dragon, 'dragon');
@@ -861,13 +861,13 @@ export function classAdditiveDamage(ctx) {
   const combat = ctx.combatLevel ?? 0;
   const warrior = WARRIOR_PER_LEVEL * Math.min(combat, 50) + WARRIOR_PER_LEVEL_AFTER_50 * Math.max(0, combat - 50);
   const bersLevel = ctx.berserkLevel ?? 0;
-  const berserk = ctx.cls === 'bers' ? BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * bersLevel : 0;
+  const berserk = ctx.cls === 'bers' ? SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_BASE + (BERSERK_DAMAGE_PER_LEVEL + LUST_FOR_BLOOD_PER_LEVEL) * bersLevel : 0;
   return warrior + berserk;
 }
 
-// Berserk melee bonus as a multiplier (40 + 0.75 per level, per-level part doubled solo): ferocity hits only.
+// Berserk melee bonus as a multiplier (40 doubled solo + 0.75 per level): ferocity hits only.
 export function berserkMeleeMultiplier(ctx) {
-  return 1 + (BERSERK_DAMAGE_BASE + SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0)) / 100;
+  return 1 + (SOLO_CLASS_MULTIPLIER * BERSERK_DAMAGE_BASE + BERSERK_DAMAGE_PER_LEVEL * (ctx.berserkLevel ?? 0)) / 100;
 }
 
 // Archer class arrow damage: a multiplicative buff from Archer level (solo).

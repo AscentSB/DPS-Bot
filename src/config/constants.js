@@ -7,15 +7,17 @@ export const CLASSES = {
 };
 
 // Class bonuses from class level. Each class is assumed to be the only one of its kind in the party, which
-// doubles its class bonuses (SOLO_CLASS_MULTIPLIER). Source: https://hypixelskyblock.minecraft.wiki/w/Classes
+// doubles each passive's base, never its per-level part (SOLO_CLASS_MULTIPLIER): the solo lines in 769 ADR
+// recordings add exactly the base for every player, whatever their class level (alldata combat-solo-class).
+// Source for the values: https://hypixelskyblock.minecraft.wiki/w/Classes
 export const SOLO_CLASS_MULTIPLIER = 2;
 // Archer: +0.8% arrow damage per Archer level, a multiplicative buff (x1.8 at level 50 when solo).
 export const ARCHER_ARROW_DAMAGE_PER_LEVEL = 0.8;
 // Berserker: +0.75% damage per Berserk level on top of a 40% base, counted as additive damage
-// (40 + 2 x 37.5 = 115 at level 50 when solo).
+// (2 x 40 + 37.5 = 117.5 at level 50 when solo).
 export const BERSERK_DAMAGE_BASE = 40;
 export const BERSERK_DAMAGE_PER_LEVEL = 0.75;
-// Berserker Lust for Blood: additive damage, 1200 at Berserk 50 when solo (12 per level, doubled solo).
+// Berserker Lust for Blood: additive damage, 600 at Berserk 50 (12 per level; per-level parts are not doubled solo).
 export const LUST_FOR_BLOOD_PER_LEVEL = 12;
 // Combat skill Warrior bonus: +4% additive damage per level to 50, +1% per level from 51 to 60 (210 at 60).
 // Applies to every class (Mage is scored as LCM, the mage beam).
@@ -157,10 +159,11 @@ export const DEFAULT_MAXED_COLLECTIONS = 90;
 export const SA_CLOAK_IDS = ['SHADOW_ASSASSIN_CLOAK', 'STARRED_SHADOW_ASSASSIN_CLOAK'];
 export const SA_CLOAK_MULTIPLIER = 1.1;
 export const SA_CLOAK_COOLDOWN_S = 3;
-// Mage cooldown reduction: Mage level / 2 percent (max 25), doubled when solo: 50% at level 50.
+// Mage cooldown reduction: 25% base (doubled when solo) + Mage level / 2 percent (max 25): 75% solo at level 50.
+export const MAGE_COOLDOWN_REDUCTION_BASE = 25;
 export const MAGE_COOLDOWN_REDUCTION_PER_LEVEL = 0.5;
 export const MAGE_COOLDOWN_REDUCTION_MAX = 25;
-// Mage class ability damage: +5, plus +1 per 5 Mage levels (doubled when solo, like the class intelligence).
+// Mage class ability damage: +5 (doubled when solo, like the class intelligence's 250), plus +1 per 5 Mage levels.
 export const MAGE_ABILITY_DAMAGE_BASE = 5;
 export const MAGE_ABILITY_DAMAGE_PER_5_LEVELS = 1;
 // Enchanting skill: +0.5% ability damage per level (skills API off: assumed maxed).

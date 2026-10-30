@@ -357,8 +357,8 @@ fn class_bonuses() {
     });
     close(archer_multiplier_of(&bers), 1.0);
     close(arch.class_additive_damage(), 210.0);
-    // Berserk class bonus (115) plus Lust for Blood (1200 at Berserk 50 solo).
-    close(bers.class_additive_damage(), 210.0 + 115.0 + 1200.0);
+    // Berserk class bonus (2 x 40 + 37.5 = 117.5) plus Lust for Blood (600 at Berserk 50; only bases double solo).
+    close(bers.class_additive_damage(), 210.0 + 117.5 + 600.0);
     close(mk_ctx(Class::Mage, 50.0, &res, |i| i.combat_level = 60.0).class_additive_damage(), 210.0);
 }
 
@@ -718,7 +718,7 @@ fn sa_cloak_multiplier_cases() {
     let res = res();
     let mage50 = mk_ctx(Class::Mage, 50.0, &res, |i| i.mage_level = 50.0);
     let bers = mk_ctx(Class::Bers, 50.0, &res, |_| {});
-    close(mage50.sa_cloak_multiplier(4.0), 1.0 + 0.1 / 6.0);
+    close(mage50.sa_cloak_multiplier(4.0), 1.0 + 0.1 / 3.0);
     close(bers.sa_cloak_multiplier(1.0), 1.0 + 0.1 / 3.0);
     close(bers.sa_cloak_multiplier(4.0), 1.0 + 0.1 / 12.0);
     close(bers.sa_cloak_multiplier(0.1), 1.1);
