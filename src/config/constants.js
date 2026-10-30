@@ -104,9 +104,9 @@ export const DUNGEON_POTION = { strength: 40, critChance: 20, critDamage: 30, bo
 export const ATTACK_SPEED_CAP = 100;
 export const TICKS_PER_SECOND = 20;
 
-// Archer class: Doubleshot is 50%, doubled to 100% as the only Archer in the party (assumed),
-// plus 1% per Archer level: 1.5 extra arrows at level 50.
-export const DOUBLESHOT_BASE = 1;
+// Archer class: Doubleshot, extra Terminator arrows at full damage. The only Archer in the party (assumed) gets
+// 151% at Archer 50 (stats team, 2026-10-30): 1.01 + 1% per Archer level, i.e. one arrow plus a 51% chance of another.
+export const DOUBLESHOT_BASE = 1.01;
 export const DOUBLESHOT_PER_LEVEL = 0.01;
 
 // Wolf Slayer: +1 speed at levels 1, 3 and 8. XP needed for levels 1-9.

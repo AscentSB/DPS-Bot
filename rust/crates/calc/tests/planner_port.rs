@@ -702,9 +702,9 @@ fn terminator_volleys_and_arrows() {
     assert_eq!(v(100.0), 4.0);
     assert!((v(99.0) - 20.0 / 6.0).abs() < 1e-9);
     assert_eq!(v(150.0), 4.0);
-    assert!((dps_calc::eval::arrows_per_volley(&w.model, Some(term), 0.2, &ctx) - 4.7).abs() < 1e-9);
+    assert!((dps_calc::eval::arrows_per_volley(&w.model, Some(term), 0.2, &ctx) - 4.71).abs() < 1e-9);
     let a20 = mk_ctx(Class::Arch, 50.0, &res, |i| i.archer_level = 20.0);
-    assert!((dps_calc::eval::arrows_per_volley(&w.model, Some(term), 0.0, &a20) - 4.2).abs() < 1e-9);
+    assert!((dps_calc::eval::arrows_per_volley(&w.model, Some(term), 0.0, &a20) - 4.21).abs() < 1e-9);
     let bers = mk_ctx(Class::Bers, 50.0, &res, |_| {});
     assert_eq!(dps_calc::eval::arrows_per_volley(&w.model, Some(term), 0.0, &bers), 3.0);
     // Mage beam: 20 / round(10 / (1 + AS/100)).
@@ -888,7 +888,7 @@ fn duplex_and_combat_crit_chance() {
     let plain = w.build(&[new_it(&res, "TERMINATOR")], &[], &[], &[]);
     let duplex = w.build(&[with(new_it(&res, "TERMINATOR"), |i| enchants(i, &[("ultimate_reiterate", 5)]))], &[], &[], &[]);
     close(w.eval(&duplex).arrows_per_volley - w.eval(&plain).arrows_per_volley, 0.2);
-    close(w.eval(&duplex).arrows_per_volley, 4.7);
+    close(w.eval(&duplex).arrows_per_volley, 4.71);
 
     let at = |combat: f64| {
         let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |i| i.combat_level = combat), weights(Class::Arch));

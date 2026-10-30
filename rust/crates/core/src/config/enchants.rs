@@ -64,7 +64,7 @@ pub static ENCHANTS: &[Enchant] = &[
         key: "giant_killer",
         categories: SWORDS,
         floor_mode: Some(FloorMode::Normal),
-        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 65.0])],
+        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 50.0])],
         conflicts: &["titan_killer"],
         ..BASE
     },
@@ -128,6 +128,7 @@ pub static ENCHANTS: &[Enchant] = &[
     },
     Enchant { key: "vicious", categories: SWORDS_BOW, stats: &[(Stat::Ferocity, &[0.0, 0.0, 3.0, 4.0, 5.0])], ..BASE },
     // Hypixel lets Sharpness and Smite sit on the same sword, so they do not conflict.
+    // Sharpness VII and Smite VII give +50% (stats team, 2026-10-30). Lower levels are the wiki's, unchecked.
     Enchant {
         key: "sharpness",
         categories: SWORDS,
@@ -153,7 +154,7 @@ pub static ENCHANTS: &[Enchant] = &[
         categories: SWORDS,
         target: StatTarget::Wither,
         clear_mobs: true,
-        stats: &[(Stat::AdditiveDamage, &[10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 100.0])],
+        stats: &[(Stat::AdditiveDamage, &[10.0, 20.0, 30.0, 40.0, 60.0, 80.0, 50.0])],
         conflicts: &["bane_of_arthropods"],
         ..BASE
     },

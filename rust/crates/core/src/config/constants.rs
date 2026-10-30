@@ -157,7 +157,8 @@ pub static DUNGEON_POTION: &[(Stat, f64)] = &[
 pub const ATTACK_SPEED_CAP: f64 = 100.0;
 pub const TICKS_PER_SECOND: f64 = 20.0;
 
-pub const DOUBLESHOT_BASE: f64 = 1.0;
+// Solo Archer Doubleshot: 1.01 + 1% per level, 151% at Archer 50 (stats team, 2026-10-30).
+pub const DOUBLESHOT_BASE: f64 = 1.01;
 pub const DOUBLESHOT_PER_LEVEL: f64 = 0.01;
 
 pub const WOLF_SLAYER_XP: [f64; 9] = [10.0, 30.0, 250.0, 1500.0, 5000.0, 20000.0, 100000.0, 400000.0, 1000000.0];

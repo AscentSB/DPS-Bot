@@ -353,9 +353,9 @@ test('Terminator volleys: 4/s at 100 attack speed, 3.33/s at 99; arrows = 3 + Du
   assert.equal(volleysPerSecond(term, 100, ctx), 4);
   assert.ok(Math.abs(volleysPerSecond(term, 99, ctx) - 20 / 6) < 1e-9);
   assert.equal(volleysPerSecond(term, 150, ctx), 4);
-  // Archer 50: Doubleshot 100% (solo archer) + 50% = 1.5 extra arrows.
-  assert.ok(Math.abs(arrowsPerVolley(term, 0.2, ctx) - 4.7) < 1e-9);
-  assert.ok(Math.abs(arrowsPerVolley(term, 0, { cls: 'arch', archerLevel: 20 }) - 4.2) < 1e-9);
+  // Archer 50: Doubleshot 101% (solo archer) + 50% = 1.51 extra arrows.
+  assert.ok(Math.abs(arrowsPerVolley(term, 0.2, ctx) - 4.71) < 1e-9);
+  assert.ok(Math.abs(arrowsPerVolley(term, 0, { cls: 'arch', archerLevel: 20 }) - 4.21) < 1e-9);
   assert.equal(arrowsPerVolley(term, 0, { cls: 'bers' }), 3);
 });
 
@@ -543,7 +543,7 @@ test('Duplex is read from its NBT key ultimate_reiterate: Duplex V adds 0.2 arro
   const plain = buildLoadout(profile([newItem('TERMINATOR', resource)]), ctx, w);
   const duplex = buildLoadout(profile([{ ...newItem('TERMINATOR', resource), enchants: { ultimate_reiterate: 5 } }]), ctx, w);
   close(evaluate(duplex, ctx, w).arrowsPerVolley - evaluate(plain, ctx, w).arrowsPerVolley, 0.2);
-  close(evaluate(duplex, ctx, w).arrowsPerVolley, 4.7);
+  close(evaluate(duplex, ctx, w).arrowsPerVolley, 4.71);
 });
 
 test('unobtainable items like the Raygun are never offered', () => {
