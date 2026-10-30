@@ -95,7 +95,7 @@ export const CLEAR_BOOTS_CLASSES = ['arch', 'bers'];
 export const EXTRA_SPEED = 0;
 
 // Dungeon VII potion (Ophelia): Strength V, Critical III, Archery III, Speed III.
-// A Jellyfish pet makes it up to 50% stronger, and the buff stays after swapping pets.
+// A Jellyfish pet makes every one of its effects up to 50% stronger, and the buff stays after swapping pets.
 // bowDamage only counts while holding a bow.
 export const DUNGEON_POTION = { strength: 40, critChance: 20, critDamage: 30, bowDamage: 50, speed: 15 };
 

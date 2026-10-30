@@ -145,7 +145,7 @@ pub fn sheet_speed_for(dungeon: f64) -> f64 {
 pub const CLEAR_BOOTS_CLASSES: [Class; 2] = [Class::Arch, Class::Bers];
 pub const EXTRA_SPEED: f64 = 0.0;
 
-/// JS `DUNGEON_POTION`, in key order.
+/// JS `DUNGEON_POTION`, in key order. The Jellyfish boost scales every entry.
 pub static DUNGEON_POTION: &[(Stat, f64)] = &[
     (Stat::Strength, 40.0),
     (Stat::CritChance, 20.0),
