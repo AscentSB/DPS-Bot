@@ -1057,6 +1057,10 @@ test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier)
   close(itemContribution(newItem('TERMINATOR', res), withF.ctx).global.ferocity, 20 * 1.5);
   // Vicious V: +5 ferocity on the Terminator (star scaled like the rest).
   close(itemContribution({ ...newItem('TERMINATOR', res), enchants: { vicious: 5 } }, withF.ctx).global.ferocity, (20 + 5) * 1.5);
+  // Ferocity above 100 adds nothing: 80 and 100 base (120 and 150 starred) match, 60 (90) is lower.
+  const resF = (f) => new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, FEROCITY: f } }]]);
+  close(dmg('bers', resF(80)).r.wither, dmg('bers', resF(100)).r.wither);
+  assert.ok(dmg('bers', resF(60)).r.wither < dmg('bers', resF(80)).r.wither);
 });
 
 test('runDps returns plain data for the worker (coin and profile menus); bows get arrow damage', async () => {

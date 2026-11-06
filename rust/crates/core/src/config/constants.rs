@@ -207,6 +207,8 @@ pub const IMPLOSION_BELT_ID: &str = "IMPLOSION_BELT";
 pub const IMPLOSION_BELT_MULTIPLIER: f64 = 1.25;
 
 pub const FEROCITY_EFFECTIVENESS: f64 = 0.5;
+// Ferocity above 100 adds nothing for Berserker (at most one extra hit counts).
+pub const FEROCITY_CAP: f64 = 100.0;
 
 /// JS `ARROW_DAMAGE[cls] ?? 0` (arch 5, bers 5, mage none).
 #[inline]

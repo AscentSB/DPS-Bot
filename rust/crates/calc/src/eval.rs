@@ -779,9 +779,9 @@ pub fn evaluate_with_base(
                 }
             };
             let mut dmg = hit_with(fabled);
-            // Ferocity (Berserker vs withers only).
+            // Ferocity (Berserker vs withers only), capped at FEROCITY_CAP.
             if cls == Class::Bers && t == 0 {
-                let ferocity = buckets[t].get(Stat::Ferocity) * (1.0 + buckets[t].get(Stat::AdditiveFerocity));
+                let ferocity = (buckets[t].get(Stat::Ferocity) * (1.0 + buckets[t].get(Stat::AdditiveFerocity))).min(FEROCITY_CAP);
                 if ferocity > 0.0 {
                     dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100.0) * hit_with(fabled * ctx.d.berserk_melee_multiplier);
                 }

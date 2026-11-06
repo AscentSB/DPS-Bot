@@ -1009,6 +1009,15 @@ fn ferocity_berserker_wither_only() {
     close(contribution(&mut w, &new_it(&res_f, "TERMINATOR"), 0).global.get0(Stat::Ferocity), 20.0 * 1.5);
     let vicious = with(new_it(&res_f, "TERMINATOR"), |i| enchants(i, &[("vicious", 5)]));
     close(contribution(&mut w, &vicious, 0).global.get0(Stat::Ferocity), (20.0 + 5.0) * 1.5);
+    // Ferocity above 100 adds nothing: 80 and 100 base (120 and 150 starred) match, 60 (90) is lower.
+    let res_n = |f: i32| {
+        with_items(
+            &base_resource(),
+            vec![json!({"id":"TERMINATOR","name":"Terminator","category":"BOW","tier":"LEGENDARY","dungeon_item_conversion_cost":{"essence_type":"DRAGON","amount":300},"stats":{"DAMAGE":310,"STRENGTH":50,"CRITICAL_DAMAGE":250,"FEROCITY":f}})],
+        )
+    };
+    close(dmg(Class::Bers, &res_n(80)).wither(), dmg(Class::Bers, &res_n(100)).wither());
+    assert!(dmg(Class::Bers, &res_n(60)).wither() < dmg(Class::Bers, &res_n(80)).wither());
 }
 
 #[test]

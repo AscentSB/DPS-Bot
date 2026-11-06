@@ -179,6 +179,8 @@ export const IMPLOSION_BELT_MULTIPLIER = 1.25;
 // Ferocity hits land about 0.5s late, and Goldor (the only place Berserker procs it) lives about 1s, so
 // ferocity damage counts half.
 export const FEROCITY_EFFECTIVENESS = 0.5;
+// Ferocity above 100 adds nothing for Berserker (at most one extra hit counts).
+export const FEROCITY_CAP = 100;
 
 // Arrows: Archer always uses Nansorb Arrows, Berserker always Bouncy Arrows. Both add 5 base damage to the bow;
 // their special effects (piercing, bouncing) do nothing against one boss. Nansorb's damage multiplies only on a

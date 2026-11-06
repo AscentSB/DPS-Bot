@@ -288,6 +288,7 @@ fn constants() -> Vec<(&'static str, Value)> {
         ("EQUIPMENT_SLOT_OF", obj(vec![("BRACELET", json!(c::equipment_slot("BRACELET").unwrap()))])),
         ("EXTRA_SPEED", n(c::EXTRA_SPEED)),
         ("FABLED_MULTIPLIER", n(c::FABLED_MULTIPLIER)),
+        ("FEROCITY_CAP", n(c::FEROCITY_CAP)),
         ("FEROCITY_EFFECTIVENESS", n(c::FEROCITY_EFFECTIVENESS)),
         ("FUMING_POTATO", potato(&c::FUMING_POTATO)),
         ("GENERAL_MEDALLION_ID", json!(c::GENERAL_MEDALLION_ID)),
