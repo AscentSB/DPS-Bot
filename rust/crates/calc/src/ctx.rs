@@ -199,6 +199,8 @@ pub struct Ctx {
     pub collections: Option<Collections>,
     pub any_chest: bool,
     pub no_clear_boots: bool,
+    /// JS `ctx.bloodChalice`: Handy Blood Chalice toggled on (only set by its profile upgrade row).
+    pub blood_chalice: bool,
     pub resource: Arc<Resource>,
     pub d: Arc<CtxDerived>,
     pub tuning_plan: TuningPlan,
@@ -260,6 +262,7 @@ impl Ctx {
             collections: init.collections,
             any_chest: init.any_chest,
             no_clear_boots: init.no_clear_boots,
+            blood_chalice: false,
             resource: init.resource,
             d: Arc::new(placeholder_derived()),
             tuning_plan: TuningPlan { len: 0, sinks: [TuneSink { stat: Stat::Strength, share: 0.0, per_point: 0.0 }; 6] },

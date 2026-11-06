@@ -1021,6 +1021,46 @@ fn ferocity_berserker_wither_only() {
 }
 
 #[test]
+fn blood_chalice_profile_upgrade() {
+    let res = with_items(
+        &base_resource(),
+        vec![json!({"id":"HANDY_BLOOD_CHALICE","name":"Handy Blood Chalice","category":"ACCESSORY","tier":"COMMON"})],
+    );
+    let labels = |cls: Class, enderman: i32, chalice: bool| -> Vec<String> {
+        let ctx = mk_ctx(cls, 50.0, &res, |i| {
+            i.berserk_level = 50.0;
+            i.archer_level = 50.0;
+            i.slayers = Some([("enderman".to_string(), enderman)].into_iter().collect());
+        });
+        let mut w = World::new(ctx.clone(), weights(cls));
+        let mut items = vec![new_it(&res, "TERMINATOR")];
+        if chalice {
+            items.push(new_it(&res, "HANDY_BLOOD_CHALICE"));
+        }
+        let l = w.build(&items, &[], &[], &[]);
+        dps_calc::profile::profile_upgrades(&mut w.model, &ctx, weights(cls), &l, None).0.into_iter().map(|r| r.0).collect()
+    };
+    let enable = "Enable Handy Blood Chalice (+20 ferocity, uses Soulflow)".to_string();
+    let b = labels(Class::Bers, 5, true);
+    assert!(b.contains(&enable), "{b:?}");
+    let low = labels(Class::Bers, 4, true);
+    assert!(!low.contains(&enable));
+    assert!(low.contains(&"Enderman Slayer 4 → 5 (enable Handy Blood Chalice)".to_string()), "{low:?}");
+    assert!(!labels(Class::Bers, 5, false).contains(&enable));
+    assert!(!labels(Class::Arch, 5, true).contains(&enable));
+    // Withers only.
+    let ctx = mk_ctx(Class::Bers, 50.0, &res, |i| i.berserk_level = 50.0);
+    let mut w = World::new(ctx.clone(), weights(Class::Bers));
+    let mut l = w.build(&[new_it(&res, "TERMINATOR"), new_it(&res, "HANDY_BLOOD_CHALICE")], &[], &[], &[]);
+    l.active_pets = [None, None];
+    let off = w.eval(&l);
+    w.ctx.blood_chalice = true;
+    let on = w.eval(&l);
+    assert!(on.wither() > off.wither());
+    close(on.dragon(), off.dragon());
+}
+
+#[test]
 fn book_of_progression_multiplier() {
     let res = with_items(
         &base_resource(),

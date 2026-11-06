@@ -79,6 +79,13 @@ pub static SLAYER_BONUSES: &[SlayerBonus] = &[
 
 pub const SLAYER_MAX_LEVEL: f64 = 9.0;
 
+/// Handy Blood Chalice (in the accessory bag): toggled on, +20 ferocity in combat (costs Soulflow). Needs Enderman
+/// Slayer V. The API does not say whether it is on, so it counts as off and enabling it is a profile upgrade.
+pub const BLOOD_CHALICE_ID: &str = "HANDY_BLOOD_CHALICE";
+pub const BLOOD_CHALICE_FEROCITY: f64 = 20.0;
+pub const BLOOD_CHALICE_SLAYER_BOSS: &str = "enderman";
+pub const BLOOD_CHALICE_SLAYER_LEVEL: i32 = 5;
+
 pub const BOOK_OF_PROGRESSION_ID: &str = "BOOK_OF_PROGRESSION";
 pub const BOOK_DAMAGE_PER_LEVEL: f64 = 0.0001;
 pub const BOOK_MAX_LEVEL: f64 = 500.0;

@@ -20,7 +20,7 @@ import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { EXCLUDED_PETS, TIER_BOOST_ID } from '../config/pets.js';
-import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL } from '../config/profile.js';
+import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -844,6 +844,8 @@ function bucketsBeforeTuning(loadout, c, activeExtras) {
 
   const acc = accessoryStats(loadout, c, shards.tuningPoints);
   add(acc.stats);
+  // Handy Blood Chalice toggled on (ctx.bloodChalice, only set by its profile upgrade row).
+  if (c.bloodChalice && loadout.accessories.has(BLOOD_CHALICE_ID)) add({ ferocity: BLOOD_CHALICE_FEROCITY });
   for (const t of TARGETS) if (isBow(gear[t].weapon)) buckets[t].additiveDamage += buckets[t].bowDamage;
   // Speed only has to hit the cap during the clear, so faster clear boots count for speed.
   const bootsSpeed = (item) => (item ? itemContribution(item, c).global.speed ?? 0 : 0);

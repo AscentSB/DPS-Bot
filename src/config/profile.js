@@ -21,6 +21,12 @@ export const SLAYER_BONUSES = {
 };
 export const SLAYER_MAX_LEVEL = 9;
 
+// Handy Blood Chalice (in the accessory bag): toggled on, +20 ferocity in combat (costs Soulflow). Needs Enderman
+// Slayer V. The API does not say whether it is on, so it counts as off and enabling it is a profile upgrade.
+export const BLOOD_CHALICE_ID = 'HANDY_BLOOD_CHALICE';
+export const BLOOD_CHALICE_FEROCITY = 20;
+export const BLOOD_CHALICE_SLAYER = { boss: 'enderman', level: 5 };
+
 // Book of Progression (in the accessory bag, set to damage): x(1 + 0.01% per SkyBlock level), capped at level 500.
 export const BOOK_OF_PROGRESSION_ID = 'BOOK_OF_PROGRESSION';
 export const BOOK_DAMAGE_PER_LEVEL = 0.0001;

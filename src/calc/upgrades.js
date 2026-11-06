@@ -23,7 +23,7 @@ import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor, buyPriceId } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
 import { formatCoins } from '../lib/format.js';
-import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL } from '../config/profile.js';
+import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_SLAYER } from '../config/profile.js';
 import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
@@ -1557,13 +1557,20 @@ export function profileUpgrades(loadout, ctx, weights, prices = null) {
     }
   }
   const slayers = ctx.player?.slayers;
+  // Handy Blood Chalice in the bag: enabling it (+20 ferocity; only Berserker uses ferocity, so only Berserker gains).
+  // Below Enderman Slayer V, the slayer level that unlocks it enables it too.
+  const chalice = loadout.accessories.has(BLOOD_CHALICE_ID) && !ctx.bloodChalice;
+  const chaliceSlayer = slayers?.[BLOOD_CHALICE_SLAYER.boss] ?? (slayers ? 0 : BLOOD_CHALICE_SLAYER.level);
+  if (chalice && chaliceSlayer >= BLOOD_CHALICE_SLAYER.level) tryCtx(`Enable Handy Blood Chalice (+${BLOOD_CHALICE_FEROCITY} ferocity, uses Soulflow)`, { bloodChalice: true });
   if (slayers) {
     for (const boss of new Set([...Object.keys(SLAYER_BONUSES), 'wolf'])) {
       const level = slayers[boss] ?? 0;
       if (level >= SLAYER_MAX_LEVEL) continue;
       const changes = withPlayer({ slayers: { ...slayers, [boss]: level + 1 } });
       if (boss === 'wolf' && WOLF_SLAYER_SPEED_LEVELS.includes(level + 1)) changes.profileSpeed = (ctx.profileSpeed ?? 0) + 1;
-      tryCtx(`${titleCase(boss)} Slayer ${level} → ${level + 1}`, changes);
+      const unlocksChalice = chalice && boss === BLOOD_CHALICE_SLAYER.boss && level + 1 === BLOOD_CHALICE_SLAYER.level;
+      if (unlocksChalice) changes.bloodChalice = true;
+      tryCtx(`${titleCase(boss)} Slayer ${level} → ${level + 1}${unlocksChalice ? ' (enable Handy Blood Chalice)' : ''}`, changes);
     }
   }
   const p = ctx.profileStats;

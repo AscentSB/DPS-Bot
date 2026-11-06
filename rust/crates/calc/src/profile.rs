@@ -9,7 +9,7 @@ use dps_core::config::constants::{ACCESSORY_CATEGORY, CATA_STAT_BONUS, COMBAT_MA
 use dps_core::config::enchants::enchant;
 use dps_core::config::item_stats::item_stats;
 use dps_core::config::pets::{pet_item, GOLDEN_DRAGON_BANK_CAP, GOLD_COLLECTION_DIGITS};
-use dps_core::config::profile::{HARP_SONGS, SB_STRENGTH_EVERY, SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL};
+use dps_core::config::profile::{BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_ID, BLOOD_CHALICE_SLAYER_BOSS, BLOOD_CHALICE_SLAYER_LEVEL, HARP_SONGS, SB_STRENGTH_EVERY, SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL};
 use dps_core::data::{accessory_chain_position, accessory_family};
 use dps_core::jsfmt::{format_coins, js_string, math_round, to_locale_string};
 use dps_core::model::{PriceSource, PriceTables, Weights};
@@ -147,6 +147,18 @@ pub fn profile_upgrades(
             }
         }
     }
+    // Handy Blood Chalice in the bag: enabling it (+20 ferocity; only Berserker uses ferocity, so only Berserker gains).
+    // Below Enderman Slayer V, the slayer level that unlocks it enables it too.
+    let chalice = !ctx.blood_chalice && model.find_kind(BLOOD_CHALICE_ID).is_some_and(|k| model.bag_get(loadout.accessories, k).is_some());
+    let chalice_slayer = match &ctx.slayers {
+        Some(s) => s.get(BLOOD_CHALICE_SLAYER_BOSS).copied().unwrap_or(0),
+        None => BLOOD_CHALICE_SLAYER_LEVEL,
+    };
+    if chalice && chalice_slayer >= BLOOD_CHALICE_SLAYER_LEVEL {
+        try_ctx(model, &mut rows, format!("Enable Handy Blood Chalice (+{} ferocity, uses Soulflow)", js_string(BLOOD_CHALICE_FEROCITY)), &|c| {
+            c.blood_chalice = true
+        });
+    }
     if let Some(slayers) = &ctx.slayers {
         let mut bosses: Vec<&str> = SLAYER_BONUSES.iter().map(|s| s.boss).collect();
         if !bosses.contains(&"wolf") {
@@ -158,12 +170,17 @@ pub fn profile_upgrades(
                 continue;
             }
             let speed = boss == "wolf" && WOLF_SLAYER_SPEED_LEVELS.contains(&(level + 1));
-            try_ctx(model, &mut rows, format!("{} Slayer {} → {}", title_case(boss), level, level + 1), &move |c| {
+            let unlocks_chalice = chalice && boss == BLOOD_CHALICE_SLAYER_BOSS && level + 1 == BLOOD_CHALICE_SLAYER_LEVEL;
+            let note = if unlocks_chalice { " (enable Handy Blood Chalice)" } else { "" };
+            try_ctx(model, &mut rows, format!("{} Slayer {} → {}{}", title_case(boss), level, level + 1, note), &move |c| {
                 if let Some(s) = &mut c.slayers {
                     s.insert(boss.to_string(), level + 1);
                 }
                 if speed {
                     c.profile_speed += 1.0;
+                }
+                if unlocks_chalice {
+                    c.blood_chalice = true;
                 }
             });
         }

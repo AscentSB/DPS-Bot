@@ -11,7 +11,7 @@ use dps_core::config::constants::*;
 use dps_core::config::enchants::enchant;
 use dps_core::config::essence::ESSENCE_PERKS;
 use dps_core::config::item_stats::ITEM_STATS;
-use dps_core::config::profile::{BOOK_DAMAGE_OPTION, BOOK_DAMAGE_PER_LEVEL, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_MAX_LEVEL};
+use dps_core::config::profile::{BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_PER_LEVEL, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_MAX_LEVEL};
 use dps_core::config::upgrades::{ExtraUpgrade, EXTRA_UPGRADES};
 use dps_core::formulas::*;
 use dps_core::jsmath;
@@ -586,6 +586,10 @@ fn post_pet<'a>(model: &'a Model, ctx: &Ctx, l: &Loadout, gears: &[GearView; 2],
 
         // Accessory bag.
         b.add_loose(&acc.stats, 1.0);
+        // Handy Blood Chalice toggled on (ctx.blood_chalice, only set by its profile upgrade row).
+        if ctx.blood_chalice && model.find_kind(BLOOD_CHALICE_ID).is_some_and(|k| model.bag_get(l.accessories, k).is_some()) {
+            b.add_one(Stat::Ferocity, BLOOD_CHALICE_FEROCITY, 1.0);
+        }
         if weapon_is_bow {
             let bow = b.get(Stat::BowDamage);
             b.0[Stat::AdditiveDamage.index()] += bow;

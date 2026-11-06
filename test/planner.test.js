@@ -1063,6 +1063,30 @@ test('ferocity: Berserker vs withers only (extra hit x Berserk melee multiplier)
   assert.ok(dmg('bers', resF(60)).r.wither < dmg('bers', resF(80)).r.wither);
 });
 
+test('Handy Blood Chalice: enabling it is a Berserker profile upgrade (+20 ferocity vs withers, Enderman Slayer V)', () => {
+  const res = new Map([...resource, ['HANDY_BLOOD_CHALICE', { id: 'HANDY_BLOOD_CHALICE', name: 'Handy Blood Chalice', category: 'ACCESSORY', tier: 'COMMON' }]]);
+  const run = (cls, enderman, chalice = true) => {
+    const ctx = makeContext({ cls, cataLevel: 50, berserkLevel: 50, archerLevel: 50, resource: res, slayers: { enderman } });
+    const w = weightsFor(cls);
+    const owned = [newItem('TERMINATOR', res), ...(chalice ? [newItem('HANDY_BLOOD_CHALICE', res)] : [])];
+    const l = buildLoadout(profile(owned), ctx, w);
+    return { labels: profileUpgrades(l, ctx, w).rows.map((r) => r.label), l, ctx, w };
+  };
+  const enable = 'Enable Handy Blood Chalice (+20 ferocity, uses Soulflow)';
+  const b = run('bers', 5);
+  assert.ok(b.labels.includes(enable), b.labels.join(', '));
+  const off = evaluate({ ...b.l, activePets: {} }, b.ctx, b.w);
+  const on = evaluate({ ...b.l, activePets: {} }, { ...b.ctx, bloodChalice: true }, b.w);
+  assert.ok(on.wither > off.wither);
+  close(on.dragon, off.dragon);
+  // Below Enderman Slayer V: the level that unlocks it enables it.
+  const low = run('bers', 4);
+  assert.ok(!low.labels.includes(enable));
+  assert.ok(low.labels.includes('Enderman Slayer 4 → 5 (enable Handy Blood Chalice)'), low.labels.join(', '));
+  assert.ok(!run('bers', 5, false).labels.includes(enable));
+  assert.ok(!run('arch', 5).labels.includes(enable));
+});
+
 test('runDps returns plain data for the worker (coin and profile menus); bows get arrow damage', async () => {
   const { runDps } = await import('../src/calc/run.js');
   const member = { ...profile(items([{ id: 'TERMINATOR' }])), cataLevel: 50, secrets: 0, archerLevel: 50, combatLevel: 60 };
