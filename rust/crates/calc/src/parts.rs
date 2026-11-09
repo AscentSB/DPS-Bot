@@ -285,9 +285,10 @@ pub fn combine_parts(upper: &str, from: i32, to: i32, prices: &PriceTables) -> O
         if same.is_none() && next.is_none() {
             return None;
         }
-        // `!(next <= same)` with a missing `next` compares 0 <= same.
+        // JS `!(next <= same)`: a missing `next` is `undefined` and `undefined <= same` is false, so an unsold
+        // next-level book means combine (Chimera V with no seller and no BIN).
         let combine = match same {
-            Some(s) => !(next.unwrap_or(0.0) <= s),
+            Some(s) => !next.is_some_and(|n| n <= s),
             None => false,
         };
         parts.push(Part::owned(book_id(upper, if combine { lv } else { lv + 1 })));
@@ -604,9 +605,12 @@ mod tests {
         assert_eq!(w.note.as_deref(), Some("combine: add a II book"));
         assert!(w.stacks);
         assert_eq!(w.parts, vec![Part::owned("ENCHANTMENT_ULTIMATE_WISE_2".to_string())]);
-        // A missing next-level price makes `!(next <= same)` true for the JS (null <= n), but the missing book then
-        // leaves the way unpriced.
+        // A missing next-level price still combines: the JS reads `undefined <= n` (false), so `!(next <= same)` holds.
         let t = prices(&[], &[("ENCHANTMENT_ULTIMATE_WISE_2", 10.0)]);
-        assert!(enchant_parts("ultimate_wise", 3, 2, &t).is_none());
+        let w = enchant_parts("ultimate_wise", 3, 2, &t).unwrap();
+        assert_eq!(w.note.as_deref(), Some("combine: add a II book"));
+        assert_eq!(w.parts, vec![Part::owned("ENCHANTMENT_ULTIMATE_WISE_2".to_string())]);
+        // Neither level priced: no way.
+        assert!(enchant_parts("ultimate_wise", 3, 2, &prices(&[], &[])).is_none());
     }
 }
