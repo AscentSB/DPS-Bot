@@ -502,6 +502,28 @@ fn hyperion_with_rcm_ultimate_never_gets_chimera_and_chimera_one_never_gets_swar
 }
 
 #[test]
+fn ultimate_combine_when_the_next_book_is_unsold() {
+    // Chimera V with no bazaar seller and no BIN: Chimera IV -> V is still offered by adding a second IV book.
+    let res = res();
+    let mut prices = dps_core::model::PriceTables::default();
+    prices.bazaar.insert("ENCHANTMENT_ULTIMATE_CHIMERA_4".into(), 250e6);
+    let hype = with(scrolled(new_it(&res, "HYPERION")), |it| enchants(it, &[("ultimate_chimera", 4)]));
+    let mut ctx = mk_ctx(Class::Mage, 50.0, &res, |i| {
+        i.mode = Mode::Lcm;
+        i.mage_level = 50.0;
+    });
+    let w = weights_for(Class::Mage, None, Mode::Lcm, FloorMode::Master);
+    let mut model = Model::new(&ctx);
+    let member = dps_core::model::Member { items: vec![hype], cata_level: 50, mage_level: 50, ..Default::default() };
+    let l = build_loadout(&mut model, &mut ctx, w, &member);
+    let ups = CandidateGen::new().available_upgrades(&mut model, &ctx, w, &prices, &l);
+    let labels: Vec<&str> = ups.iter().map(|c| &*c.label).collect();
+    let step = ups.iter().find(|c| c.label.starts_with("Chimera V")).unwrap_or_else(|| panic!("{labels:?}"));
+    assert_eq!(&*step.label, "Chimera V on Hyperion (combine: add a IV book)");
+    close(step.cost, 250e6);
+}
+
+#[test]
 fn max_mage_has_three_hyperions() {
     let res = res();
     let mut prices = dps_core::model::PriceTables::default();

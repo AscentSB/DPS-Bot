@@ -894,6 +894,19 @@ test('ultimate enchants combine: Legion II on Legion I costs one more Legion I b
   assert.ok(labels.includes('Duplex I on Terminator') && labels.includes('Duplex II on Terminator (combine: add a I book)'), labels.join(', '));
 });
 
+test('ultimate enchants combine when the next book is unsold: Chimera V on Chimera IV adds a second IV book', () => {
+  // Chimera V with no bazaar seller and no BIN: the missing price must not hide the step.
+  const book = { ENCHANTMENT_ULTIMATE_CHIMERA_4: 250e6 };
+  const p = { get: (id) => (book[id] ? { price: book[id], source: 'BZ' } : null) };
+  assert.deepEqual(enchantParts('ultimate_chimera', 5, 4, p), { parts: [{ id: 'ENCHANTMENT_ULTIMATE_CHIMERA_4' }], note: 'combine: add a IV book', stacks: true });
+  const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, mode: 'lcm', resource });
+  const hype = { ...scrolled(newItem('HYPERION', resource)), enchants: { ultimate_chimera: 4 } };
+  const ups = availableUpgrades(buildLoadout(profile([hype]), ctx, weightsFor('mage', null, 'lcm')), ctx, p);
+  const step = ups.find((u) => u.label.startsWith('Chimera V'));
+  assert.equal(step?.label, 'Chimera V on Hyperion (combine: add a IV book)', ups.map((u) => u.label).join(', '));
+  close(step.cost, 250e6);
+});
+
 test('powers: the best learned power is used for free; unlearned ones are a stone purchase step', () => {
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource, mode: 'rcm' });
   const w = weightsFor('mage', null, 'rcm');
