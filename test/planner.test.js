@@ -1936,3 +1936,9 @@ test('removed Personal Compactors are never bought', () => {
   const ups = availableUpgrades(l, ctx, { get: (id) => (id === 'PERSONAL_COMPACTOR_7000' ? { price: 1000, source: 'AH' } : null) });
   assert.ok(!ups.some((u) => u.label.includes('Compactor')));
 });
+
+test('Safety Badge can be recombobulated (0.27.3)', async () => {
+  const { canRecomb } = await import('../src/calc/stats.js');
+  const res = new Map([...resource, ['SAFETY_BADGE', { id: 'SAFETY_BADGE', name: 'Safety Badge', category: 'ACCESSORY', tier: 'COMMON', soulbound: 'SOLO' }]]);
+  assert.equal(canRecomb(newItem('SAFETY_BADGE', res), res), true);
+});

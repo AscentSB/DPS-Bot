@@ -250,7 +250,8 @@ export function statRarity(rarity) {
 }
 
 // The items resource marks items that cannot be recombobulated with can_recombobulate: false
-// (Voter Badges, Runebook, Safety Badge, Beastslayer's Codex, Pandora's Box, Rift Prism, ...).
+// (Voter Badges, Runebook, Beastslayer's Codex, Pandora's Box, Rift Prism, ...). The Safety Badge can be
+// recombobulated since 0.27.3 (the live resource no longer flags it).
 export function canRecomb(item, resource) {
   if (NO_RECOMB.includes(item.id) || MAX_REFORGE_ITEMS.test(item.id ?? '')) return false;
   if (resource?.get(item.id)?.can_recombobulate === false) return false;
