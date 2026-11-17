@@ -137,7 +137,7 @@ pub fn cata_boost(level: f64) -> f64 {
     CATA_STAT_BONUS[capped as usize] / 100.0
 }
 
-/// JS `secretDigits(secrets)`: digits of the secret count, capped at 5 (General's Medallion).
+/// JS `secretDigits(secrets)`: digits of the secret count, capped at 6 (General's Medallion).
 #[inline]
 pub fn secret_digits(secrets: f64) -> f64 {
     if !(secrets > 0.0) {

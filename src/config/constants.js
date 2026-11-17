@@ -217,14 +217,14 @@ export const DUAL_WIELD_ADDITIVE = 50;
 //   stat       * (1 + cataBoost + 0.1 * stars + 0.05 * masterStars + 0.01 * secretDigit)
 //   critChance * (1 + 0.1 * stars + 0.05 * masterStars + 0.01 * secretDigit)
 // At 5 stars this is cataBoost + 1.5 + ... and 1.5 + ... as in the original formula.
-// secretDigit comes from the General's Medallion: number of digits in your secret count, capped at 5.
+// secretDigit comes from the General's Medallion: number of digits in your secret count, capped at 6 (+6%).
 export const DUNGEON_BASE = 1;
 export const STAR_STEP = 0.1;
 export const MAX_STARS = 5;
 export const MASTER_STAR_STEP = 0.05;
 export const MAX_MASTER_STARS = 5;
 export const SECRET_STEP = 0.01;
-export const SECRET_DIGIT_CAP = 5;
+export const SECRET_DIGIT_CAP = 6;
 export const GENERAL_MEDALLION_ID = 'GENERAL_MEDALLION';
 
 // Catacombs dungeon item stat bonus in percent, cumulative. Index = Catacombs level (0 to 50).
@@ -311,9 +311,9 @@ export const RAGNAROCK_ID = 'RAGNAROCK_AXE';
 export const RAGNAROCK_MULTIPLIER = 1.5;
 export const CHIMERA_PER_LEVEL = 0.2;
 
-// Legion: +0.07% combat stats per level per nearby player. 4 nearby players against withers (every class) and
+// Legion: +0.1% combat stats per level per nearby player (0.5% at V, 0.27.3). 4 nearby players against withers (every class) and
 // against dragons for Mage. 1 everywhere else (Archer / Berserker dragons, the RCM clear).
-export const LEGION_PER_LEVEL = 0.0007;
+export const LEGION_PER_LEVEL = 0.001;
 export const LEGION_PLAYERS = 1;
 export const LEGION_GROUPED_PLAYERS = 4;
 

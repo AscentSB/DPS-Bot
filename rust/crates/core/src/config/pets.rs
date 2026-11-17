@@ -49,6 +49,8 @@ pub fn pet_item(id: &str) -> Option<&'static PetItem> {
 
 pub const GOLDEN_DRAGON_BANK_CAP: f64 = 1e9;
 pub const GOLD_COLLECTION_DIGITS: f64 = 9.0;
+/// Shining Scales strength per Gold collection digit (11.1 before 0.27.3).
+pub const GOLDEN_DRAGON_STRENGTH_PER_DIGIT: f64 = 15.0;
 
 /// Lion Primal Force: stats on the weapon (JS `special.weaponStats`, keys `damage` then `strength`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -129,7 +131,7 @@ pub fn pet_perk(kind: &str, n: &[f64], p: PerkProfile) -> Option<PetPerk> {
     let mut perk = PetPerk::default();
     match kind {
         "GOLDEN_DRAGON" => {
-            perk.pet_strength = Some(11.1 * crate::jsmath::min(GOLD_COLLECTION_DIGITS, digits(p.gold_collection)));
+            perk.pet_strength = Some(GOLDEN_DRAGON_STRENGTH_PER_DIGIT * crate::jsmath::min(GOLD_COLLECTION_DIGITS, digits(p.gold_collection)));
             perk.extra.set(Stat::AdditiveStrength, at(2) / 100.0);
             perk.extra.set(Stat::AdditiveDamage, crate::jsmath::min(at(4), at(3) * (p.bank / 1e6)));
         }
@@ -220,7 +222,7 @@ mod tests {
         let p = PerkProfile { bank: 5e8, gold_collection: 1e9 };
         let n = [10.0, 0.5, 5.0, 0.25, 250.0];
         let g = pet_perk("GOLDEN_DRAGON", &n, p).unwrap();
-        assert_eq!(g.pet_strength, Some(11.1 * 9.0));
+        assert_eq!(g.pet_strength, Some(15.0 * 9.0));
         assert_eq!(g.extra.as_slice(), &[(Stat::AdditiveStrength, 0.05), (Stat::AdditiveDamage, 125.0)]);
         assert!(pet_perk("HORSE", &n, p).is_none());
         let short = pet_perk("LION", &[1.0], p).unwrap();

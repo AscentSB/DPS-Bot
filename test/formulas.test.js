@@ -49,13 +49,14 @@ test('catacombs level, boost and dungeon multiplier', () => {
   close(dungeonMultiplier(50), 6.35);
   close(dungeonMultiplier(50, 5, 2, 3), 6.35 + 0.1 + 0.03);
   close(dungeonMultiplier(50, 3), 1 + 4.85 + 0.3);
-  close(dungeonCritMultiplier(5, 5, 9), 1.5 + 0.25 + 0.05);
+  close(dungeonCritMultiplier(5, 5, 9), 1.5 + 0.25 + 0.06);
 });
 
 test('general medallion secret digits', () => {
   assert.equal(secretDigits(0), 0);
   assert.equal(secretDigits(1234), 4);
-  assert.equal(secretDigits(123456), 5);
+  assert.equal(secretDigits(123456), 6);
+  assert.equal(secretDigits(1234567), 6);
 });
 
 test('accessory power multiplier matches the wiki (Silky at 250 AP is about 220 crit damage)', () => {

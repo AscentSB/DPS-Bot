@@ -29,7 +29,7 @@ pub(crate) fn truthy(v: &serde_json::Value) -> bool {
 }
 
 /// JS `goldStrengthText(loadout, ctx, weights, changes)`: a Gold collection digit's strength against the main boss,
-/// "+11.1 strength" or with what raises it ("+11.1 strength, +81.6 with Antique Remedies, Chimera and Ragnarock").
+/// "+15 strength" or with what raises it ("+15 strength, +238.9 with Antique Remedies, Chimera and Ragnarock").
 fn gold_strength_text(model: &Model, ctx: &Ctx, weights: &Weights, loadout: &Loadout, gold: f64) -> String {
     let t = if weights.wither >= weights.dragon { 0 } else { 1 };
     let mut c2 = ctx.clone();
@@ -73,11 +73,11 @@ fn gold_strength_text(model: &Model, ctx: &Ctx, weights: &Weights, loadout: &Loa
         sources.push("Ragnarock");
     }
     let list = match sources.split_last() {
-        None => return "+11.1 strength".to_string(),
+        None => return "+15 strength".to_string(),
         Some((last, [])) => last.to_string(),
         Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
     };
-    format!("+11.1 strength, +{} with {list}", js_string(math_round(total * 10.0) / 10.0))
+    format!("+15 strength, +{} with {list}", js_string(math_round(total * 10.0) / 10.0))
 }
 
 /// JS `profileUpgrades(loadout, ctx, weights, prices)`: `(rows sorted by gain, the damage now)`. `prices` (optional)
@@ -203,7 +203,7 @@ pub fn profile_upgrades(
             }
         }
     }
-    // Golden Dragon's Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
+    // Golden Dragon's Shining Scales: +15 strength per digit of Gold collection (max 9 digits).
     if let Some(gold) = ctx.pet_profile.gold_collection {
         if loadout.pets.ids.iter().any(|&p| model.pet(p).kind == "GOLDEN_DRAGON") {
             let digits = js_string(gold.floor().max(0.0)).len();

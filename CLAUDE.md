@@ -31,7 +31,8 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - The only SkyBlock wiki to trust is https://hypixelskyblock.minecraft.wiki/ (owner, 2026-10-30).
 - Solo Archer Doubleshot: 151% at Archer 50 (1.01 + 1% per level): one extra full-damage arrow plus a 51% chance of another.
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
-- Legion: 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
+- Legion: +0.1% combat stats per level per player (0.5% at V, 0.27.3). 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
+- 0.27.3 (owner, 2026-11-17; the wiki is out of date on these): General's Medallion max +6% (6 secret digits), Golden Dragon Shining Scales +15 strength per Gold collection digit.
 - Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (25% base doubled solo + level/2 %, max 25: 75% at Mage 50), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
 - Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). Confirmed by the owner: +50%, it does not double, and it scales every potion effect.
 - The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
@@ -63,7 +64,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 ## Profile upgrades (no coins)
 
 - Skills, slayers, class and cata levels, SkyBlock level, Harp songs.
-- Gold collection digits (Golden Dragon), one row per unmaxed collection when The One is worn. The Gold row's label shows the strength against the main boss with what raises it: the pet item, Chimera on the weapon (active Golden Dragon) and a Chimera Ragnarock (strongest owned pet), e.g. "+11.1 strength, +81.6 with Chimera".
+- Gold collection digits (Golden Dragon), one row per unmaxed collection when The One is worn. The Gold row's label shows the strength against the main boss with what raises it: the pet item, Chimera on the weapon (active Golden Dragon) and a Chimera Ragnarock (strongest owned pet), e.g. "+15 strength, +110.3 with Chimera".
 - Quest accessories (soulbound), listed only when magical power rises: free ones (unpriced) and ones an NPC sells for coins (Odger's teeth, Lucius, Kuudra Follower; the cost and NPC go in the label, never in the coin list). In a chain, list only the next tier that changes rarity.
 - 2 IQ Points shows as "+2% intelligence" (additive intelligence).
 - Handy Blood Chalice in the bag counts as off (API does not show the toggle). "Enable Handy Blood Chalice" row: +20 ferocity (Berserker vs withers only), needs Enderman Slayer V; below that, the Enderman Slayer 4 → 5 row also enables it.

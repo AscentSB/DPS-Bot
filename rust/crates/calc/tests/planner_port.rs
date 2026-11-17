@@ -838,7 +838,7 @@ fn legion_attack_speed_and_players() {
     let mut l = w.build(&[new_it(&res, "TERMINATOR"), legs], &[], &[], &[]);
     l.power = PowerField::Known(POWERS.iter().position(|p| p.key == "silky").unwrap() as u8);
     l.active_pets = [None, None];
-    close(w.eval(&l).attack_speed, 65.0 * (1.0 + 5.0 * 0.0007 * 4.0));
+    close(w.eval(&l).attack_speed, 65.0 * (1.0 + 5.0 * 0.001 * 4.0));
 
     // Inferno Demonlord shard: +1 attack speed per level.
     let mut l2 = l.clone();
@@ -1166,16 +1166,16 @@ fn gold_collection_row_counts_pet_item_chimera_and_ragnarock() {
         let (rows, _) = profile_upgrades(&mut w.model, &w.ctx, w.w, &l, None);
         rows.into_iter().map(|r| r.0).find(|s| s.starts_with("Gold collection")).expect("gold row")
     };
-    let label = |s: &str| format!("Gold collection to 100,000 (Golden Dragon: +11.1 strength{s})");
+    let label = |s: &str| format!("Gold collection to 100,000 (Golden Dragon: +15 strength{s})");
     let chim = [("ultimate_chimera", 5)];
     assert_eq!(row(&mut w, None, &[hype(&[])]), label(""));
-    assert_eq!(row(&mut w, Some("ANTIQUE_REMEDIES"), &[hype(&[])]), label(", +20 with Antique Remedies"));
-    assert_eq!(row(&mut w, None, &[hype(&chim)]), label(", +81.6 with Chimera"));
+    assert_eq!(row(&mut w, Some("ANTIQUE_REMEDIES"), &[hype(&[])]), label(", +27 with Antique Remedies"));
+    assert_eq!(row(&mut w, None, &[hype(&chim)]), label(", +110.3 with Chimera"));
     assert_eq!(row(&mut w, None, &[hype(&[]), rag(&[])]), label(""));
-    assert_eq!(row(&mut w, None, &[hype(&[]), rag(&chim)]), label(", +27.8 with Ragnarock"));
+    assert_eq!(row(&mut w, None, &[hype(&[]), rag(&chim)]), label(", +37.5 with Ragnarock"));
     assert_eq!(
         row(&mut w, Some("ANTIQUE_REMEDIES"), &[hype(&chim), rag(&chim)]),
-        label(", +176.8 with Antique Remedies, Chimera and Ragnarock")
+        label(", +238.9 with Antique Remedies, Chimera and Ragnarock")
     );
 }
 

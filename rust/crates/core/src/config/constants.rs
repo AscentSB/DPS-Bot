@@ -240,7 +240,7 @@ pub const MAX_STARS: f64 = 5.0;
 pub const MASTER_STAR_STEP: f64 = 0.05;
 pub const MAX_MASTER_STARS: f64 = 5.0;
 pub const SECRET_STEP: f64 = 0.01;
-pub const SECRET_DIGIT_CAP: f64 = 5.0;
+pub const SECRET_DIGIT_CAP: f64 = 6.0;
 pub const GENERAL_MEDALLION_ID: &str = "GENERAL_MEDALLION";
 
 /// Catacombs dungeon item stat bonus in percent, index = Catacombs level (0-50).
@@ -371,7 +371,7 @@ pub const RAGNAROCK_ID: &str = "RAGNAROCK_AXE";
 pub const RAGNAROCK_MULTIPLIER: f64 = 1.5;
 pub const CHIMERA_PER_LEVEL: f64 = 0.2;
 
-pub const LEGION_PER_LEVEL: f64 = 0.0007;
+pub const LEGION_PER_LEVEL: f64 = 0.001;
 pub const LEGION_PLAYERS: f64 = 1.0;
 pub const LEGION_GROUPED_PLAYERS: f64 = 4.0;
 

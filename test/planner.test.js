@@ -282,10 +282,10 @@ test('Wolf Slayer speed: +1 at levels 1, 3 and 8', async () => {
   assert.equal(wolfSlayerSpeed(400000), 3);
 });
 
-test('pets: Golden Dragon 200 matches the sheet (300 str with Heph Remedies, +5% str, +250% damage)', async () => {
+test('pets: Golden Dragon 200 matches the sheet (370 str with Heph Remedies, +5% str, +250% damage)', async () => {
   const { petStats } = await import('../src/lib/pets.js');
   const gd = petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY', heldItem: 'HEPHAESTUS_REMEDIES' }, { bank: 1e9 });
-  assert.ok(Math.abs(gd.stats.strength - (50 + 99.9) * 2) < 1e-6);
+  assert.ok(Math.abs(gd.stats.strength - (50 + 135) * 2) < 1e-6);
   assert.equal(gd.stats.additiveStrength, 0.05);
   assert.equal(gd.stats.additiveDamage, 250);
   // Legendary Treasure: 0.25% per million in the bank (none without bank data), max 250% at 1B.
@@ -489,14 +489,14 @@ test('armor only gets Ancient: no other reforge is offered or bundled on armor',
   assert.ok(armorReforges.every((u) => u.label.startsWith('Ancient reforge')));
 });
 
-test('Legion raises attack speed: 0.07% per level per player, 4 nearby players against withers', () => {
+test('Legion raises attack speed: 0.1% per level per player, 4 nearby players against withers', () => {
   const res = new Map([...resource, ['TERMINATOR', { ...resource.get('TERMINATOR'), stats: { ...resource.get('TERMINATOR').stats, ATTACK_SPEED: 40 } }]]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
   const legs = { ...newItem('POWER_WITHER_LEGGINGS', res), enchants: { ultimate_legion: 5 } };
   const l = { ...buildLoadout(profile([newItem('TERMINATOR', res), legs]), ctx, w), power: 'silky' };
-  // (Terminator 60 + Silky 5) x (1 + 5 x 0.0007 x 4)
-  close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * (1 + 5 * 0.0007 * 4));
+  // (Terminator 60 + Silky 5) x (1 + 5 x 0.001 x 4)
+  close(evaluate({ ...l, activePets: {} }, ctx, w).attackSpeed, 65 * (1 + 5 * 0.001 * 4));
 });
 
 test('Inferno Demonlord shard: +1 attack speed per level, read from attributes.stacks.attack_speed', () => {
@@ -1608,7 +1608,7 @@ test('Gold collection: the next digit is a profile upgrade for a Golden Dragon o
   const ctx = makeContext({ cls: 'bers', cataLevel: 50, resource, petProfile: { bank: 0, goldCollection: 54321 } });
   const w = weightsFor('bers');
   const l = buildLoadout(profile([newItem('HYPERION', resource)], { pets: [{ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }] }), ctx, w);
-  assert.ok(profileUpgrades(l, ctx, w).rows.some((r) => r.label === 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)'));
+  assert.ok(profileUpgrades(l, ctx, w).rows.some((r) => r.label === 'Gold collection to 100,000 (Golden Dragon: +15 strength)'));
   const none = buildLoadout(profile([newItem('HYPERION', resource)]), ctx, w);
   assert.ok(!profileUpgrades(none, ctx, w).rows.some((r) => /Gold collection/.test(r.label)));
 });
@@ -1623,7 +1623,7 @@ test('Gold collection row: the strength counts the pet item, Chimera on the weap
     return profileUpgrades(l, ctx, w).rows.find((r) => /Gold collection/.test(r.label)).label;
   };
   const strength = (label, sources) => {
-    const m = label.match(/^Gold collection to 100,000 \(Golden Dragon: \+11\.1 strength, \+([\d.]+) with (.+)\)$/);
+    const m = label.match(/^Gold collection to 100,000 \(Golden Dragon: \+15 strength, \+([\d.]+) with (.+)\)$/);
     assert.ok(m, label);
     assert.equal(m[2], sources);
     return Number(m[1]);
@@ -1632,14 +1632,14 @@ test('Gold collection row: the strength counts the pet item, Chimera on the weap
   const near = (a, b) => assert.ok(Math.abs(a - b) <= 0.05 + 1e-9, `${a} != ${b}`);
   // Chimera copies the pet's strength with the Hyperion's own boost (stars and Catacombs).
   const boost = itemContribution(hype({}), ctx).global.strength / 150;
-  assert.equal(row(null, [hype({})]), 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)');
-  near(strength(row('ANTIQUE_REMEDIES', [hype({})]), 'Antique Remedies'), 11.1 * 1.8);
-  near(strength(row(null, [hype({ ultimate_chimera: 5 })]), 'Chimera'), 11.1 * (1 + boost));
+  assert.equal(row(null, [hype({})]), 'Gold collection to 100,000 (Golden Dragon: +15 strength)');
+  near(strength(row('ANTIQUE_REMEDIES', [hype({})]), 'Antique Remedies'), 15 * 1.8);
+  near(strength(row(null, [hype({ ultimate_chimera: 5 })]), 'Chimera'), 15 * (1 + boost));
   // The Ragnarock casts with the pet's strength only through its own Chimera, then gives 1.5x its strength.
-  assert.equal(row(null, [hype({}), rag({})]), 'Gold collection to 100,000 (Golden Dragon: +11.1 strength)');
-  near(strength(row(null, [hype({}), rag({ ultimate_chimera: 5 })]), 'Ragnarock'), 11.1 * 2.5);
+  assert.equal(row(null, [hype({}), rag({})]), 'Gold collection to 100,000 (Golden Dragon: +15 strength)');
+  near(strength(row(null, [hype({}), rag({ ultimate_chimera: 5 })]), 'Ragnarock'), 15 * 2.5);
   near(strength(row('ANTIQUE_REMEDIES', [hype({ ultimate_chimera: 5 }), rag({ ultimate_chimera: 5 })]), 'Antique Remedies, Chimera and Ragnarock'),
-    11.1 * 1.8 * (2.5 + boost));
+    15 * 1.8 * (2.5 + boost));
 });
 
 test('free quest accessories go in profile upgrades, only when magical power rises (next Campfire badge that changes rarity); IQ Points show +% intelligence', () => {

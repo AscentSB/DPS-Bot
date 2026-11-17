@@ -1507,8 +1507,8 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
 }
 
 
-// A Gold collection digit's strength against the main boss: "+11.1 strength", or with what raises it
-// ("+11.1 strength, +81.6 with Antique Remedies, Chimera and Ragnarock"). The pet item boosts it, Chimera on the
+// A Gold collection digit's strength against the main boss: "+15 strength", or with what raises it
+// ("+15 strength, +238.9 with Antique Remedies, Chimera and Ragnarock"). The pet item boosts it, Chimera on the
 // weapon copies it from the active Golden Dragon, and a Chimera Ragnarock casts with the strongest owned pet.
 function goldStrengthText(loadout, ctx, weights, changes) {
   const t = weights.wither >= weights.dragon ? 'wither' : 'dragon';
@@ -1523,9 +1523,9 @@ function goldStrengthText(loadout, ctx, weights, changes) {
   const ragPet = (loadout.rag?.enchants?.ultimate_chimera ?? 0) > 0 ? gdrag(strongest) : null;
   const item = [active, ragPet].map((pet) => PET_ITEMS[pet?.heldItem]).find((i) => i?.mult?.strength);
   const sources = [item?.name, chimera && 'Chimera', ragPet && 'Ragnarock'].filter(Boolean);
-  if (!sources.length) return '+11.1 strength';
+  if (!sources.length) return '+15 strength';
   const list = sources.length > 1 ? `${sources.slice(0, -1).join(', ')} and ${sources.at(-1)}` : sources[0];
-  return `+11.1 strength, +${Math.round(total * 10) / 10} with ${list}`;
+  return `+15 strength, +${Math.round(total * 10) / 10} with ${list}`;
 }
 
 // Profile upgrades (no coins): the next level of each profile stat source, ranked by % damage gained.
@@ -1581,7 +1581,7 @@ export function profileUpgrades(loadout, ctx, weights, prices = null) {
       if (!(p.harpSongs ?? []).includes(key)) tryCtx(`Melody's Harp: ${song.name} (perfect)`, { profileStats: { ...p, harpSongs: [...(p.harpSongs ?? []), key] } });
     }
   }
-  // Golden Dragon's Shining Scales: +11.1 strength per digit of Gold collection (max 9 digits).
+  // Golden Dragon's Shining Scales: +15 strength per digit of Gold collection (max 9 digits).
   const gold = ctx.petProfile?.goldCollection;
   if (gold != null && loadout.pets.some((pet) => pet.type === 'GOLDEN_DRAGON')) {
     const digits = String(Math.max(0, Math.floor(gold))).length;
