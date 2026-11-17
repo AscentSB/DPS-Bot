@@ -333,6 +333,10 @@ export const SKELETON_MASTER_CHEST_CLASSES = ['arch', 'bers'];
 export const SKELETON_MASTER_CHEST_CATA = 36;
 export const SKELETON_MASTER_CHESTS = ['SKELETON_MASTER_CHESTPLATE', 'STARRED_SKELETON_MASTER_CHESTPLATE'];
 
+// Items removed from the game that the items resource may still list: never bought. Personal Compactors
+// (every kind), removed 2026-11-09.
+export const REMOVED_ITEMS = /^PERSONAL_[A-Z_]*COMPACTOR/;
+
 export const CLASS_EXCLUDED_ITEMS = {
   mage: /^(POWER_WITHER_(HELMET|CHESTPLATE|LEGGINGS|BOOTS)|DIAMOND_NECRON_HEAD|GOLD_NECRON_HEAD)$/,
 };

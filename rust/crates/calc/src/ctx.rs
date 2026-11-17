@@ -331,6 +331,10 @@ impl Ctx {
 
     /// JS `excludedItem(id, ctx)`: items a class never uses.
     pub fn excluded_item(&self, id: &str) -> bool {
+        // Removed from the game (JS REMOVED_ITEMS): Personal Compactors of every kind, 2026-11-09.
+        if id.starts_with("PERSONAL_") && id.contains("COMPACTOR") {
+            return true;
+        }
         if class_excluded_item(self.cls, id) {
             return true;
         }

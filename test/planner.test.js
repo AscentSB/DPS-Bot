@@ -1928,3 +1928,11 @@ test('clear boots button off (noClearBoots): no clear boots or clear boots buys,
     assert.ok(availableUpgrades(buildLoadout(profile(items([{ id: 'TERMINATOR' }])), on, w), on, p).some((u) => u.label.includes('clear boots')), cls);
   }
 });
+
+test('removed Personal Compactors are never bought', () => {
+  const res = new Map([...resource, ['PERSONAL_COMPACTOR_7000', { id: 'PERSONAL_COMPACTOR_7000', name: 'Personal Compactor 7000', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
+  const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
+  const ups = availableUpgrades(l, ctx, { get: (id) => (id === 'PERSONAL_COMPACTOR_7000' ? { price: 1000, source: 'AH' } : null) });
+  assert.ok(!ups.some((u) => u.label.includes('Compactor')));
+});
