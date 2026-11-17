@@ -680,11 +680,7 @@ fn profile() -> Vec<(&'static str, Value)> {
     vec![
         ("BASE_CRIT_DAMAGE", n(pr::BASE_CRIT_DAMAGE)),
         ("BOOK_DAMAGE_OPTION", json!(pr::BOOK_DAMAGE_OPTION)),
-        ("BOOK_DAMAGE_PER_LEVEL", n(pr::BOOK_DAMAGE_PER_LEVEL)),
-        ("BOOK_DAMAGE_UNLOCK_LEVEL", n(pr::BOOK_DAMAGE_UNLOCK_LEVEL)),
-        ("BOOK_MAX_LEVEL", n(pr::BOOK_MAX_LEVEL)),
         ("BOOK_OF_PROGRESSION_ID", json!(pr::BOOK_OF_PROGRESSION_ID)),
-        ("BOOK_SWAP_COINS_PER_LEVEL", n(pr::BOOK_SWAP_COINS_PER_LEVEL)),
         ("CAKE_STATS", Value::Object(pr::CAKE_STATS.iter().map(|(k, s)| (k.to_string(), json!(s.js_name()))).collect())),
         (
             "HARP_SONGS",

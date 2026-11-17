@@ -20,7 +20,7 @@ import { ARMOR_SETS } from '../config/armorSets.js';
 import { petStats } from '../lib/pets.js';
 import { floorTierIndex, dropStatMultiplier, dropBaseRarity } from '../lib/drops.js';
 import { EXCLUDED_PETS, TIER_BOOST_ID } from '../config/pets.js';
-import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_PER_LEVEL, BOOK_MAX_LEVEL, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY } from '../config/profile.js';
+import { BASE_CRIT_DAMAGE, SKILL_BONUSES, SLAYER_BONUSES, SB_STRENGTH_EVERY, HARP_SONGS, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY } from '../config/profile.js';
 import REFORGE_DATA from '../data/reforges.json' with { type: 'json' };
 import ACCESSORY_DATA from '../data/accessories.json' with { type: 'json' };
 import {
@@ -890,14 +890,6 @@ export function finalStats(bucket, ctx) {
   };
 }
 
-// Book of Progression set to damage (Extra Infliction, SkyBlock level 75+): multiplicative, +0.01% per SkyBlock
-// level up to 500. The option comes from the profile (loadout.bopBonus) and can be switched as an upgrade step.
-export function bookMultiplier(loadout, ctx) {
-  if (!loadout.accessories?.has(BOOK_OF_PROGRESSION_ID) || !ctx.profileStats) return 1;
-  if (loadout.bopBonus !== BOOK_DAMAGE_OPTION || (ctx.profileStats.sbLevel ?? 0) < BOOK_DAMAGE_UNLOCK_LEVEL) return 1;
-  return 1 + BOOK_DAMAGE_PER_LEVEL * Math.min(ctx.profileStats.sbLevel ?? 0, BOOK_MAX_LEVEL);
-}
-
 function fireAspectPercent(weapon) {
   const level = weapon?.enchants?.fire_aspect ?? 0;
   const ench = ENCHANTS.fire_aspect;
@@ -947,13 +939,13 @@ function evaluateWith(loadout, ctx, activeExtras) {
     // averaged over every hit. Any other weapon gets nothing.
     // Necron's Blade family held: +50% vs withers.
     const saCloak = SA_CLOAK_IDS.includes(loadout.equipment?.CLOAK?.id) && hasWitherImpact(loadout.weapon) ? saCloakMultiplier(shots, ctx) : 1;
-    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target) * bookMultiplier(loadout, ctx);
+    const fabled = (loadout.weapon?.reforge === 'fabled' ? FABLED_MULTIPLIER : 1) * saCloak * witherBladeMultiplier(loadout, target);
     if (isRcm(ctx)) {
       // One Wither Impact cast against a clear mob (casts per second do not change with gear).
       const blade = hasWitherImpact(loadout.weapon);
       const loving = loadout.armor.CHESTPLATE?.reforge === 'loving' ? LOVING_ABILITY_MULTIPLIER : 1;
       const implosion = loadout.equipment.BELT?.id === IMPLOSION_BELT_ID ? IMPLOSION_BELT_MULTIPLIER : 1;
-      result[target] = blade ? rcmDamage(base, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * implosion * bookMultiplier(loadout, ctx)) : 0;
+      result[target] = blade ? rcmDamage(base, 0, cataBoost(ctx.cataLevel), buckets[target].magicAdditive + classAdditiveDamage(ctx), loving * implosion) : 0;
       result.stats[target] = base;
       continue;
     }

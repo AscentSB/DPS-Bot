@@ -1114,28 +1114,14 @@ test('stars alone do not make a dungeon item (The Primordial): no catacombs scal
   assert.ok(!availableUpgrades(l, ctx, prices).some((u) => /Master Star on The Primordial/.test(u.label)));
 });
 
-test('Book of Progression: x(1 + 0.01% per SkyBlock level), capped at 500, and it lifts the SkyBlock level profile row', async () => {
-  const { bookMultiplier } = await import('../src/calc/stats.js');
-  const { profileUpgrades } = await import('../src/calc/upgrades.js');
+test('Book of Progression gives no damage (Extra Infliction removed) and has no switch step', () => {
   const res = new Map([...resource, ['BOOK_OF_PROGRESSION', { id: 'BOOK_OF_PROGRESSION', name: 'Book of Progression', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
-  const mk = (sbLevel, bopBonus = 'EXTRA_INFLICTION') => makeContext({ cls: 'arch', cataLevel: 50, resource: res, profileStats: { sbLevel, bopBonus, harpSongs: [], cakes: [] } });
+  const mk = (bopBonus) => makeContext({ cls: 'arch', cataLevel: 50, resource: res, profileStats: { sbLevel: 278, bopBonus, harpSongs: [], cakes: [] } });
   const w = weightsFor('arch');
-  const withBook = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(278), w);
-  const without = buildLoadout(profile([newItem('TERMINATOR', res)]), mk(278), w);
-  close(bookMultiplier(withBook, mk(278)), 1.0278);
-  close(bookMultiplier(withBook, mk(620)), 1.05);
-  close(bookMultiplier(without, mk(278)), 1);
-  const row = (l) => profileUpgrades(l, mk(278), w).rows.find((r) => r.label.startsWith('SkyBlock level')).gain;
-  assert.ok(row(withBook) > row(without));
-  // Set to something else: no bonus, and switching is a step costing 500 x level.
-  const off = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(278, 'STACKED_HEALING'), w);
-  close(bookMultiplier(off, mk(278, 'STACKED_HEALING')), 1);
-  const step = availableUpgrades(off, mk(278, 'STACKED_HEALING'), { get: () => null }).find((u) => u.label.startsWith('Set Book of Progression'));
-  assert.equal(step.cost, 500 * 278);
-  close(bookMultiplier(step.apply(off), mk(278, 'STACKED_HEALING')), 1.0278);
-  // Under level 75 the damage option is locked.
-  const low = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk(60, null), w);
-  assert.ok(!availableUpgrades(low, mk(60, null), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
+  const withBook = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk('EXTRA_INFLICTION'), w);
+  const off = buildLoadout(profile([newItem('TERMINATOR', res), newItem('BOOK_OF_PROGRESSION', res)]), mk('STACKED_HEALING'), w);
+  close(evaluate(withBook, mk('EXTRA_INFLICTION'), w).wither, evaluate(off, mk('STACKED_HEALING'), w).wither);
+  assert.ok(!availableUpgrades(off, mk('STACKED_HEALING'), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
 });
 
 test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag as one step', async () => {

@@ -1061,30 +1061,6 @@ fn blood_chalice_profile_upgrade() {
 }
 
 #[test]
-fn book_of_progression_multiplier() {
-    let res = with_items(
-        &base_resource(),
-        vec![json!({"id":"BOOK_OF_PROGRESSION","name":"Book of Progression","category":"ACCESSORY","tier":"LEGENDARY"})],
-    );
-    let mk = |sb: i32, bop: Option<&str>| {
-        mk_ctx(Class::Arch, 50.0, &res, |i| {
-            i.profile_stats = Some(ProfileStats { sb_level: sb, bop_bonus: bop.map(String::from), harp_songs: vec![], cakes: vec![] });
-        })
-    };
-    let ctx = mk(278, Some("EXTRA_INFLICTION"));
-    let mut w = World::new(ctx, weights(Class::Arch));
-    let with_book = w.build(&[new_it(&res, "TERMINATOR"), new_it(&res, "BOOK_OF_PROGRESSION")], &[], &[], &[]);
-    let without = w.build(&[new_it(&res, "TERMINATOR")], &[], &[], &[]);
-    let book = |w: &World, l: &Loadout, c: &Ctx| dps_calc::eval::book_multiplier(&w.model, l, c);
-    close(book(&w, &with_book, &mk(278, Some("EXTRA_INFLICTION"))), 1.0278);
-    close(book(&w, &with_book, &mk(620, Some("EXTRA_INFLICTION"))), 1.05);
-    close(book(&w, &without, &mk(278, Some("EXTRA_INFLICTION"))), 1.0);
-    let mut off = with_book.clone();
-    off.bop_bonus = Some(Arc::from("STACKED_HEALING"));
-    close(book(&w, &off, &mk(278, Some("STACKED_HEALING"))), 1.0);
-}
-
-#[test]
 fn chimera_on_mage_weapon() {
     let res = res();
     let mut w = World::new(mk_ctx(Class::Mage, 50.0, &res, |_| {}), weights(Class::Mage));

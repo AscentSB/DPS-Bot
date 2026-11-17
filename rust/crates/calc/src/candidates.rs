@@ -26,9 +26,6 @@ use dps_core::config::pets::{
     kat_upgrade, GOLDEN_DRAGON_BANK_CAP, KAT_FLOWER_ID, KAT_LEVEL_DISCOUNT, PET_ITEMS, TIER_BOOST_ID, BUY_RARITIES,
     EXCLUDED_PETS,
 };
-use dps_core::config::profile::{
-    BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_OF_PROGRESSION_ID, BOOK_SWAP_COINS_PER_LEVEL,
-};
 use dps_core::config::shards::{shard_hunting_req, shards_cumulative, SHARDS, SHARD_MAX_LEVEL};
 use dps_core::config::upgrades::EXTRA_UPGRADES;
 use dps_core::data::{accessory_chain_position, accessory_family, all_reforges, fragged, get_reforge, Reforge};
@@ -518,14 +515,13 @@ impl<'a> B<'a> {
     }
 
     fn run(&mut self) {
-        let sections: [(&str, fn(&mut B<'a>)); 14] = [
+        let sections: [(&str, fn(&mut B<'a>)); 13] = [
             ("items", B::item_upgrades),
             ("spare", B::spare_blades),
             ("buys", B::buys),
             ("clearboots", B::clear_boots),
             ("shards", B::shards),
             ("enrichswap", B::enrichment_swap),
-            ("bop", B::book_of_progression),
             ("bank", B::bank),
             ("powers", B::power_stones),
             ("scrolls", B::wither_scrolls),
@@ -1522,21 +1518,6 @@ impl<'a> B<'a> {
                     Edit::SetBag { base: l.accessories, bag, owned }
                 });
             }
-        }
-    }
-
-    fn book_of_progression(&mut self) {
-        let l = self.l;
-        let ctx = self.ctx;
-        let sb_level = ctx.profile_stats.as_ref().map(|p| p.sb_level as f64).unwrap_or(0.0);
-        let has_book = self.model.find_kind(BOOK_OF_PROGRESSION_ID).is_some_and(|k| self.model.bag_get(l.accessories, k).is_some());
-        if has_book && ctx.profile_stats.is_some() && sb_level >= BOOK_DAMAGE_UNLOCK_LEVEL && l.bop_bonus.as_deref() != Some(BOOK_DAMAGE_OPTION) {
-            self.push(
-                "Set Book of Progression to Extra Infliction (damage)".to_string(),
-                &[Part::Coins(BOOK_SWAP_COINS_PER_LEVEL * sb_level)],
-                group("bop".to_string()),
-                |_, _| Edit::Bop(std::sync::Arc::from(BOOK_DAMAGE_OPTION)),
-            );
         }
     }
 

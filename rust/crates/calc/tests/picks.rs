@@ -246,7 +246,6 @@ fn per_case_picks() {
         errs.check(s.ctx.class_additive_damage() == sc["classAdditive"].as_f64().unwrap(), || tag("classAdditive"));
         errs.check(eval::berserk_melee_multiplier(&s.ctx) == sc["berserkMelee"].as_f64().unwrap(), || tag("berserkMelee"));
         errs.check(eval::archer_multiplier(&s.ctx) == sc["archerMult"].as_f64().unwrap(), || tag("archerMult"));
-        errs.check(eval::book_multiplier(&s.model, &s.start, &s.ctx) == sc["book"].as_f64().unwrap(), || tag("book"));
         errs.check(s.ctx.maxed_collections() == sc["maxed"].as_f64().unwrap(), || tag("maxed"));
         errs.check(s.ctx.has_dragon_set() == sc["hasDragonSet"].as_bool().unwrap(), || tag("hasDragonSet"));
         loose_eq(&mut errs, &tag("profileTotals"), &s.ctx.d.profile_totals, &sc["profileTotals"]);

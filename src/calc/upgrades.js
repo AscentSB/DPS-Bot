@@ -23,7 +23,7 @@ import { cleanName } from '../lib/nbt.js';
 import { dropBaseRarity, isFloorDrop, highestFloor, buyPriceId } from '../lib/drops.js';
 import { meetsRequirements } from '../lib/requirements.js';
 import { formatCoins } from '../lib/format.js';
-import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BOOK_OF_PROGRESSION_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_SWAP_COINS_PER_LEVEL, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_SLAYER } from '../config/profile.js';
+import { SKILL_BONUSES, SLAYER_BONUSES, SLAYER_MAX_LEVEL, SB_STRENGTH_EVERY, HARP_SONGS, BLOOD_CHALICE_ID, BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_SLAYER } from '../config/profile.js';
 import { CATA_STAT_BONUS, COMBAT_MAX_LEVEL, WOLF_SLAYER_SPEED_LEVELS } from '../config/constants.js';
 
 // Items nobody can buy (admin and unobtainable items like the Raygun).
@@ -971,13 +971,6 @@ export function availableUpgrades(loadout, ctx, prices) {
           return next;
         }, { group: 'enrichswap' });
     }
-  }
-
-  // Book of Progression not on damage (and SkyBlock level 75+): switching costs 500 coins x SkyBlock level.
-  const sbLevel = ctx.profileStats?.sbLevel ?? 0;
-  if (loadout.accessories.has(BOOK_OF_PROGRESSION_ID) && ctx.profileStats && sbLevel >= BOOK_DAMAGE_UNLOCK_LEVEL && loadout.bopBonus !== BOOK_DAMAGE_OPTION) {
-    push('Set Book of Progression to Extra Infliction (damage)', [{ coins: BOOK_SWAP_COINS_PER_LEVEL * sbLevel }],
-      (l) => ({ ...cloneLoadout(l), bopBonus: BOOK_DAMAGE_OPTION }), { group: 'bop' });
   }
 
   // Golden Dragon's Legendary Treasure: 1M more coins in the bank (+0.25% damage), up to 1B. The planner merges

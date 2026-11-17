@@ -112,7 +112,6 @@ for (const id of caseIds) {
     classAdditive: S.classAdditiveDamage(ctx),
     berserkMelee: S.berserkMeleeMultiplier(ctx),
     archerMult: S.archerMultiplier(ctx),
-    book: S.bookMultiplier(start, ctx),
     maxed: S.maxedCollections(ctx),
     profileTotals: obj(S.profileStatTotals({ ...ctx, secretDigit: 0 })),
     hasDragonSet: U.hasDragonSet(ctx),

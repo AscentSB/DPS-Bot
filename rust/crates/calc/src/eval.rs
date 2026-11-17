@@ -11,7 +11,7 @@ use dps_core::config::constants::*;
 use dps_core::config::enchants::enchant;
 use dps_core::config::essence::ESSENCE_PERKS;
 use dps_core::config::item_stats::ITEM_STATS;
-use dps_core::config::profile::{BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_ID, BOOK_DAMAGE_OPTION, BOOK_DAMAGE_PER_LEVEL, BOOK_DAMAGE_UNLOCK_LEVEL, BOOK_MAX_LEVEL};
+use dps_core::config::profile::{BLOOD_CHALICE_FEROCITY, BLOOD_CHALICE_ID, };
 use dps_core::config::upgrades::{ExtraUpgrade, EXTRA_UPGRADES};
 use dps_core::formulas::*;
 use dps_core::jsmath;
@@ -190,18 +190,6 @@ pub fn final_stats(b: &Bucket, ctx: &Ctx) -> FinalStats {
         additive_damage: b.get(Stat::AdditiveDamage) + ctx.d.class_additive_damage,
         ability_damage: b.get(Stat::AbilityDamage),
     }
-}
-
-/// JS `bookMultiplier(loadout, ctx)`.
-pub fn book_multiplier(model: &Model, l: &Loadout, ctx: &Ctx) -> f64 {
-    let Some(p) = &ctx.profile_stats else { return 1.0 };
-    if !model.bag(l.accessories).has_book {
-        return 1.0;
-    }
-    if l.bop_bonus.as_deref() != Some(BOOK_DAMAGE_OPTION) || (p.sb_level as f64) < BOOK_DAMAGE_UNLOCK_LEVEL {
-        return 1.0;
-    }
-    1.0 + BOOK_DAMAGE_PER_LEVEL * jsmath::min(p.sb_level as f64, BOOK_MAX_LEVEL)
 }
 
 /// JS `berserkMeleeMultiplier(ctx)`.
@@ -731,7 +719,6 @@ pub fn evaluate_with_base(
         extras: *active,
     };
 
-    let book = book_multiplier(model, l, ctx);
     let cls = ctx.cls;
     for t in 0..2 {
         if skip1 && t == 1 {
@@ -750,7 +737,7 @@ pub fn evaluate_with_base(
             1.0
         };
         let blade = if t == 0 && weapon.is_some_and(|w| w.wi_weapon_id) { NECRON_BLADE_WITHER_MULTIPLIER } else { 1.0 };
-        let fabled = (if weapon.is_some_and(|w| w.fabled) { FABLED_MULTIPLIER } else { 1.0 }) * sa_cloak * blade * book;
+        let fabled = (if weapon.is_some_and(|w| w.fabled) { FABLED_MULTIPLIER } else { 1.0 }) * sa_cloak * blade;
         if rcm {
             // One Wither Impact cast against a clear mob.
             let has_blade = weapon.is_some_and(|w| w.has_wi);
@@ -762,7 +749,7 @@ pub fn evaluate_with_base(
                     0.0,
                     cata_boost(ctx.cata_level),
                     buckets[t].get(Stat::MagicAdditive) + ctx.d.class_additive_damage,
-                    loving * implosion * book,
+                    loving * implosion,
                 )
             } else {
                 0.0

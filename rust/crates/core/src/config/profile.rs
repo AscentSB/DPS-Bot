@@ -87,11 +87,7 @@ pub const BLOOD_CHALICE_SLAYER_BOSS: &str = "enderman";
 pub const BLOOD_CHALICE_SLAYER_LEVEL: i32 = 5;
 
 pub const BOOK_OF_PROGRESSION_ID: &str = "BOOK_OF_PROGRESSION";
-pub const BOOK_DAMAGE_PER_LEVEL: f64 = 0.0001;
-pub const BOOK_MAX_LEVEL: f64 = 500.0;
 pub const BOOK_DAMAGE_OPTION: &str = "EXTRA_INFLICTION";
-pub const BOOK_DAMAGE_UNLOCK_LEVEL: f64 = 75.0;
-pub const BOOK_SWAP_COINS_PER_LEVEL: f64 = 500.0;
 
 pub const SB_LEVEL_XP: f64 = 100.0;
 pub const SB_STRENGTH_EVERY: f64 = 5.0;

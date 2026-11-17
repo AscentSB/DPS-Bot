@@ -27,15 +27,10 @@ export const BLOOD_CHALICE_ID = 'HANDY_BLOOD_CHALICE';
 export const BLOOD_CHALICE_FEROCITY = 20;
 export const BLOOD_CHALICE_SLAYER = { boss: 'enderman', level: 5 };
 
-// Book of Progression (in the accessory bag, set to damage): x(1 + 0.01% per SkyBlock level), capped at level 500.
+// Book of Progression: its damage option (Extra Infliction) was removed from the game (owner, 2026-11-17).
+// The profile's leveling.bop_bonus is still read but gives nothing.
 export const BOOK_OF_PROGRESSION_ID = 'BOOK_OF_PROGRESSION';
-export const BOOK_DAMAGE_PER_LEVEL = 0.0001;
-export const BOOK_MAX_LEVEL = 500;
-// The damage option (Extra Infliction) unlocks at SkyBlock level 75; picking an option costs 500 coins x level.
-// The choice is leveling.bop_bonus on the profile.
 export const BOOK_DAMAGE_OPTION = 'EXTRA_INFLICTION';
-export const BOOK_DAMAGE_UNLOCK_LEVEL = 75;
-export const BOOK_SWAP_COINS_PER_LEVEL = 500;
 
 // SkyBlock level: +1 strength every 5 levels (100 XP per level).
 export const SB_LEVEL_XP = 100;
