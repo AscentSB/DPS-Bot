@@ -106,6 +106,8 @@ pub struct BagBase {
     pub loose: Loose,
     /// `powerMultiplier(ap)`.
     pub power_mult: f64,
+    /// Counted accessories with an enrichment (+1 tuning point each).
+    pub enriched: f64,
 }
 
 pub struct BagEntry {

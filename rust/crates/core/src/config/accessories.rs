@@ -247,7 +247,6 @@ pub static POWER_STONES: &[(&str, &str)] = &[
 pub const FREE_POWERS: [&str; 10] =
     ["fortuitous", "pretty", "protected", "simple", "warrior", "commando", "disciplined", "inspired", "ominous", "prepared"];
 
-pub const ENRICHMENT_SWAPPER_ID: &str = "TALISMAN_ENRICHMENT_SWAPPER";
 
 /// JS `DEFAULT_POWER[cls]`.
 #[inline]
@@ -334,25 +333,26 @@ pub fn add_missing_items(map: &mut crate::model::Resource) {
 
 pub const NO_RECOMB: [&str; 3] = ["BOOK_OF_PROGRESSION", "PANDORAS_BOX", "RIFT_PRISM"];
 
-/// One entry of JS `ENRICHMENTS`.
+/// One entry of JS `ENRICHMENTS`. Since 0.27.3 every enrichment gives +1 Tuning Point and no stat of its own.
 #[derive(Clone, Copy, Debug)]
 pub struct Enrichment {
     /// Enrichment kind as stored on items (`critical_damage`).
     pub kind: &'static str,
     /// Item id suffix: `TALISMAN_ENRICHMENT_<key>`.
     pub key: &'static str,
-    pub stats: &'static [(Stat, f64)],
 }
 
 /// JS `ENRICHMENTS`, in key order.
 pub static ENRICHMENTS: &[Enrichment] = &[
-    Enrichment { kind: "strength", key: "STRENGTH", stats: &[(Stat::Strength, 1.0)] },
-    Enrichment { kind: "critical_damage", key: "CRITICAL_DAMAGE", stats: &[(Stat::CritDamage, 1.0)] },
-    Enrichment { kind: "critical_chance", key: "CRITICAL_CHANCE", stats: &[(Stat::CritChance, 1.0)] },
-    Enrichment { kind: "intelligence", key: "INTELLIGENCE", stats: &[(Stat::Intelligence, 2.0)] },
-    Enrichment { kind: "walk_speed", key: "WALK_SPEED", stats: &[(Stat::Speed, 1.0)] },
-    Enrichment { kind: "attack_speed", key: "ATTACK_SPEED", stats: &[(Stat::AttackSpeed, 0.5)] },
+    Enrichment { kind: "strength", key: "STRENGTH" },
+    Enrichment { kind: "critical_damage", key: "CRITICAL_DAMAGE" },
+    Enrichment { kind: "critical_chance", key: "CRITICAL_CHANCE" },
+    Enrichment { kind: "intelligence", key: "INTELLIGENCE" },
+    Enrichment { kind: "walk_speed", key: "WALK_SPEED" },
+    Enrichment { kind: "attack_speed", key: "ATTACK_SPEED" },
 ];
+
+pub const ENRICHMENT_TUNING_POINTS: f64 = 1.0;
 
 /// JS `ENRICHMENTS[kind]`.
 pub fn enrichment(kind: &str) -> Option<&'static Enrichment> {
@@ -360,21 +360,6 @@ pub fn enrichment(kind: &str) -> Option<&'static Enrichment> {
 }
 
 pub const ENRICHABLE_RARITIES: [&str; 5] = ["LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL", "VERY_SPECIAL"];
-
-/// JS `BEST_ENRICHMENT[cls]`.
-#[inline]
-pub const fn best_enrichment(_cls: Class) -> &'static str {
-    "critical_damage"
-}
-
-/// JS `CLASS_ENRICHMENTS[cls]`.
-#[inline]
-pub const fn class_enrichments(cls: Class) -> &'static [&'static str] {
-    match cls {
-        Class::Arch | Class::Bers => &["critical_damage", "critical_chance", "strength", "attack_speed", "walk_speed"],
-        Class::Mage => &["critical_damage", "critical_chance", "strength", "intelligence", "attack_speed", "walk_speed"],
-    }
-}
 
 /// JS `CLASS_TUNING_STATS[cls]`.
 #[inline]
@@ -394,16 +379,6 @@ pub fn tuning_stats(cls: Class, mode: Mode) -> &'static [Stat] {
         &RCM_TUNING_STATS
     } else {
         class_tuning_stats(cls)
-    }
-}
-
-/// JS `enrichmentKinds(ctx)`: none for the Mage clear set.
-#[inline]
-pub fn enrichment_kinds(cls: Class, mode: Mode) -> &'static [&'static str] {
-    if cls == Class::Mage && mode == Mode::Rcm {
-        &[]
-    } else {
-        class_enrichments(cls)
     }
 }
 

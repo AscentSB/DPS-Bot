@@ -81,8 +81,6 @@ export const POWER_STONES = {
 // Starter and intermediate powers need no stone.
 export const FREE_POWERS = ['fortuitous', 'pretty', 'protected', 'simple', 'warrior', 'commando', 'disciplined', 'inspired', 'ominous', 'prepared'];
 
-// Accessory Enrichment Swapper: changes the enrichment on an accessory that already has one.
-export const ENRICHMENT_SWAPPER_ID = 'TALISMAN_ENRICHMENT_SWAPPER';
 
 // Power used when the profile has none selected or an unknown one.
 export const DEFAULT_POWER = { arch: 'silky', bers: 'silky', mage: 'sighted' };
@@ -121,34 +119,26 @@ export const MISSING_ITEMS = [
 // with can_recombobulate: false (SkyCrypt SPECIAL_ACCESSORIES).
 export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX', 'RIFT_PRISM'];
 
-// Enrichments on Legendary and higher accessories. Item ids: TALISMAN_ENRICHMENT_<KEY>.
+// Enrichments on Legendary and higher accessories. Item ids: TALISMAN_ENRICHMENT_<KEY>. Since 0.27.3 every enrichment
+// gives +1 Tuning Point and no stat of its own, so the kind does not matter and the cheapest one is offered.
 export const ENRICHMENTS = {
-  strength: { key: 'STRENGTH', stats: { strength: 1 } },
-  critical_damage: { key: 'CRITICAL_DAMAGE', stats: { critDamage: 1 } },
-  critical_chance: { key: 'CRITICAL_CHANCE', stats: { critChance: 1 } },
-  intelligence: { key: 'INTELLIGENCE', stats: { intelligence: 2 } },
-  walk_speed: { key: 'WALK_SPEED', stats: { speed: 1 } },
-  attack_speed: { key: 'ATTACK_SPEED', stats: { attackSpeed: 0.5 } },
+  strength: { key: 'STRENGTH' },
+  critical_damage: { key: 'CRITICAL_DAMAGE' },
+  critical_chance: { key: 'CRITICAL_CHANCE' },
+  intelligence: { key: 'INTELLIGENCE' },
+  walk_speed: { key: 'WALK_SPEED' },
+  attack_speed: { key: 'ATTACK_SPEED' },
 };
+export const ENRICHMENT_TUNING_POINTS = 1;
 export const ENRICHABLE_RARITIES = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL'];
-export const BEST_ENRICHMENT = { arch: 'critical_damage', bers: 'critical_damage', mage: 'critical_damage' };
-// Enrichments offered per class (each accessory can take one).
-export const CLASS_ENRICHMENTS = {
-  arch: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
-  bers: ['critical_damage', 'critical_chance', 'strength', 'attack_speed', 'walk_speed'],
-  mage: ['critical_damage', 'critical_chance', 'strength', 'intelligence', 'attack_speed', 'walk_speed'],
-};
 // Tuning stats that raise damage for each class (leftover points are split between these).
 export const CLASS_TUNING_STATS = {
   arch: ['strength', 'critDamage', 'critChance'],
   bers: ['strength', 'critDamage', 'critChance'],
   mage: ['strength', 'critDamage', 'critChance', 'intelligence'],
 };
-// Mage RCM clear set: leftover tuning and enrichments go to intelligence (ability damage cannot be tuned).
+// Mage RCM clear set: leftover tuning goes to intelligence (ability damage cannot be tuned).
 export const RCM_TUNING_STATS = ['intelligence'];
 export const tuningStats = (ctx) => (ctx?.cls === 'mage' && ctx?.mode === 'rcm' ? RCM_TUNING_STATS : CLASS_TUNING_STATS[ctx?.cls] ?? []);
-// Enrichments to offer. None for the Mage clear set: enrichments cannot be swapped mid run, and the bag is set up for
-// the boss.
-export const enrichmentKinds = (ctx) => (ctx?.cls === 'mage' && ctx?.mode === 'rcm' ? [] : CLASS_ENRICHMENTS[ctx?.cls] ?? []);
-// Dungeon accessories (and their enrichments) get the Catacombs boost: x (1 + cata boost). Stars and the
+// Dungeon accessories get the Catacombs boost: x (1 + cata boost). Stars and the
 // General's Medallion do not apply, and crit chance and attack speed are not boosted. See accessoryItemStats.

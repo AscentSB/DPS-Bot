@@ -11,7 +11,7 @@ import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, tuningStats,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENT_TUNING_POINTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, tuningStats,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -558,8 +558,8 @@ export function tuningAllocation(points, speed, ctx, attackSpeed = ATTACK_SPEED_
   return { stats, attackSpeedPoints: asPoints, speedPoints, dpsPoints: left - speedPoints };
 }
 
-// Accessory bag: own stats, Accessory Power, power stats, enrichments, and how many tuning points it gives.
-// One accessory's stats with its enrichment. Dungeon accessories get x (1 + cata boost) on every stat except
+// Accessory bag: own stats, Accessory Power, power stats, and how many tuning points it gives (Accessory Power
+// plus one per enriched accessory). One accessory's stats: dungeon accessories get x (1 + cata boost) on every stat except
 // crit chance and attack speed (no stars or medallion on accessories).
 export function accessoryItemStats(item, ctx) {
   return memo(accStore, item, itemKey(ctx), () => computeAccessoryStats(item, ctx));
@@ -567,8 +567,6 @@ export function accessoryItemStats(item, ctx) {
 
 function computeAccessoryStats(item, ctx) {
   const stats = { ...itemRawStats(item, ctx).global };
-  const enrich = item.enrichment && ENRICHMENTS[item.enrichment];
-  if (enrich) addLoose(stats, enrich.stats);
   if (!ctx.resource?.get(item.id)?.dungeon_item) return stats;
   const boost = 1 + cataBoost(ctx.cataLevel ?? 0);
   for (const key of Object.keys(stats)) if ((FLAT_STATS.has(key) || key === 'speed') && !STAR_ONLY_STATS.has(key)) stats[key] *= boost;
@@ -585,15 +583,17 @@ function computeBagStats(loadout, ctx, extraTuningPoints) {
   const counted = countedAccessories(loadout);
   const stats = {};
   let ap = 0;
+  let enriched = 0;
   for (const item of counted) {
     ap += accessoryPower(item, ctx.resource);
+    if (item.enrichment) enriched++;
     addLoose(stats, accessoryItemStats(item, ctx));
   }
   const power = POWERS[loadout.power ?? ctx.power] ?? POWERS[DEFAULT_POWER[ctx.cls]];
   const mult = powerMultiplier(ap);
   addLoose(stats, power.stats, mult);
   addLoose(stats, power.bonus);
-  const points = Math.floor(ap / AP_PER_TUNING_POINT) + extraTuningPoints;
+  const points = Math.floor(ap / AP_PER_TUNING_POINT) + enriched * ENRICHMENT_TUNING_POINTS + extraTuningPoints;
   return { stats, ap, tuningPoints: points };
 }
 

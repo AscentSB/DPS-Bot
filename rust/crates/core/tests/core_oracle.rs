@@ -421,8 +421,6 @@ fn accessories() -> Vec<(&'static str, Value)> {
         ("AP_BY_RARITY", Value::Object(rarities.iter().map(|&r| (r.to_string(), n(acc::ap_by_rarity(r).unwrap()))).collect())),
         ("AP_OVERRIDES", obj(vec![(acc::RIFT_PRISM_ID, n(acc::ap_override(acc::RIFT_PRISM_ID).unwrap()))])),
         ("AP_PER_TUNING_POINT", n(acc::AP_PER_TUNING_POINT)),
-        ("BEST_ENRICHMENT", by_class(acc::best_enrichment, |x| json!(x))),
-        ("CLASS_ENRICHMENTS", by_class(acc::class_enrichments, strs)),
         ("CLASS_TUNING_STATS", by_class(acc::class_tuning_stats, stat_names)),
         ("DEFAULT_POWER", by_class(acc::default_power, |x| json!(x))),
         ("DEFAULT_TUNING_SPLIT", by_class(acc::default_tuning_split, st)),
@@ -431,9 +429,8 @@ fn accessories() -> Vec<(&'static str, Value)> {
         ("ENRICHABLE_RARITIES", strs(&acc::ENRICHABLE_RARITIES)),
         (
             "ENRICHMENTS",
-            Value::Object(acc::ENRICHMENTS.iter().map(|e| (e.kind.to_string(), obj(vec![("key", json!(e.key)), ("stats", st(e.stats))]))).collect()),
+            Value::Object(acc::ENRICHMENTS.iter().map(|e| (e.kind.to_string(), obj(vec![("key", json!(e.key))]))).collect()),
         ),
-        ("ENRICHMENT_SWAPPER_ID", json!(acc::ENRICHMENT_SWAPPER_ID)),
         ("FREE_POWERS", strs(&acc::FREE_POWERS)),
         ("NO_RECOMB", strs(&acc::NO_RECOMB)),
         (
@@ -822,10 +819,6 @@ fn config_functions_match_js() {
     for case in calls["tuningStats"].as_array().unwrap() {
         let rs = stat_names(acc::tuning_stats(class_of(&case["cls"]), Mode::from_js(case["mode"].as_str().unwrap()).unwrap()));
         cmp.check(&root("tuningStats"), &case["out"], &rs, &[]);
-    }
-    for case in calls["enrichmentKinds"].as_array().unwrap() {
-        let rs = strs(acc::enrichment_kinds(class_of(&case["cls"]), Mode::from_js(case["mode"].as_str().unwrap()).unwrap()));
-        cmp.check(&root("enrichmentKinds"), &case["out"], &rs, &[]);
     }
     let rs = strs(&ids.iter().copied().filter(|id| acc::is_hatcessory(id)).collect::<Vec<_>>());
     cmp.check(&root("hatcessory"), &calls["hatcessory"], &rs, &[]);

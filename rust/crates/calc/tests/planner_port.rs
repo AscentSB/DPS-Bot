@@ -335,11 +335,14 @@ fn dungeon_accessory_enrichments() {
         let id = w.intern(it);
         *w.model.accessory_item_stats(id, 0)
     };
-    let skull = with(new_it(&res, "MASTER_SKULL_TIER_7"), |i| i.enrichment = Some("critical_damage".into()));
-    close(acc(&mut w, &skull).get0(Stat::CritDamage), 1.0 * (1.0 + 4.85));
-    close(acc(&mut w, &with(skull.clone(), |i| i.enrichment = Some("critical_chance".into()))).get0(Stat::CritChance), 1.0);
-    let relic = with(new_it(&res, "WITHER_RELIC"), |i| i.enrichment = Some("critical_damage".into()));
-    close(acc(&mut w, &relic).get0(Stat::CritDamage), 1.0);
+    // 0.27.3: an enrichment adds no stat (it gives +1 tuning point instead).
+    for id in ["MASTER_SKULL_TIER_7", "WITHER_RELIC"] {
+        let bare = new_it(&res, id);
+        let enriched = with(bare.clone(), |i| i.enrichment = Some("critical_damage".into()));
+        for s in [Stat::CritDamage, Stat::CritChance, Stat::Strength] {
+            close(acc(&mut w, &enriched).get0(s), acc(&mut w, &bare).get0(s));
+        }
+    }
 }
 
 #[test]

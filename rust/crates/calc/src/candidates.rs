@@ -15,7 +15,7 @@ use crate::parts::*;
 use crate::pick::Evaluator;
 use dps_core::clean_name;
 use dps_core::config::accessories::{
-    enrichment, enrichment_kinds, ENRICHABLE_RARITIES, ENRICHMENT_SWAPPER_ID, ENRICHMENTS, POWERS, POWER_STONES,
+    enrichment, Enrichment, ENRICHABLE_RARITIES, ENRICHMENTS, POWERS, POWER_STONES,
 };
 use dps_core::config::constants::*;
 use dps_core::config::enchants::{enchant, ENCHANTS};
@@ -515,13 +515,12 @@ impl<'a> B<'a> {
     }
 
     fn run(&mut self) {
-        let sections: [(&str, fn(&mut B<'a>)); 13] = [
+        let sections: [(&str, fn(&mut B<'a>)); 12] = [
             ("items", B::item_upgrades),
             ("spare", B::spare_blades),
             ("buys", B::buys),
             ("clearboots", B::clear_boots),
             ("shards", B::shards),
-            ("enrichswap", B::enrichment_swap),
             ("bank", B::bank),
             ("powers", B::power_stones),
             ("scrolls", B::wither_scrolls),
@@ -860,14 +859,11 @@ impl<'a> B<'a> {
                 });
             }
 
-            // Enrichments on Legendary+ accessories.
-            if is_accessory && ENRICHABLE_RARITIES.contains(&item_rarity_of(&st)) {
-                for &kind in enrichment_kinds(cls, ctx.mode) {
-                    if st.enrichment.as_deref() == Some(kind) {
-                        continue;
-                    }
-                    let Some(en) = enrichment(kind) else { continue };
-                    let label = format!("{} Enrichment on {name}", enrichment_name(kind));
+            // Enrichments on Legendary+ accessories: +1 tuning point each, any kind, so only the cheapest is offered.
+            if is_accessory && st.enrichment.is_none() && ENRICHABLE_RARITIES.contains(&item_rarity_of(&st)) {
+                if let Some(en) = self.cheapest_enrichment() {
+                    let kind = en.kind;
+                    let label = format!("{} Enrichment on {name} (+1 tuning point)", enrichment_name(kind));
                     self.push_item(dual, label, vec![Part::owned(format!("TALISMAN_ENRICHMENT_{}", en.key))], group(format!("{slot}:enrich")), |m, bc| {
                         let next = m.modify_item(item, |s| s.enrichment = Some(kind.to_string()));
                         Self::replace(l, m, bc, item, copy, next, ReplacePost::None)
@@ -1089,10 +1085,10 @@ impl<'a> B<'a> {
                     if !meta.enrichable[recomb as usize] {
                         continue;
                     }
-                    for &kind in enrichment_kinds(cls, ctx.mode) {
+                    if let Some(en) = self.cheapest_enrichment() {
                         let mut e = BuyExtra::new();
                         e.recomb = recomb;
-                        e.enrichment = Some(kind);
+                        e.enrichment = Some(en.kind);
                         self.buy(&bc, None, e);
                     }
                 }
@@ -1461,64 +1457,18 @@ impl<'a> B<'a> {
         }
     }
 
-    fn enrichment_swap(&mut self) {
-        let l = self.l;
-        let ctx = self.ctx;
-        let resource = self.resource;
-        let enriched: Vec<ItemId> = self
-            .model
-            .bag(l.accessories)
-            .items
-            .iter()
-            .copied()
-            .filter(|&a| self.model.item(a).enrichment.is_some())
-            .collect();
-        let is_dungeon_acc = |m: &Model, a: ItemId| resource.get(&m.item(a).id).is_some_and(|i| i.is_dungeon_item());
-        for &kind in enrichment_kinds(ctx.cls, ctx.mode) {
-            let mut seen: Vec<String> = Vec::new();
-            for (group_name, keep) in [("all", 0u8), ("dungeon", 1), ("non-dungeon", 2)] {
-                let targets: Vec<ItemId> = enriched
-                    .iter()
-                    .copied()
-                    .filter(|&a| {
-                        let k = match keep {
-                            0 => true,
-                            1 => is_dungeon_acc(self.model, a),
-                            _ => !is_dungeon_acc(self.model, a),
-                        };
-                        k && self.model.item(a).enrichment.as_deref() != Some(kind)
-                    })
-                    .collect();
-                let mut ids: Vec<&str> = targets.iter().map(|&a| self.model.item(a).id.as_str()).collect();
-                ids.sort_unstable();
-                let key = ids.join(",");
-                if targets.is_empty() || seen.contains(&key) {
-                    continue;
+    /// JS `cheapestEnrichment(prices)`: the cheapest enrichment on sale (all give +1 tuning point). Ties keep
+    /// `ENRICHMENTS` order.
+    fn cheapest_enrichment(&self) -> Option<&'static Enrichment> {
+        let mut best: Option<(&'static Enrichment, f64)> = None;
+        for e in ENRICHMENTS {
+            if let Some((price, _)) = self.prices.get(&format!("TALISMAN_ENRICHMENT_{}", e.key)) {
+                if best.is_none_or(|(_, b)| price < b) {
+                    best = Some((e, price));
                 }
-                seen.push(key);
-                let which = if group_name == "all" { "all".to_string() } else { format!("the {group_name}") };
-                let label = format!(
-                    "Swap {which} enriched accessories ({}) to {} (1 Accessory Enrichment Swapper{})",
-                    targets.len(),
-                    enrichment_name(kind),
-                    if group_name == "all" { "" } else { ", take the others out first" }
-                );
-                self.push(label, &[Part::id(ENRICHMENT_SWAPPER_ID)], group("enrichswap".to_string()), |m, bc| {
-                    let mut bag = l.accessories;
-                    let mut owned = Vec::with_capacity(targets.len());
-                    for &t in &targets {
-                        let kind_id = m.entry(t).kind;
-                        let cur = m.bag_get(bag, kind_id).unwrap_or(t);
-                        let next = m.modify_item(cur, |s| s.enrichment = Some(kind.to_string()));
-                        if let Some(nb) = bag_replace_cached(m, bc, bag, cur, next) {
-                            bag = nb;
-                        }
-                        owned.push(next);
-                    }
-                    Edit::SetBag { base: l.accessories, bag, owned }
-                });
             }
         }
+        best.map(|(e, _)| e)
     }
 
     fn bank(&mut self) {

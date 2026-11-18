@@ -5,7 +5,7 @@ use crate::arena::*;
 use crate::ctx::Ctx;
 use crate::ids::*;
 use crate::loose::Loose;
-use dps_core::config::accessories::{enrichment, POWERS};
+use dps_core::config::accessories::{ENRICHMENT_TUNING_POINTS, POWERS};
 use dps_core::config::constants::*;
 use dps_core::config::enchants::enchant;
 use dps_core::config::gemstones::gem_stat;
@@ -282,9 +282,6 @@ impl Model {
         self.items[id.index()].variants[variant].acc.get_or_init(|| {
             let e = &self.items[id.index()];
             let mut stats = self.raw_stats(id, variant).global;
-            if let Some(en) = e.state.enrichment.as_deref().and_then(enrichment) {
-                stats.add_loose(en.stats, 1.0);
-            }
             if e.flags.info_dungeon_item {
                 let boost = 1.0 + cata_boost(self.cata_level);
                 let mut m = stats.mask;
@@ -306,12 +303,16 @@ impl Model {
         self.bags[bag.index()].base[variant].get_or_init(|| {
             let counted = self.counted_accessories(bag);
             let mut ap = 0.0;
+            let mut enriched = 0.0;
             let mut loose = Loose::new();
             for &item in &counted {
                 ap += self.items[item.index()].flags.ap;
+                if self.items[item.index()].state.enrichment.is_some() {
+                    enriched += 1.0;
+                }
                 loose.add_loose_from(self.accessory_item_stats(item, variant), 1.0);
             }
-            Box::new(BagBase { power_mult: dps_core::formulas::power_multiplier(ap), counted, ap, loose })
+            Box::new(BagBase { power_mult: dps_core::formulas::power_multiplier(ap), counted, ap, loose, enriched })
         })
     }
 
@@ -357,7 +358,7 @@ impl Model {
         }];
         stats.add_loose(p.stats, base.power_mult);
         stats.add_loose(p.bonus, 1.0);
-        let points = (base.ap / dps_core::config::accessories::AP_PER_TUNING_POINT).floor() + extra_tuning_points;
+        let points = (base.ap / dps_core::config::accessories::AP_PER_TUNING_POINT).floor() + base.enriched * ENRICHMENT_TUNING_POINTS + extra_tuning_points;
         AccStats { stats, ap: base.ap, tuning_points: points }
     }
 

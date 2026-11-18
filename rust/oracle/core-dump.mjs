@@ -74,7 +74,6 @@ out.calls = {
   classExcluded: ['arch', 'bers', 'mage'].map((cls) => ({ cls, ids: ids.filter((id) => constants.CLASS_EXCLUDED_ITEMS[cls]?.test(id)) })),
   enchantMaxLevel: Object.fromEntries(Object.entries(enchants.ENCHANTS).map(([k, e]) => [k, enchants.enchantMaxLevel(e)])),
   tuningStats: ['arch', 'bers', 'mage'].flatMap((cls) => ['lcm', 'rcm'].map((mode) => ({ cls, mode, out: accessories.tuningStats({ cls, mode }) }))),
-  enrichmentKinds: ['arch', 'bers', 'mage'].flatMap((cls) => ['lcm', 'rcm'].map((mode) => ({ cls, mode, out: accessories.enrichmentKinds({ cls, mode }) }))),
   hatcessory: ids.filter((id) => accessories.HATCESSORY.test(id)),
   itemRarity: [...constants.RARITIES, 'SPECIAL', 'VERY_SPECIAL', 'ADMIN', 'UNOBTAINABLE'].flatMap((baseRarity) => [false, true].flatMap((recomb) =>
     ['HYPERION', 'DIAMOND_NECRON_HEAD', 'GOLD_BONZO_HEAD', 'GOLD_HEAD', 'X'].map((id) => ({ baseRarity, recomb, id, out: itemRarity({ id, baseRarity, recomb }) })))),

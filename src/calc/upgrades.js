@@ -6,7 +6,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS, skippedSwordEnchant } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, enrichmentKinds, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, ENRICHMENT_SWAPPER_ID, DEFAULT_POWER } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, DEFAULT_POWER } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -596,6 +596,7 @@ function copyParts(item, prices) {
 export function availableUpgrades(loadout, ctx, prices) {
   const ups = [];
   const { resource, cls } = ctx;
+  const enrichKind = cheapestEnrichment(prices);
   const push = (label, parts, apply, extra = {}) => {
     const p = priceParts(parts, prices);
     if (p) ups.push({ label: label + npcNote(parts, prices, resource), ...p, apply, ...extra });
@@ -736,13 +737,10 @@ export function availableUpgrades(loadout, ctx, prices) {
         up.parts, (l) => replaceItem(l, item, up.apply(item)), { group: `${slot}:gem:${up.slotKey}` });
     }
 
-    // Enrichments on Legendary+ accessories.
-    if (isAccessory && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
-      for (const kind of enrichmentKinds(ctx)) {
-        if (item.enrichment === kind) continue;
-        pushItem(`${enrichmentName(kind)} Enrichment on ${name}`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[kind].key}` }],
-          (l) => replaceItem(l, item, { ...item, enrichment: kind }), { group: `${slot}:enrich` });
-      }
+    // Enrichments on Legendary+ accessories: +1 tuning point each, any kind, so only the cheapest is offered.
+    if (isAccessory && !item.enrichment && enrichKind && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
+      pushItem(`${enrichmentName(enrichKind)} Enrichment on ${name} (+1 tuning point)`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[enrichKind].key}` }],
+        (l) => replaceItem(l, item, { ...item, enrichment: enrichKind }), { group: `${slot}:enrich` });
     }
   }
 
@@ -916,7 +914,7 @@ export function availableUpgrades(loadout, ctx, prices) {
       // Enrichments need Legendary or higher, so most come after the recombobulator.
       for (const recomb of recombable ? [false, true] : [false]) {
         if (!ENRICHABLE_RARITIES.includes(itemRarity({ ...fresh, recomb }))) continue;
-        for (const kind of enrichmentKinds(ctx)) buy(null, null, { recomb, enrichment: kind });
+        if (enrichKind) buy(null, null, { recomb, enrichment: enrichKind });
       }
     } else if (best) {
       buy(best.key, best.reforge, { full: !recombable });
@@ -946,32 +944,6 @@ export function availableUpgrades(loadout, ctx, prices) {
     const qty = cum[SHARD_MAX_LEVEL - 1] - (current ? cum[current - 1] : 0);
     push(`${shard.name} Shard → level ${SHARD_MAX_LEVEL} (${qty} shards)`, [{ id: `SHARD_${id}`, qty }],
       (l) => ({ ...cloneLoadout(l), shards: { ...l.shards, [id]: SHARD_MAX_LEVEL } }));
-  }
-
-  // Accessory Enrichment Swapper: one swapper changes every enriched accessory in the bag to the enrichment you pick.
-  // Accessories you want to keep are taken out first, so a swap can cover all enriched accessories, only the dungeon
-  // ones or only the regular ones.
-  const enriched = [...loadout.accessories.values()].filter((a) => a.enrichment);
-  const isDungeonAcc = (a) => Boolean(resource.get(a.id)?.dungeon_item);
-  const SWAP_GROUPS = [['all', () => true], ['dungeon', isDungeonAcc], ['non-dungeon', (a) => !isDungeonAcc(a)]];
-  for (const kind of enrichmentKinds(ctx)) {
-    const seen = new Set();
-    for (const [groupName, keep] of SWAP_GROUPS) {
-      const targets = enriched.filter((a) => keep(a) && a.enrichment !== kind);
-      const key = targets.map((a) => a.id).sort().join(',');
-      if (!targets.length || seen.has(key)) continue;
-      seen.add(key);
-      const which = groupName === 'all' ? 'all' : `the ${groupName}`;
-      push(`Swap ${which} enriched accessories (${targets.length}) to ${enrichmentName(kind)} (1 Accessory Enrichment Swapper${groupName === 'all' ? '' : ', take the others out first'})`,
-        [{ id: ENRICHMENT_SWAPPER_ID }], (l) => {
-          let next = l;
-          for (const t of targets) {
-            const cur = next.accessories.get(t.id) ?? t;
-            next = replaceItem(next, cur, { ...cur, enrichment: kind });
-          }
-          return next;
-        }, { group: 'enrichswap' });
-    }
   }
 
   // Golden Dragon's Legendary Treasure: 1M more coins in the bank (+0.25% damage), up to 1B. The planner merges
@@ -1629,6 +1601,17 @@ function ordinal(n) {
 
 function roman(n) {
   return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][n - 1] ?? String(n);
+}
+
+// The cheapest enrichment on sale (they all give the same +1 tuning point), or null. Ties keep ENRICHMENTS order.
+function cheapestEnrichment(prices) {
+  let best = null;
+  let bestPrice = Infinity;
+  for (const [kind, e] of Object.entries(ENRICHMENTS)) {
+    const price = prices?.get(`TALISMAN_ENRICHMENT_${e.key}`)?.price;
+    if (price != null && price < bestPrice) { best = kind; bestPrice = price; }
+  }
+  return best;
 }
 
 function enrichmentName(kind) {

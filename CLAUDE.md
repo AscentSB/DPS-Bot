@@ -57,6 +57,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - First Strike V on a Prosecute weapon is never swapped for Triple Strike. FS IV or none gets Triple Strike.
 - Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
 - Sharpness and Smite stack on one sword (Hypixel allows both); only Bane of Arthropods conflicts with them.
+- Enrichments (0.27.3): +1 tuning point each, no stat, any kind (owner, 2026-11-17). Only the cheapest enrichment is offered, no Enrichment Swapper steps, and the Mage clear set can take them too.
 - Bank deposit steps merge into one.
 - Removed items are never bought (`REMOVED_ITEMS`): Personal Compactors, removed 2026-11-09.
 - Hatcessories (Crab, Sloth, Balloon and Cake Hats) are one accessory and all equal: owning any one blocks the others. Of owned hats the highest rarity counts, then a recombobulated one, then an enriched one. Balloon Hats (`BALLOON_HAT_2024`, `BALLOON_HAT_2025`) and the Cake Hat (`CAKE_HAT_2026`) are missing from the Hypixel items resource, so `MISSING_ITEMS` adds them as Special accessories.

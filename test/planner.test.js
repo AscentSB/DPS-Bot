@@ -909,14 +909,6 @@ test('powers: the best learned power is used for free; unlearned ones are a ston
   assert.ok(evaluate(after, ctx, w).wither >= evaluate(l, ctx, w).wither);
 });
 
-test('an accessory with an enrichment can swap it with the Accessory Enrichment Swapper', () => {
-  const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
-  const w = weightsFor('arch');
-  const relic = { ...newItem('WITHER_RELIC', resource), enrichment: 'critical_chance' };
-  const l = buildLoadout(profile([newItem('TERMINATOR', resource), relic]), ctx, w);
-  const labels = availableUpgrades(l, ctx, { get: (id) => ({ price: 1e6, source: 'BZ', id }) }).map((u) => u.label);
-  assert.ok(labels.some((x) => x.startsWith('Swap all enriched accessories (1) to Critical Damage')), labels.filter((x) => /Swap/.test(x)).join(', '));
-});
 
 test('Hyperion gets +1 damage and +2 intelligence per Catacombs level before dungeon scaling', () => {
   const c50 = makeContext({ cls: 'mage', cataLevel: 50, resource });
@@ -1124,19 +1116,22 @@ test('Book of Progression gives no damage (Extra Infliction removed) and has no 
   assert.ok(!availableUpgrades(off, mk('STACKED_HEALING'), { get: () => null }).some((u) => u.label.startsWith('Set Book of Progression')));
 });
 
-test('one Accessory Enrichment Swapper swaps every enriched accessory in the bag as one step', async () => {
-  const ids = ['ACC_A', 'ACC_B', 'ACC_C', 'ACC_D', 'ACC_E'];
+test('0.27.3: each enriched accessory gives +1 tuning point and no stat, whatever its kind, and there is no swap step', async () => {
+  const { accessoryStats, accessoryItemStats } = await import('../src/calc/stats.js');
+  const ids = ['ACC_A', 'ACC_B', 'ACC_C'];
   const res = new Map([...resource, ...ids.map((id) => [id, { id, name: id, category: 'ACCESSORY', tier: 'LEGENDARY' }])]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
   const w = weightsFor('arch');
-  const accs = ids.map((id) => ({ ...newItem(id, res), enrichment: 'walk_speed' }));
-  const l = buildLoadout(profile([newItem('TERMINATOR', res), ...accs]), ctx, w);
-  const p = { get: (id) => (id === 'TALISMAN_ENRICHMENT_SWAPPER' ? { price: 1e5, source: 'BZ' } : null) };
-  const steps = (await planUpgrades(l, ctx, p, w, 10)).steps;
-  const swap = steps.find((x) => /^Swap all enriched accessories \(5\)/.test(x.label));
-  assert.ok(swap, steps.map((x) => x.label).join(', '));
-  close(swap.cost, 1e5);
-  assert.ok(!steps.some((x) => /^Swap ACC_/.test(x.label)));
+  const plain = buildLoadout(profile([newItem('TERMINATOR', res), ...ids.map((id) => newItem(id, res))]), ctx, w);
+  const enriched = buildLoadout(profile([newItem('TERMINATOR', res), ...ids.map((id, i) => ({ ...newItem(id, res), enrichment: i ? 'walk_speed' : 'critical_damage' }))]), ctx, w);
+  assert.equal(accessoryStats(enriched, ctx).tuningPoints - accessoryStats(plain, ctx).tuningPoints, 3);
+  assert.deepEqual(accessoryItemStats(enriched.accessories.get('ACC_A'), ctx), accessoryItemStats(plain.accessories.get('ACC_A'), ctx));
+  const p = { get: () => ({ price: 1e5, source: 'BZ' }) };
+  const labels = availableUpgrades(enriched, ctx, p).map((u) => u.label);
+  assert.ok(!labels.some((x) => /Swap|Enrichment on ACC_/.test(x)), labels.join(', '));
+  const bare = availableUpgrades(plain, ctx, p).filter((u) => / Enrichment on ACC_A/.test(u.label));
+  assert.equal(bare.length, 1);
+  assert.equal(bare[0].label, 'Strength Enrichment on ACC_A (+1 tuning point)');
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
@@ -1155,22 +1150,25 @@ test('buys and shards respect requirements: Catacombs, floor, skills, slayers an
   assert.ok(!labels.some((x) => x.startsWith('Inferno Demonlord Shard')));
 });
 
-test('dungeon accessories and their enrichments get x (1 + cata boost), except crit chance', async () => {
+test('enrichments add no stat to dungeon or other accessories (0.27.3)', async () => {
   const { accessoryItemStats } = await import('../src/calc/stats.js');
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource });
-  const skull = { ...newItem('MASTER_SKULL_TIER_7', resource), enrichment: 'critical_damage' };
-  close(accessoryItemStats(skull, ctx).critDamage, 1 * (1 + 4.85));
-  close(accessoryItemStats({ ...skull, enrichment: 'critical_chance' }, ctx).critChance, 1);
-  close(accessoryItemStats({ ...newItem('WITHER_RELIC', resource), enrichment: 'critical_damage' }, ctx).critDamage, 1);
+  const skull = newItem('MASTER_SKULL_TIER_7', resource);
+  assert.deepEqual(accessoryItemStats({ ...skull, enrichment: 'critical_damage' }, ctx), accessoryItemStats(skull, ctx));
+  const relic = newItem('WITHER_RELIC', resource);
+  assert.deepEqual(accessoryItemStats({ ...relic, enrichment: 'critical_damage' }, ctx), accessoryItemStats(relic, ctx));
 });
 
 test('an accessory buy can come bundled with its recombobulator and enrichment as one step', () => {
   const res = new Map([...resource, ['ARTIFACT_OF_CONTROL', { id: 'ARTIFACT_OF_CONTROL', name: 'Artifact of Control', category: 'ACCESSORY', tier: 'LEGENDARY' }]]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
-  const p = { get: () => ({ price: 1e6, source: 'AH' }) };
-  const bundle = availableUpgrades(l, ctx, p).find((u) => u.label === 'Buy Artifact of Control + Recombobulator + Critical Chance Enrichment');
+  // Only the cheapest enrichment is offered (they all give +1 tuning point).
+  const p = { get: (id) => ({ price: id === 'TALISMAN_ENRICHMENT_CRITICAL_CHANCE' ? 1e6 : id.startsWith('TALISMAN_ENRICHMENT_') ? 2e6 : 1e6, source: 'AH' }) };
+  const ups = availableUpgrades(l, ctx, p);
+  const bundle = ups.find((u) => u.label === 'Buy Artifact of Control + Recombobulator + Critical Chance Enrichment');
   assert.ok(bundle);
+  assert.equal(ups.filter((u) => u.label.startsWith('Buy Artifact of Control + Recombobulator + ')).length, 1);
   assert.equal(bundle.cost, 3e6);
   const item = bundle.apply(l).accessories.get('ARTIFACT_OF_CONTROL');
   assert.ok(item.recomb && item.enrichment === 'critical_chance');
@@ -1365,7 +1363,7 @@ test('dual wield: a second Prosecute Hyperion with Execute costs the full first 
   assert.ok(!availableUpgrades(next, ctx, prices).some((u) => u.label.startsWith('Dual wield')));
 });
 
-test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment changes; power stones cost 9', () => {
+test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment swaps; power stones cost 9', () => {
   const res = new Map([...resource, ['IMPLOSION_BELT', { id: 'IMPLOSION_BELT', name: 'Implosion Belt', category: 'BELT', tier: 'EPIC', stats: { DEFENSE: 70 } }]]);
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, mageLevel: 50, combatLevel: 60, mode: 'rcm', resource: res });
   const weights = weightsFor('mage', null, 'rcm');
@@ -1380,7 +1378,7 @@ test('clear set: Implosion Belt x1.25, F7 lists no master stars, no enrichment c
   const p = { get: (id) => (table[id] ? { price: table[id], source: 'BZ' } : null) };
   const ups = availableUpgrades(l, ctx, p);
   assert.ok(ups.some((u) => u.label.startsWith('Buy Implosion Belt')));
-  assert.ok(!ups.some((u) => /Enrichment|enriched/.test(u.label)));
+  assert.ok(!ups.some((u) => /enriched accessories/.test(u.label)));
   const f7 = makeContext({ cls: 'mage', cataLevel: 50, mode: 'rcm', floorMode: 'normal', resource: res });
   assert.ok(!availableUpgrades(buildLoadout(profile([hype]), f7, weights), f7, p).some((u) => /Master Star/.test(u.label)));
 });
