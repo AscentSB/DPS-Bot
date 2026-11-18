@@ -1,6 +1,6 @@
 //! src/lib/drops.js: floor-scaled dungeon drops (items with `tiered_stats`).
 
-use crate::config::constants::{DUNGEON_DROP_BOOST, DUNGEON_FLOOR_CATA, RARITIES};
+use crate::config::constants::{DUNGEON_DROP_BOOST, DUNGEON_FLOOR_CATA};
 use crate::model::Resource;
 use std::borrow::Cow;
 
@@ -33,16 +33,10 @@ pub fn drop_stat_multiplier(id: &str, resource: &Resource) -> f64 {
     }
 }
 
-/// JS `dropBaseRarity(id, resource)`: the item's tier (`COMMON` when unknown), one higher for floor drops.
+/// JS `dropBaseRarity(id, resource)`: the item's tier (`COMMON` when unknown). Floor drops no longer get +1
+/// rarity (0.27.3).
 pub fn drop_base_rarity<'a>(id: &str, resource: &'a Resource) -> &'a str {
-    let tier: &'a str = resource.get(id).and_then(|i| i.tier.as_deref()).unwrap_or("COMMON");
-    if !is_floor_drop(id, resource) {
-        return tier;
-    }
-    match RARITIES.iter().position(|&r| r == tier) {
-        Some(i) if i < RARITIES.len() - 1 => RARITIES[i + 1],
-        _ => tier,
-    }
+    resource.get(id).and_then(|i| i.tier.as_deref()).unwrap_or("COMMON")
 }
 
 /// JS `FULL_STAT_BOOST`.
@@ -98,7 +92,7 @@ mod tests {
         assert_eq!(floor_tier_index(36.0, 7), 6);
         assert_eq!(floor_tier_index(0.0, 7), 0);
         assert_eq!(floor_tier_index(10.0, 7), 3);
-        assert_eq!(drop_base_rarity("SKELETON_MASTER_CHESTPLATE", &r), "LEGENDARY");
+        assert_eq!(drop_base_rarity("SKELETON_MASTER_CHESTPLATE", &r), "EPIC");
         assert_eq!(drop_base_rarity("PLAIN", &r), "EPIC");
         assert_eq!(drop_base_rarity("MISSING", &r), "COMMON");
         assert_eq!(buy_price_id("SKELETON_MASTER_CHESTPLATE", &r, 0.0), "SKELETON_MASTER_CHESTPLATE_FLOOR1");

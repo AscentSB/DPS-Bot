@@ -91,6 +91,10 @@
     {
      "id": "SKYBLOCK_BIT",
      "qty": 25000
+    },
+    {
+     "id": "ABICASE_SUMSUNG_1",
+     "qty": 1
     }
    ]
   }
@@ -201,6 +205,18 @@
   {
    "npc": "Udel",
    "coins": 500000
+  }
+ ],
+ "ACCESSORY_ENRICHMENT": [
+  {
+   "npc": "Elizabeth",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_BIT",
+     "qty": 5000
+    }
+   ]
   }
  ],
  "ADVANCED_GARDENING_AXE": [
@@ -6168,7 +6184,7 @@
    "items": [
     {
      "id": "SKYBLOCK_PEST",
-     "qty": 40
+     "qty": 100
     }
    ]
   }
@@ -8659,150 +8675,6 @@
    ]
   }
  ],
- "TALISMAN_ENRICHMENT_ATTACK_SPEED": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_CRITICAL_CHANCE": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_CRITICAL_DAMAGE": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_DEFENSE": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_FEROCITY": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_HEALTH": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_INTELLIGENCE": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_MAGIC_FIND": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_SEA_CREATURE_CHANCE": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_STRENGTH": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_SWAPPER": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 200
-    }
-   ]
-  }
- ],
- "TALISMAN_ENRICHMENT_WALK_SPEED": [
-  {
-   "npc": "Elizabeth",
-   "coins": 0,
-   "items": [
-    {
-     "id": "SKYBLOCK_BIT",
-     "qty": 5000
-    }
-   ]
-  }
- ],
  "TAVERN_BARN_SKIN": [
   {
    "npc": "SkyMart",
@@ -9265,6 +9137,18 @@
   {
    "npc": "Combat Merchant",
    "coins": 2500
+  }
+ ],
+ "VINYL_SACK": [
+  {
+   "npc": "Pesthunter Phillip",
+   "coins": 0,
+   "items": [
+    {
+     "id": "SKYBLOCK_PEST",
+     "qty": 100
+    }
+   ]
   }
  ],
  "WEAPON_RACK": [

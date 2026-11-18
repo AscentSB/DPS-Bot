@@ -802,6 +802,37 @@ impl<'a> Planner<'a> {
                 k = path.parent.get(kk);
             }
         }
+        // Outclassed armor: worn at the end, but an allowed step that replaces it still adds damage there, so the
+        // plan would replace it if it went on. Doomed too (with the ids it had before being upgraded), so it stays
+        // under the budget from the start.
+        if self.cancel.load(Ordering::Relaxed) {
+            return Err(PlanError::Cancelled);
+        }
+        let sidx = path.state;
+        if self.store[sidx].candidates.is_none() {
+            let c = self.candidates_for(sidx);
+            self.store[sidx].candidates = Some(c);
+        }
+        let mut outclassed: Vec<String> = Vec::new();
+        for cand in self.store[sidx].candidates.as_ref().unwrap() {
+            if !allowed(cand, &path.spend, &self.doomed, &self.banned, self.low_floor) {
+                continue;
+            }
+            for c in &cand.changes {
+                let Some(pk) = c.prev_key.as_ref() else { continue };
+                if c.kind != ChangeKind::Replace || !SLOT_NAMES[1..5].iter().any(|s| pk.strip_prefix(s).is_some_and(|r| r.starts_with(':'))) {
+                    continue;
+                }
+                let mut k = Some(pk);
+                while let Some(kk) = k {
+                    if !outclassed.contains(kk) {
+                        outclassed.push(kk.clone());
+                    }
+                    k = path.parent.get(kk);
+                }
+            }
+        }
+        overspent.extend(outclassed);
         Ok(Greedy { steps, start_state, end_state: path.state, overspent })
     }
 }
@@ -837,8 +868,8 @@ pub fn plan_upgrades(
         low_floor,
     };
     let mut plan = p.greedy(start, limit, None)?;
-    // Re-plan until no piece is overspent before being replaced (25M budget) and no small step is overwritten
-    // within 10M coins. Each round resumes from the first step the new rules reject.
+    // Re-plan until no piece is overspent before being replaced or outclassed (25M budget) and no small step is
+    // overwritten within 10M coins. Each round resumes from the first step the new rules reject.
     for _ in 0..REPLAN_ROUNDS {
         let fresh_pieces: Vec<String> = plan.overspent.iter().filter(|k| !p.doomed.contains(*k)).cloned().collect();
         let fresh_steps: Vec<String> = replaced_soon(&plan.steps).into_iter().filter(|l| !p.banned.contains(l)).collect();

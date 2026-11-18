@@ -419,7 +419,6 @@ fn accessories() -> Vec<(&'static str, Value)> {
     let rarities = ["COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL", "VERY_SPECIAL"];
     vec![
         ("AP_BY_RARITY", Value::Object(rarities.iter().map(|&r| (r.to_string(), n(acc::ap_by_rarity(r).unwrap()))).collect())),
-        ("AP_OVERRIDES", obj(vec![(acc::RIFT_PRISM_ID, n(acc::ap_override(acc::RIFT_PRISM_ID).unwrap()))])),
         ("AP_PER_TUNING_POINT", n(acc::AP_PER_TUNING_POINT)),
         ("CLASS_TUNING_STATS", by_class(acc::class_tuning_stats, stat_names)),
         ("DEFAULT_POWER", by_class(acc::default_power, |x| json!(x))),
@@ -429,7 +428,7 @@ fn accessories() -> Vec<(&'static str, Value)> {
         ("ENRICHABLE_RARITIES", strs(&acc::ENRICHABLE_RARITIES)),
         (
             "ENRICHMENTS",
-            Value::Object(acc::ENRICHMENTS.iter().map(|e| (e.kind.to_string(), obj(vec![("key", json!(e.key))]))).collect()),
+            Value::Object(acc::ENRICHMENTS.iter().map(|e| (e.kind.to_string(), obj(vec![("id", json!(e.id))]))).collect()),
         ),
         ("FREE_POWERS", strs(&acc::FREE_POWERS)),
         ("NO_RECOMB", strs(&acc::NO_RECOMB)),
@@ -454,7 +453,6 @@ fn accessories() -> Vec<(&'static str, Value)> {
         ("POWER_SCALE", n(acc::POWER_SCALE)),
         ("POWER_STONES", Value::Object(acc::POWER_STONES.iter().map(|(k, v)| (k.to_string(), json!(v))).collect())),
         ("RCM_TUNING_STATS", stat_names(&acc::RCM_TUNING_STATS)),
-        ("RIFT_PRISM_ID", json!(acc::RIFT_PRISM_ID)),
         ("TUNING_KEYS", Value::Object(acc::TUNING_KEYS.iter().map(|(k, v)| (k.to_string(), json!(v.js_name()))).collect())),
         ("TUNING_PER_POINT", st(acc::TUNING_PER_POINT)),
     ]

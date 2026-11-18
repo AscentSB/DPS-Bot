@@ -8,7 +8,7 @@
 use crate::ctx::{Ctx, ItemCtxKey};
 use crate::ids::*;
 use crate::loose::Loose;
-use dps_core::config::accessories::{ap_by_rarity, ap_override, DOUBLE_AP_ITEMS, DUNGEON_AP_MULTIPLIER};
+use dps_core::config::accessories::{ap_by_rarity, DOUBLE_AP_ITEMS, DUNGEON_AP_MULTIPLIER};
 use dps_core::config::armor_sets::ARMOR_SETS;
 use dps_core::config::constants::*;
 use dps_core::config::enchants::enchant;
@@ -389,18 +389,15 @@ impl Model {
             },
         };
         let info_dungeon_item = info.is_some_and(|i| i.is_dungeon_item());
-        let ap = match ap_override(&st.id) {
-            Some(o) => o,
-            None => {
-                let mut ap = ap_by_rarity(item_rarity(&st.base_rarity, st.recomb, &st.id)).unwrap_or(0.0);
-                if info_dungeon_item {
-                    ap *= DUNGEON_AP_MULTIPLIER;
-                }
-                if DOUBLE_AP_ITEMS.contains(&st.id.as_str()) {
-                    ap *= 2.0;
-                }
-                ap
+        let ap = {
+            let mut ap = ap_by_rarity(item_rarity(&st.base_rarity, st.recomb, &st.id)).unwrap_or(0.0);
+            if info_dungeon_item {
+                ap *= DUNGEON_AP_MULTIPLIER;
             }
+            if DOUBLE_AP_ITEMS.contains(&st.id.as_str()) {
+                ap *= 2.0;
+            }
+            ap
         };
         let family = accessory_family(&st.id);
         let rarity = item_rarity(&st.base_rarity, st.recomb, &st.id);

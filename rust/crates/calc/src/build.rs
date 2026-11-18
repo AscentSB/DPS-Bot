@@ -4,12 +4,12 @@
 
 use crate::arena::Model;
 use crate::ctx::Ctx;
-use crate::helpers::{has_wither_impact, new_item};
+use crate::helpers::has_wither_impact;
 use crate::ids::*;
 use crate::loadout::{LevelKind, Levels, Loadout, Owned, PetList};
 use crate::parts::rcm_blade_score;
 use crate::pick::Evaluator;
-use dps_core::config::accessories::{default_power, FREE_POWERS, POWERS, RIFT_PRISM_ID, ap_override};
+use dps_core::config::accessories::{default_power, FREE_POWERS, POWERS};
 use dps_core::config::constants::*;
 use dps_core::config::upgrades::EXTRA_UPGRADES;
 use dps_core::kinds::Mode;
@@ -132,20 +132,6 @@ pub fn build_loadout(model: &mut Model, ctx: &mut Ctx, weights: Weights, member:
     let bag_ids: Vec<ItemId> = acc.values().copied().collect();
     l.accessories = model.intern_bag(&bag_ids);
 
-    // Consumed Rift Prism. The profile's highest Accessory Power is the truth: the prism's 11 is only added when the
-    // bag comes up exactly 11 short of it (or when the profile gives no Accessory Power at all).
-    let gap = member.highest_ap.map(|h| h - model.total_accessory_power(l.accessories));
-    let prism_ap = ap_override(RIFT_PRISM_ID);
-    let add_prism = (gap.is_some() && gap == prism_ap) || (gap.is_none() && member.rift_prism == Some(true));
-    if add_prism && !acc.contains_key(RIFT_PRISM_ID) {
-        let p = model.intern_item(new_item(RIFT_PRISM_ID, &ctx.resource));
-        acc.insert(RIFT_PRISM_ID.to_string(), p);
-        let ids: Vec<ItemId> = acc.values().copied().collect();
-        l.accessories = model.intern_bag(&ids);
-    }
-    if add_prism || member.rift_prism == Some(true) {
-        l.owned.insert(RIFT_PRISM_ID);
-    }
 
     for (i, e) in EXTRA_UPGRADES.iter().enumerate() {
         if e.owned_items.is_some_and(|o| o.iter().any(|x| l.owned.contains(x))) {

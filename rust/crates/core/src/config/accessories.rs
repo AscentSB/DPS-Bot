@@ -13,24 +13,14 @@ pub fn ap_by_rarity(rarity: &str) -> Option<f64> {
         "LEGENDARY" => 16.0,
         "MYTHIC" => 22.0,
         "DIVINE" => 28.0,
-        "SPECIAL" => 3.0,
-        "VERY_SPECIAL" => 5.0,
+        "SPECIAL" => 0.0,
+        "VERY_SPECIAL" => 0.0,
         _ => return None,
     })
 }
 
 pub const DUNGEON_AP_MULTIPLIER: f64 = 2.0;
 pub const DOUBLE_AP_ITEMS: [&str; 1] = ["HEGEMONY_ARTIFACT"];
-pub const RIFT_PRISM_ID: &str = "RIFT_PRISM";
-
-/// JS `AP_OVERRIDES[id]` (only the Rift Prism: 11).
-pub fn ap_override(id: &str) -> Option<f64> {
-    if id == RIFT_PRISM_ID {
-        Some(11.0)
-    } else {
-        None
-    }
-}
 
 pub const POWER_SCALE: f64 = 29.97;
 pub const POWER_LOG_FACTOR: f64 = 0.0019;
@@ -331,25 +321,26 @@ pub fn add_missing_items(map: &mut crate::model::Resource) {
     }
 }
 
-pub const NO_RECOMB: [&str; 3] = ["BOOK_OF_PROGRESSION", "PANDORAS_BOX", "RIFT_PRISM"];
+pub const NO_RECOMB: [&str; 2] = ["BOOK_OF_PROGRESSION", "PANDORAS_BOX"];
 
 /// One entry of JS `ENRICHMENTS`. Since 0.27.3 every enrichment gives +1 Tuning Point and no stat of its own.
 #[derive(Clone, Copy, Debug)]
 pub struct Enrichment {
     /// Enrichment kind as stored on items (`critical_damage`).
     pub kind: &'static str,
-    /// Item id suffix: `TALISMAN_ENRICHMENT_<key>`.
-    pub key: &'static str,
+    /// Item id.
+    pub id: &'static str,
 }
 
 /// JS `ENRICHMENTS`, in key order.
 pub static ENRICHMENTS: &[Enrichment] = &[
-    Enrichment { kind: "strength", key: "STRENGTH" },
-    Enrichment { kind: "critical_damage", key: "CRITICAL_DAMAGE" },
-    Enrichment { kind: "critical_chance", key: "CRITICAL_CHANCE" },
-    Enrichment { kind: "intelligence", key: "INTELLIGENCE" },
-    Enrichment { kind: "walk_speed", key: "WALK_SPEED" },
-    Enrichment { kind: "attack_speed", key: "ATTACK_SPEED" },
+    Enrichment { kind: "accessory", id: "ACCESSORY_ENRICHMENT" },
+    Enrichment { kind: "strength", id: "TALISMAN_ENRICHMENT_STRENGTH" },
+    Enrichment { kind: "critical_damage", id: "TALISMAN_ENRICHMENT_CRITICAL_DAMAGE" },
+    Enrichment { kind: "critical_chance", id: "TALISMAN_ENRICHMENT_CRITICAL_CHANCE" },
+    Enrichment { kind: "intelligence", id: "TALISMAN_ENRICHMENT_INTELLIGENCE" },
+    Enrichment { kind: "walk_speed", id: "TALISMAN_ENRICHMENT_WALK_SPEED" },
+    Enrichment { kind: "attack_speed", id: "TALISMAN_ENRICHMENT_ATTACK_SPEED" },
 ];
 
 pub const ENRICHMENT_TUNING_POINTS: f64 = 1.0;

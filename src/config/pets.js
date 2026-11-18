@@ -58,8 +58,9 @@ export const PET_PERKS = {
   GRIFFIN: (n) => ({ additiveStrength: (n[0] ?? 0) / 100 }),
   // Armored Tank: 50% of defense as strength, at its +500 cap. Clubbed Tail is not counted.
   ANKYLOSAURUS: () => ({ special: { perkStrength: 500 } }),
-  // Hunter: +n[0] speed and speed cap (the clear speed target rises with it).
-  BLACK_CAT: (n) => ({ special: { perkSpeed: n[0] ?? 0, speedCapBonus: n[0] ?? 0 } }),
+  // Hunter (0.27.3): +n[2] speed cap, no speed of its own (the clear speed target rises with it). Speed and attack
+  // speed are base stats now.
+  BLACK_CAT: (n) => ({ special: { speedCapBonus: n[2] ?? 0 } }),
   // Not counted (by choice): Horse and Skeleton Horse (never used, see EXCLUDED_PETS), Zombie Rotten Blade (no Undead targets), Megalodon, Giraffe, Golem, Snowman, Guardian,
   // Parrot, Bee (no teammates), Bingo, Bat, Flying Fish, Rock, Web Battlefield, Enderman Teleport Savvy.
   // End Strike: +n[0]% damage to Ender mobs (dragons). Superior: +n[3]% all combat stats, attack speed included.

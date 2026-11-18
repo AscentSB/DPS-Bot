@@ -11,7 +11,7 @@ import { ENCHANTS } from '../config/enchants.js';
 import { GEMSTONES } from '../config/gemstones.js';
 import {
   AP_BY_RARITY, DUNGEON_AP_MULTIPLIER, DOUBLE_AP_ITEMS, POWERS, DEFAULT_POWER, AP_PER_TUNING_POINT,
-  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENT_TUNING_POINTS, NO_RECOMB, HATCESSORY, AP_OVERRIDES, tuningStats,
+  TUNING_PER_POINT, DEFAULT_TUNING_SPLIT, ENRICHMENT_TUNING_POINTS, NO_RECOMB, HATCESSORY, tuningStats,
 } from '../config/accessories.js';
 import { SHARDS } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
@@ -520,7 +520,6 @@ export function accessoryPower(item, resource) {
 }
 
 function computeAccessoryPower(item, resource) {
-  if (AP_OVERRIDES[item.id] !== undefined) return AP_OVERRIDES[item.id];
   let ap = AP_BY_RARITY[itemRarity(item)] ?? 0;
   if (resource.get(item.id)?.dungeon_item) ap *= DUNGEON_AP_MULTIPLIER;
   if (DOUBLE_AP_ITEMS.includes(item.id)) ap *= 2;

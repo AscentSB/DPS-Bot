@@ -2,8 +2,9 @@
 // Source: https://hypixelskyblock.minecraft.wiki/w/Accessory_Power and /w/Accessory_Powers
 
 // Accessory Power each accessory gives, by rarity (after recombobulation).
+// 0.27.3: SPECIAL accessories give no Accessory Power (Very Special too: their recombobulators can be reclaimed).
 export const AP_BY_RARITY = {
-  COMMON: 3, UNCOMMON: 5, RARE: 8, EPIC: 12, LEGENDARY: 16, MYTHIC: 22, DIVINE: 28, SPECIAL: 3, VERY_SPECIAL: 5,
+  COMMON: 3, UNCOMMON: 5, RARE: 8, EPIC: 12, LEGENDARY: 16, MYTHIC: 22, DIVINE: 28, SPECIAL: 0, VERY_SPECIAL: 0,
 };
 
 // Dungeon accessories give double Accessory Power inside dungeons. The Hegemony Artifact always gives double.
@@ -12,10 +13,8 @@ export const DUNGEON_AP_MULTIPLIER = 2;
 
 export const DOUBLE_AP_ITEMS = ['HEGEMONY_ARTIFACT'];
 
-// Fixed Accessory Power for items that do not follow their rarity.
-// The Rift Prism gives 11 and is usually consumed (rift.access.consumed_prism) instead of kept in the bag.
-export const RIFT_PRISM_ID = 'RIFT_PRISM';
-export const AP_OVERRIDES = { [RIFT_PRISM_ID]: 11 };
+// 0.27.3: the Rift Prism can no longer be consumed for +11 Accessory Power. Consumed ones were refunded to the
+// Accessory Bag, so it is an ordinary Rare accessory (recombobulatable) read from the bag.
 
 // Power stats multiplier = 29.97 * ln(0.0019 * AP + 1) ^ 1.2
 export const POWER_SCALE = 29.97;
@@ -117,17 +116,19 @@ export const MISSING_ITEMS = [
 
 // Accessories that cannot be recombobulated, on top of every item the Hypixel items resource marks
 // with can_recombobulate: false (SkyCrypt SPECIAL_ACCESSORIES).
-export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX', 'RIFT_PRISM'];
+export const NO_RECOMB = ['BOOK_OF_PROGRESSION', 'PANDORAS_BOX'];
 
-// Enrichments on Legendary and higher accessories. Item ids: TALISMAN_ENRICHMENT_<KEY>. Since 0.27.3 every enrichment
-// gives +1 Tuning Point and no stat of its own, so the kind does not matter and the cheapest one is offered.
+// Enrichments on Legendary and higher accessories. Since 0.27.3 every enrichment gives +1 Tuning Point and no stat of
+// its own, so the kind does not matter and the cheapest one is offered. The generic Accessory Enrichment (Elizabeth,
+// 5000 bits) replaced the per-stat ones, which are kept for old listings.
 export const ENRICHMENTS = {
-  strength: { key: 'STRENGTH' },
-  critical_damage: { key: 'CRITICAL_DAMAGE' },
-  critical_chance: { key: 'CRITICAL_CHANCE' },
-  intelligence: { key: 'INTELLIGENCE' },
-  walk_speed: { key: 'WALK_SPEED' },
-  attack_speed: { key: 'ATTACK_SPEED' },
+  accessory: { id: 'ACCESSORY_ENRICHMENT' },
+  strength: { id: 'TALISMAN_ENRICHMENT_STRENGTH' },
+  critical_damage: { id: 'TALISMAN_ENRICHMENT_CRITICAL_DAMAGE' },
+  critical_chance: { id: 'TALISMAN_ENRICHMENT_CRITICAL_CHANCE' },
+  intelligence: { id: 'TALISMAN_ENRICHMENT_INTELLIGENCE' },
+  walk_speed: { id: 'TALISMAN_ENRICHMENT_WALK_SPEED' },
+  attack_speed: { id: 'TALISMAN_ENRICHMENT_ATTACK_SPEED' },
 };
 export const ENRICHMENT_TUNING_POINTS = 1;
 export const ENRICHABLE_RARITIES = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY_SPECIAL'];

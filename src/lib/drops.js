@@ -1,9 +1,9 @@
-import { RARITIES, DUNGEON_FLOOR_CATA, DUNGEON_DROP_BOOST } from '../config/constants.js';
+import { DUNGEON_FLOOR_CATA, DUNGEON_DROP_BOOST } from '../config/constants.js';
 
 // Floor-scaled dungeon items (tiered_stats in the items resource): armor like Skeleton Master and weapons like the
 // Crypt Dreadlord Sword, Ice Spray Wand or Machine Gun Bow. Every piece is assumed dropped from the highest floor
-// the player can enter, with the full 50% stat boost, and is priced that way. The boost also raises the piece one
-// rarity (an Epic Skeleton Master Chestplate becomes Legendary, Mythic once recombobulated).
+// the player can enter, with the full 50% stat boost, and is priced that way. Since 0.27.3 the boost no longer raises
+// the rarity (owner, 2026-11-17): a piece keeps its listed tier.
 export function isFloorDrop(id, resource) {
   const info = resource?.get(id);
   return Boolean(info?.tiered_stats && info.dungeon_item);
@@ -23,12 +23,9 @@ export function dropStatMultiplier(id, resource) {
   return isFloorDrop(id, resource) ? 1 + DUNGEON_DROP_BOOST : 1;
 }
 
-// Base rarity of an item, one higher for floor-scaled dungeon armor.
+// Base rarity of an item: its listed tier. Floor-scaled dungeon armor no longer gets +1 rarity (0.27.3).
 export function dropBaseRarity(id, resource) {
-  const tier = resource?.get(id)?.tier ?? 'COMMON';
-  if (!isFloorDrop(id, resource)) return tier;
-  const i = RARITIES.indexOf(tier);
-  return i >= 0 && i < RARITIES.length - 1 ? RARITIES[i + 1] : tier;
+  return resource?.get(id)?.tier ?? 'COMMON';
 }
 
 // Floor-scaled armor counts as fully boosted (50%), and is priced only from fully boosted listings.

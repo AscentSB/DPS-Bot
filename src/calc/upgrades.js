@@ -6,7 +6,7 @@ import {
 } from '../config/constants.js';
 import { ENCHANTS, enchantMaxLevel, TABLE_ENCHANT_XP, ENCHANT_TABLE_TWO_BOTTLES, GRAND_EXP_BOTTLE_ID, ENCHANT_UPGRADE_ITEMS, skippedSwordEnchant } from '../config/enchants.js';
 import { GEMSTONES, GEM_QUALITIES, UPGRADE_QUALITIES, SLOT_GEMS } from '../config/gemstones.js';
-import { ENRICHMENTS, ENRICHABLE_RARITIES, tuningStats, AP_OVERRIDES, RIFT_PRISM_ID, POWERS, POWER_STONES, FREE_POWERS, DEFAULT_POWER } from '../config/accessories.js';
+import { ENRICHMENTS, ENRICHABLE_RARITIES, tuningStats, POWERS, POWER_STONES, FREE_POWERS, DEFAULT_POWER } from '../config/accessories.js';
 import { SHARDS, SHARD_MAX_LEVEL, SHARDS_CUMULATIVE, SHARD_HUNTING_REQ } from '../config/shards.js';
 import { EXTRA_UPGRADES } from '../config/upgrades.js';
 import { ESSENCE_PERKS, ESSENCE_MIN_CATA } from '../config/essence.js';
@@ -224,14 +224,6 @@ export function buildLoadout(profile, ctx, weights) {
       if (!prev || accessoryRank(item) > accessoryRank(prev)) loadout.accessories.set(item.id, item);
     }
   }
-
-  // Consumed Rift Prism. The profile's highest Accessory Power is the truth: the prism's 11 is only added
-  // when the bag comes up exactly 11 short of it (or when the profile gives no Accessory Power at all).
-  // A consumed prism is always marked owned so it is never offered.
-  const gap = profile.highestAp != null ? profile.highestAp - totalAccessoryPower(loadout, ctx.resource) : null;
-  const addPrism = gap === AP_OVERRIDES[RIFT_PRISM_ID] || (gap === null && profile.riftPrism === true);
-  if (addPrism && !loadout.accessories.has(RIFT_PRISM_ID)) loadout.accessories.set(RIFT_PRISM_ID, newItem(RIFT_PRISM_ID, ctx.resource));
-  if (addPrism || profile.riftPrism) loadout.owned.add(RIFT_PRISM_ID);
 
   for (const entry of EXTRA_UPGRADES) if (extraOwned(entry, loadout.owned)) loadout.extras.add(entry.key);
   // Necron's Blade variants you own, and whether any has Wither Impact (for the Shadow Assassin Cloak in LCM).
@@ -739,7 +731,7 @@ export function availableUpgrades(loadout, ctx, prices) {
 
     // Enrichments on Legendary+ accessories: +1 tuning point each, any kind, so only the cheapest is offered.
     if (isAccessory && !item.enrichment && enrichKind && ENRICHABLE_RARITIES.includes(itemRarity(item))) {
-      pushItem(`${enrichmentName(enrichKind)} Enrichment on ${name} (+1 tuning point)`, [{ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[enrichKind].key}` }],
+      pushItem(`${enrichmentName(enrichKind)} Enrichment on ${name} (+1 tuning point)`, [{ id: ENRICHMENTS[enrichKind].id }],
         (l) => replaceItem(l, item, { ...item, enrichment: enrichKind }), { group: `${slot}:enrich` });
     }
   }
@@ -888,7 +880,7 @@ export function availableUpgrades(loadout, ctx, prices) {
           labels.push('dual wield (2 copies)');
         }
       }
-      if (extra.enrichment) { parts.push({ id: `TALISMAN_ENRICHMENT_${ENRICHMENTS[extra.enrichment].key}` }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
+      if (extra.enrichment) { parts.push({ id: ENRICHMENTS[extra.enrichment].id }); labels.push(`${enrichmentName(extra.enrichment)} Enrichment`); }
       push(labels.join(' + '), parts, (l) => {
       const next = cloneLoadout(l);
       const item = { ...base, recomb: Boolean(extra.recomb), enrichment: extra.enrichment ?? null };
@@ -1348,7 +1340,9 @@ function armorBundles(singles) {
 // Greedy plan: each step is the best % per million coins on the current loadout, applied before the next, then
 // every option is recalculated. Nothing locks: Duplex I can be followed by Duplex II and later V.
 // rules.doomed: pieces the plan replaces later, which get under REPLACED_PIECE_BUDGET coins in total (buy +
-// upgrades, carried through Golden -> Diamond and Wither -> Necron's upgrades). rules.banned: step labels that get
+// upgrades, carried through Golden -> Diamond and Wither -> Necron's upgrades). A piece is also doomed when it is
+// outclassed: at the plan's last loadout a step that replaces that armor piece still adds damage, so a longer plan
+// would replace it (Skeleton Master Leggings once Necron's Leggings with the same upgrades do more damage). rules.banned: step labels that get
 // overwritten too soon. Both only ever remove candidates, so a re-plan (prev) keeps the previous plan up to the
 // first step the rules now reject and resumes there. rules.states caches every distinct loadout's scored
 // candidates by content, so a re-plan that reaches gear it has already scored (often in a different order) reuses
@@ -1443,7 +1437,20 @@ async function greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scor
     if ((path.spend.get(key) ?? 0) < REPLACED_PIECE_BUDGET) continue;
     for (let k = key; k; k = path.parent.get(k)) overspent.push(k);
   }
-  return { steps, startDamage, endDamage: path.state.current, loadout: path.state.loadout, overspent };
+  // Outclassed armor: worn at the end, but an allowed step that replaces it still adds damage there, so the plan
+  // would replace it if it went on. Doomed too (with the ids it had before being upgraded), so it stays under the
+  // budget from the start.
+  if (isCancelled?.()) throw new Error('Plan cancelled.');
+  path.state.candidates ??= await candidatesFor(path.state);
+  const outclassed = new Set();
+  for (const cand of path.state.candidates) {
+    if (!allowed(cand, path.spend)) continue;
+    for (const c of cand.changes) {
+      if (c.kind !== 'replace' || !ARMOR_SLOTS.some((slot) => c.prevKey.startsWith(`${slot}:`))) continue;
+      for (let k = c.prevKey; k; k = path.parent.get(k)) outclassed.add(k);
+    }
+  }
+  return { steps, startDamage, endDamage: path.state.current, loadout: path.state.loadout, overspent: [...overspent, ...outclassed] };
 }
 
 // scorer (optional): scores a state's candidates in parallel (src/worker/evalPool.js), same results as in-thread.
@@ -1451,8 +1458,8 @@ export async function planUpgrades(startLoadout, ctx, prices, weights, limit = M
   ctx.weights = weights;
   const rules = { doomed: new Set(), banned: new Set(), states: new Map() };
   let plan = await greedyPlan(startLoadout, ctx, prices, weights, limit, rules, scorer, null, isCancelled);
-  // Re-plan until no piece is overspent before being replaced (25M budget) and no small step is overwritten
-  // within 10M coins. Each round resumes from the first step the new rules reject.
+  // Re-plan until no piece is overspent before being replaced or outclassed (25M budget) and no small step is
+  // overwritten within 10M coins. Each round resumes from the first step the new rules reject.
   for (let round = 0; round < REPLAN_ROUNDS; round++) {
     const freshPieces = plan.overspent.filter((key) => !rules.doomed.has(key));
     const freshSteps = replacedSoon(plan.steps).filter((label) => !rules.banned.has(label));
@@ -1608,7 +1615,7 @@ function cheapestEnrichment(prices) {
   let best = null;
   let bestPrice = Infinity;
   for (const [kind, e] of Object.entries(ENRICHMENTS)) {
-    const price = prices?.get(`TALISMAN_ENRICHMENT_${e.key}`)?.price;
+    const price = prices?.get(e.id)?.price;
     if (price != null && price < bestPrice) { best = kind; bestPrice = price; }
   }
   return best;

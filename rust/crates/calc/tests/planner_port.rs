@@ -278,7 +278,7 @@ fn maxors_boots_speed_full_multiplier() {
 fn floor_scaled_armor() {
     let res = with_items(
         &base_resource(),
-        vec![json!({"id":"SKELETON_MASTER_CHESTPLATE","name":"Skeleton Master Chestplate","category":"CHESTPLATE","tier":"EPIC","dungeon_item":true,
+        vec![json!({"id":"SKELETON_MASTER_CHESTPLATE","name":"Skeleton Master Chestplate","category":"CHESTPLATE","tier":"LEGENDARY","dungeon_item":true,
             "tiered_stats":{"CRITICAL_CHANCE":[2,2,2,2,3,3,3,3,4,4],"CRITICAL_DAMAGE":[22,23,25,27,30,32,35,38,41,45]}})],
     );
     let chest = with(new_it(&res, "SKELETON_MASTER_CHESTPLATE"), |i| {
@@ -581,7 +581,8 @@ fn balloon_hat_missing_from_resource_counts_as_the_hatcessory() {
     let hat = new_it(&res, "BALLOON_HAT_2024");
     assert_eq!(hat.category.as_deref(), Some("ACCESSORY"));
     let l = w.build(&[new_it(&res, "TERMINATOR"), hat], &[], &[], &[]);
-    assert_eq!(w.model.total_accessory_power(l.accessories), 3.0);
+    // 0.27.3: SPECIAL accessories give no Accessory Power.
+    assert_eq!(w.model.total_accessory_power(l.accessories), 0.0);
     assert!(accessory_superseded("PARTY_HAT_SLOTH", ["BALLOON_HAT_2024"], Some(&res)));
 }
 
@@ -595,7 +596,8 @@ fn cake_hat_missing_from_resource_counts_as_the_hatcessory() {
     let hat = new_it(&res, "CAKE_HAT_2026");
     assert_eq!(hat.category.as_deref(), Some("ACCESSORY"));
     let l = w.build(&[new_it(&res, "TERMINATOR"), hat], &[], &[], &[]);
-    assert_eq!(w.model.total_accessory_power(l.accessories), 3.0);
+    // 0.27.3: SPECIAL accessories give no Accessory Power.
+    assert_eq!(w.model.total_accessory_power(l.accessories), 0.0);
     assert!(accessory_superseded("PARTY_HAT_CRAB", ["CAKE_HAT_2026"], Some(&res)));
 }
 
@@ -1428,4 +1430,30 @@ fn spare_blade_missing_upgrades() {
     want.extend(scrolls);
     assert_eq!(names, want);
     close(parts_cost(&parts, &prices).unwrap(), 11e6);
+}
+
+#[test]
+fn outclassed_piece_stays_under_the_budget_when_the_plan_ends_before_replacing_it() {
+    // JS: 'an outclassed piece gets less than 25M spent on it even when the plan ends before replacing it'.
+    let res = with_items(
+        &base_resource(),
+        vec![json!({"id":"OLD_LEGGINGS","name":"Old Leggings","category":"LEGGINGS","tier":"LEGENDARY","dungeon_item":true,"stats":{"STRENGTH":30,"CRITICAL_DAMAGE":30}})],
+    );
+    let plan = |necron: bool, limit: usize| -> Vec<String> {
+        let mut w = World::new(mk_ctx(Class::Arch, 50.0, &res, |i| i.archer_level = 50.0), weights(Class::Arch));
+        let l = w.build(&[new_it(&res, "TERMINATOR"), new_it(&res, "OLD_LEGGINGS")], &[], &[], &[]);
+        let mut prices = dps_core::model::PriceTables::default();
+        prices.auctions.insert("FIRST_MASTER_STAR".into(), 30e6);
+        if necron {
+            prices.auctions.insert("POWER_WITHER_LEGGINGS".into(), 3e9);
+        }
+        let cancel = std::sync::atomic::AtomicBool::new(false);
+        let out = dps_calc::planner::plan_upgrades(&mut w.model, &w.ctx, &prices, w.w, Some(limit), &l, &cancel).unwrap();
+        out.steps.into_iter().map(|s| s.label).collect()
+    };
+    let free = plan(false, 10);
+    assert!(free.iter().any(|s| s == "1st Master Star on Old Leggings"), "{free:?}");
+    // 5 steps: without the rule the plan ends on the star, before buying Necron's Leggings.
+    let short = plan(true, 5);
+    assert!(!short.iter().any(|s| s == "1st Master Star on Old Leggings"), "{short:?}");
 }

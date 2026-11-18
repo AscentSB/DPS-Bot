@@ -156,10 +156,8 @@ pub fn pet_perk(kind: &str, n: &[f64], p: PerkProfile) -> Option<PetPerk> {
         }
         "GRIFFIN" => perk.extra.set(Stat::AdditiveStrength, at(0) / 100.0),
         "ANKYLOSAURUS" => perk.special.perk_strength = Some(500.0),
-        "BLACK_CAT" => {
-            perk.special.perk_speed = Some(at(0));
-            perk.special.speed_cap_bonus = Some(at(0));
-        }
+        // Hunter (0.27.3): speed cap only.
+        "BLACK_CAT" => perk.special.speed_cap_bonus = Some(at(2)),
         "ENDER_DRAGON" => {
             perk.dragon.set(Stat::AdditiveDamage, at(0));
             let s = at(3) / 100.0;

@@ -290,6 +290,9 @@ test('pets: Golden Dragon 200 matches the sheet (370 str with Heph Remedies, +5%
   assert.equal(gd.stats.additiveDamage, 250);
   // Legendary Treasure: 0.25% per million in the bank (none without bank data), max 250% at 1B.
   assert.equal(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, { bank: 100e6 }).stats.additiveDamage, 25);
+  // 0.27.3 Black Cat: +75 speed and +40 attack speed base stats, Hunter only raises the speed cap (+100).
+  const cat = petStats({ type: 'BLACK_CAT', tier: 'LEGENDARY' });
+  assert.deepEqual([cat.stats.speed, cat.stats.attackSpeed, cat.special.speedCapBonus, cat.special.perkSpeed], [75, 40, 100, undefined]);
   assert.equal(petStats({ type: 'GOLDEN_DRAGON', tier: 'LEGENDARY' }, {}).stats.additiveDamage, 0);
   const ed = petStats({ type: 'ENDER_DRAGON', tier: 'LEGENDARY', heldItem: 'GOLD_CLAWS' });
   assert.equal(ed.stats.critDamage, 75);
@@ -570,7 +573,8 @@ test('an owned Balloon Hat (missing from the items resource) counts as the hatce
   const gear = decodeItems(encode([{ id: 'TERMINATOR' }, { id: 'BALLOON_HAT_2024' }])).map((i) => toItemState(i, res));
   const l = buildLoadout(profile(gear), ctx, w);
   assert.ok(l.accessories.has('BALLOON_HAT_2024'));
-  assert.equal(totalAccessoryPower(l, res), 3);
+  // 0.27.3: SPECIAL accessories give no Accessory Power.
+  assert.equal(totalAccessoryPower(l, res), 0);
   const p = { get: (id) => (id === 'PARTY_HAT_SLOTH' ? { price: 1e6, source: 'AH' } : prices.get(id)) };
   assert.ok(!availableUpgrades(l, ctx, p).some((u) => u.label.includes('Sloth Hat')));
 });
@@ -604,19 +608,18 @@ test('items the resource marks can_recombobulate: false are never offered a reco
   assert.ok(labels.includes('Recombobulate Wither Relic'));
 });
 
-test('Rift Prism: the profile Accessory Power wins; only an exact 11 gap adds the prism', () => {
-  const res = new Map([...resource, ['RIFT_PRISM', { id: 'RIFT_PRISM', name: 'Rift Prism', category: 'ACCESSORY', tier: 'RARE', can_recombobulate: false }]]);
+test('0.27.3 Rift Prism: an ordinary Rare accessory from the bag (8 AP, recombobulatable); consuming it adds nothing', () => {
+  const res = new Map([...resource, ['RIFT_PRISM', { id: 'RIFT_PRISM', name: 'Rift Prism', category: 'ACCESSORY', tier: 'RARE', can_recombobulate: true }]]);
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const w = weightsFor('arch');
   const gear = [newItem('TERMINATOR', res), newItem('WITHER_RELIC', res)];
   const base = totalAccessoryPower(buildLoadout(profile(gear), ctx, w), res);
-  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), res), base + 11);
-  // The profile's Accessory Power wins: consumed but no gap means the 11 is already in it.
-  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: true, highestAp: base }), ctx, w), res), base);
-  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: null, highestAp: base + 11 }), ctx, w), res), base + 11);
-  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: null, highestAp: base + 10 }), ctx, w), res), base);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), res), base);
+  assert.equal(totalAccessoryPower(buildLoadout(profile(gear, { riftPrism: null, highestAp: base + 11 }), ctx, w), res), base);
+  const bag = buildLoadout(profile([...gear, newItem('RIFT_PRISM', res)]), ctx, w);
+  assert.equal(totalAccessoryPower(bag, res), base + 8);
   const p = { get: () => ({ price: 1e6, source: 'AH' }) };
-  assert.ok(!availableUpgrades(buildLoadout(profile(gear, { riftPrism: true }), ctx, w), ctx, p).some((u) => u.label === 'Buy Rift Prism'));
+  assert.ok(availableUpgrades(bag, ctx, p).some((u) => u.label === 'Recombobulate Rift Prism'));
 });
 
 test('Combat skill adds 0.5 base crit chance per level; 2.67B combat XP is level 60', async () => {
@@ -641,10 +644,11 @@ test('Ragnarock is cast with the highest-strength owned pet, whatever pet is act
   assert.ok(strengthWith([gd, ed]) > strengthWith([ed]));
 });
 
-test('floor-scaled dungeon armor: highest floor tier, 50% stat boost and +1 rarity (Skeleton Master Chestplate = 37.8 crit chance)', () => {
-  const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'EPIC', dungeon_item: true,
+test('floor-scaled dungeon armor: highest floor tier, 50% stat boost, no rarity bump (Skeleton Master Chestplate = 37.8 crit chance)', () => {
+  const res = new Map([...resource, ['SKELETON_MASTER_CHESTPLATE', { id: 'SKELETON_MASTER_CHESTPLATE', name: 'Skeleton Master Chestplate', category: 'CHESTPLATE', tier: 'LEGENDARY', dungeon_item: true,
     tiered_stats: { CRITICAL_CHANCE: [2, 2, 2, 2, 3, 3, 3, 3, 4, 4], CRITICAL_DAMAGE: [22, 23, 25, 27, 30, 32, 35, 38, 41, 45] } }]]);
   const chest = { ...newItem('SKELETON_MASTER_CHESTPLATE', res), recomb: true, reforge: 'ancient', masterStars: 5 };
+  // 0.27.3: base Legendary in the items resource, no extra rarity from the floor boost.
   assert.equal(chest.baseRarity, 'LEGENDARY');
   // Floor 10 (Catacombs 36+): 4 x 1.5 = 6, Ancient at Mythic +15, x (1.5 + 0.25 + 0.05) stars.
   const ctx = { ...makeContext({ cls: 'arch', cataLevel: 50, resource: res }), secretDigit: 5 };
@@ -710,6 +714,23 @@ test('a piece the plan later replaces gets less than 25M spent on it', async () 
   const dear = await plan(30e6);
   assert.ok(dear.includes("Buy Necron's Leggings"), dear.join(', '));
   assert.ok(!dear.includes('1st Master Star on Old Leggings'), dear.join(', '));
+});
+
+test('an outclassed piece gets less than 25M spent on it even when the plan ends before replacing it', async () => {
+  const res = new Map([...resource, ['OLD_LEGGINGS', { id: 'OLD_LEGGINGS', name: 'Old Leggings', category: 'LEGGINGS', tier: 'LEGENDARY', dungeon_item: true, stats: { STRENGTH: 30, CRITICAL_DAMAGE: 30 } }]]);
+  const ctx = makeContext({ cls: 'arch', cataLevel: 50, archerLevel: 50, resource: res });
+  const w = weightsFor('arch');
+  const l = buildLoadout(profile([newItem('TERMINATOR', res), newItem('OLD_LEGGINGS', res)]), ctx, w);
+  const plan = async (necron, limit) => {
+    const table = { FIRST_MASTER_STAR: 30e6, ...(necron ? { POWER_WITHER_LEGGINGS: 3e9 } : {}) };
+    return (await planUpgrades(l, ctx, { get: (id) => (table[id] ? { price: table[id], source: 'AH' } : null) }, w, limit)).steps.map((s) => s.label);
+  };
+  // Nothing better for sale: the 30M star is fine.
+  const free = await plan(false, 3);
+  assert.ok(free.includes('1st Master Star on Old Leggings'), free.join(', '));
+  // Necron's Leggings would still add damage after the last step, so Old Leggings are outclassed: no 30M star.
+  const short = await plan(true, 3);
+  assert.ok(!short.includes('1st Master Star on Old Leggings'), short.join(', '));
 });
 
 test('Golden heads upgrade into Diamond heads and keep their upgrades; that is not a replacement', async () => {
@@ -1131,7 +1152,7 @@ test('0.27.3: each enriched accessory gives +1 tuning point and no stat, whateve
   assert.ok(!labels.some((x) => /Swap|Enrichment on ACC_/.test(x)), labels.join(', '));
   const bare = availableUpgrades(plain, ctx, p).filter((u) => / Enrichment on ACC_A/.test(u.label));
   assert.equal(bare.length, 1);
-  assert.equal(bare[0].label, 'Strength Enrichment on ACC_A (+1 tuning point)');
+  assert.equal(bare[0].label, 'Accessory Enrichment on ACC_A (+1 tuning point)');
 });
 
 test('buys and shards respect requirements: Catacombs, floor, skills, slayers and Hunting', async () => {
@@ -1164,7 +1185,7 @@ test('an accessory buy can come bundled with its recombobulator and enrichment a
   const ctx = makeContext({ cls: 'arch', cataLevel: 50, resource: res });
   const l = buildLoadout(profile([newItem('TERMINATOR', res)]), ctx, weightsFor('arch'));
   // Only the cheapest enrichment is offered (they all give +1 tuning point).
-  const p = { get: (id) => ({ price: id === 'TALISMAN_ENRICHMENT_CRITICAL_CHANCE' ? 1e6 : id.startsWith('TALISMAN_ENRICHMENT_') ? 2e6 : 1e6, source: 'AH' }) };
+  const p = { get: (id) => ({ price: /ENRICHMENT/.test(id) && id !== 'TALISMAN_ENRICHMENT_CRITICAL_CHANCE' ? 2e6 : 1e6, source: 'AH' }) };
   const ups = availableUpgrades(l, ctx, p);
   const bundle = ups.find((u) => u.label === 'Buy Artifact of Control + Recombobulator + Critical Chance Enrichment');
   assert.ok(bundle);
@@ -1850,8 +1871,8 @@ test('floor-scaled dungeon weapons are priced and scored like the armor: fully b
   const ctx = makeContext({ cls: 'mage', cataLevel: 50, resource: res });
   const ups = availableUpgrades(buildLoadout(profile([]), ctx, weightsFor('mage')), ctx, p);
   assert.equal(ups.find((u) => u.label === 'Buy Dreadlord Sword')?.cost, 3e6);
-  // The full boost raises the rarity one tier, like the armor.
-  assert.equal(newItem('CRYPT_DREADLORD_SWORD', res).baseRarity, 'EPIC');
+  // The full boost no longer raises the rarity (0.27.3), like the armor.
+  assert.equal(newItem('CRYPT_DREADLORD_SWORD', res).baseRarity, 'RARE');
 });
 
 test('First Strike V on a Prosecute weapon is never swapped for Triple Strike; First Strike IV or none gets Triple Strike', () => {

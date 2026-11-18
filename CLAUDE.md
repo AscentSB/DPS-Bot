@@ -57,7 +57,9 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - First Strike V on a Prosecute weapon is never swapped for Triple Strike. FS IV or none gets Triple Strike.
 - Unsold enchant levels: enchanting table enchants cost 1 Grand Experience Bottle (2 if 75 levels). Smite VII = VI + Severed Hand, Ender Slayer VII = VI + End Stone Idol (bazaar item upgrades).
 - Sharpness and Smite stack on one sword (Hypixel allows both); only Bane of Arthropods conflicts with them.
-- Enrichments (0.27.3): +1 tuning point each, no stat, any kind (owner, 2026-11-17). Only the cheapest enrichment is offered, no Enrichment Swapper steps, and the Mage clear set can take them too.
+- Enrichments (0.27.3): +1 tuning point each, no stat, any kind (owner, 2026-11-17). Only the cheapest enrichment is offered (`ACCESSORY_ENRICHMENT` replaced the per-stat ones), no Enrichment Swapper steps, and the Mage clear set can take them too.
+- Outclassed armor (owner, 2026-11-17): a worn armor piece that some allowed step would still replace at the plan's last loadout gets the 25M replaced-piece budget too (`outclassed` in greedyPlan / `greedy`), so short plans never spend over 25M on a piece a longer plan replaces.
+- 0.27.3 (patch notes, 2026-11-17): floor-scaled dungeon items no longer get +1 rarity from the stat boost (owner: "all bumps are gone"); their base tier is the items resource tier (Skeleton Master Legendary). Special / Very Special accessories give 0 Accessory Power. The Rift Prism is a normal Rare accessory (no +11 consume, recombobulatable). Black Cat: +75 speed, +40 attack speed, Hunter +100 speed cap only.
 - Bank deposit steps merge into one.
 - Removed items are never bought (`REMOVED_ITEMS`): Personal Compactors, removed 2026-11-09.
 - Hatcessories (Crab, Sloth, Balloon and Cake Hats) are one accessory and all equal: owning any one blocks the others. Of owned hats the highest rarity counts, then a recombobulated one, then an enriched one. Balloon Hats (`BALLOON_HAT_2024`, `BALLOON_HAT_2025`) and the Cake Hat (`CAKE_HAT_2026`) are missing from the Hypixel items resource, so `MISSING_ITEMS` adds them as Special accessories.

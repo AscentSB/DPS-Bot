@@ -864,7 +864,7 @@ impl<'a> B<'a> {
                 if let Some(en) = self.cheapest_enrichment() {
                     let kind = en.kind;
                     let label = format!("{} Enrichment on {name} (+1 tuning point)", enrichment_name(kind));
-                    self.push_item(dual, label, vec![Part::owned(format!("TALISMAN_ENRICHMENT_{}", en.key))], group(format!("{slot}:enrich")), |m, bc| {
+                    self.push_item(dual, label, vec![Part::owned(en.id.to_string())], group(format!("{slot}:enrich")), |m, bc| {
                         let next = m.modify_item(item, |s| s.enrichment = Some(kind.to_string()));
                         Self::replace(l, m, bc, item, copy, next, ReplacePost::None)
                     });
@@ -1329,7 +1329,7 @@ impl<'a> B<'a> {
         }
         if let Some(kind) = extra.enrichment {
             let en = enrichment(kind).expect("known enrichment");
-            parts.push(Part::owned(format!("TALISMAN_ENRICHMENT_{}", en.key)));
+            parts.push(Part::owned(en.id.to_string()));
             labels.push(format!("{} Enrichment", enrichment_name(kind)));
         }
         let (cost, source) = price_parts(&parts, self.prices)?;
@@ -1462,7 +1462,7 @@ impl<'a> B<'a> {
     fn cheapest_enrichment(&self) -> Option<&'static Enrichment> {
         let mut best: Option<(&'static Enrichment, f64)> = None;
         for e in ENRICHMENTS {
-            if let Some((price, _)) = self.prices.get(&format!("TALISMAN_ENRICHMENT_{}", e.key)) {
+            if let Some((price, _)) = self.prices.get(e.id) {
                 if best.is_none_or(|(_, b)| price < b) {
                     best = Some((e, price));
                 }
