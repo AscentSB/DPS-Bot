@@ -64,7 +64,7 @@ pub static ENCHANTS: &[Enchant] = &[
         key: "giant_killer",
         categories: SWORDS,
         floor_mode: Some(FloorMode::Normal),
-        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 50.0])],
+        stats: &[(Stat::AdditiveDamage, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 65.0])],
         conflicts: &["titan_killer"],
         ..BASE
     },

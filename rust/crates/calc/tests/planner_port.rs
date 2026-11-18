@@ -1457,3 +1457,10 @@ fn outclassed_piece_stays_under_the_budget_when_the_plan_ends_before_replacing_i
     let short = plan(true, 5);
     assert!(!short.iter().any(|s| s == "1st Master Star on Old Leggings"), "{short:?}");
 }
+
+#[test]
+fn giant_killer_seven_is_65_like_the_js() {
+    // a438e04 meant Sharpness VII = 50 but changed Giant Killer's identical table in the port (JS kept 65).
+    let gk = dps_core::config::enchants::ENCHANTS.iter().find(|e| e.key == "giant_killer").unwrap();
+    assert_eq!(gk.stats[0].1, &[5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 65.0]);
+}

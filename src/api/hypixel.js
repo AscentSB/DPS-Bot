@@ -170,7 +170,8 @@ export function readMember(profile, uuid, resource, collections = null) {
     unlockedPowers: (bag.unlocked_powers ?? []).map((x) => String(x).toLowerCase()),
     tuning: readTuning(bag.tuning?.slot_0),
     shards: readShards(member.attributes),
-    perks: { ...(member.player_data?.perks ?? member.perks ?? {}) },
+    // Numeric perks only (the API also stores flags like fairies_refund_processed: true), as the Rust reader does.
+    perks: Object.fromEntries(Object.entries(member.player_data?.perks ?? member.perks ?? {}).filter(([, v]) => typeof v === 'number')),
     // Consumed Rift Prism (+11 Accessory Power). null when the profile does not say.
     riftPrism: typeof member.rift?.access?.consumed_prism === 'boolean' ? member.rift.access.consumed_prism : null,
     highestAp: bag.highest_magical_power ?? null,

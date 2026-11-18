@@ -248,6 +248,9 @@ export function buildLoadout(profile, ctx, weights) {
   loadout = selectPet(loadout, ctx, weights);
 
   const dragonSet = hasDragonSet(ctx);
+  // The best owned piece for each slot, two passes (Mage: and the best dragon piece).
+  const pickGear = (start) => {
+  let loadout = start;
   for (let pass = 0; pass < 2; pass++) {
     for (const [slot, options] of Object.entries(bySlot)) {
       let best = null;
@@ -284,13 +287,11 @@ export function buildLoadout(profile, ctx, weights) {
       if (best) loadout = best;
     }
   }
+  return loadout;
+  };
+  loadout = pickGear(loadout);
 
   loadout = selectPet(loadout, ctx, weights);
-  // Blades left over (not the RCM one, not worn): they can become a dual-wield copy or another set's weapon for only
-  // the upgrades they are missing.
-  loadout.rcmBlade = rcmBlade;
-  loadout.spareBlades = items.filter((i) => (WITHER_IMPACT_WEAPONS.includes(i.id) || DUAL_WIELD_WEAPONS.includes(i.id))
-    && i !== rcmBlade && i !== loadout.weapon && i !== loadout.dragonGear?.weapon);
   // Powers you have learned are free to switch: use the best one.
   // With no power on the profile (or a test context), the class default (DEFAULT_POWER) is assumed learned.
   const current = ctx.power ?? DEFAULT_POWER[ctx.cls];
@@ -303,8 +304,29 @@ export function buildLoadout(profile, ctx, weights) {
   // Tuning is free to change, so leftover points use the best split for this loadout (10% steps over the
   // class's damage stats), not whatever the profile has saved. Stored on ctx for the rest of the run.
   ctx.tuning = { ...(ctx.tuning ?? {}), split: bestTuningSplit(loadout, ctx, weights) };
-  return selectPet(loadout, ctx, weights);
+  loadout = selectPet(loadout, ctx, weights);
+  // The gear was picked with the profile's power and saved tuning. With the best power and split the best copy can
+  // differ (two Soulweaver Gloves, Blended and Brilliant: Blended wins under Bizarre, Brilliant under Hurtful), so pick
+  // again until the gear stays the same.
+  const gearOf = (l) => [l.weapon, l.rag, ...ARMOR_SLOTS.map((s) => l.armor[s]), ...EQUIPMENT_SLOTS.map((s) => l.equipment[s]),
+    l.dragonGear?.weapon, ...ARMOR_SLOTS.map((s) => l.dragonGear?.armor?.[s]), ...EQUIPMENT_SLOTS.map((s) => l.dragonGear?.equipment?.[s])];
+  for (let round = 0; round < GEAR_REPICK_ROUNDS; round++) {
+    const again = pickGear(loadout);
+    const before = gearOf(loadout);
+    if (gearOf(again).every((x, i) => (x ?? null) === (before[i] ?? null))) break;
+    loadout = selectPower(selectPet(again, ctx, weights), ctx, weights);
+    ctx.tuning = { ...(ctx.tuning ?? {}), split: bestTuningSplit(loadout, ctx, weights) };
+    loadout = selectPet(loadout, ctx, weights);
+  }
+  // Blades left over (not the RCM one, not worn): they can become a dual-wield copy or another set's weapon for only
+  // the upgrades they are missing.
+  loadout.rcmBlade = rcmBlade;
+  loadout.spareBlades = items.filter((i) => (WITHER_IMPACT_WEAPONS.includes(i.id) || DUAL_WIELD_WEAPONS.includes(i.id))
+    && i !== rcmBlade && i !== loadout.weapon && i !== loadout.dragonGear?.weapon);
+  return loadout;
 }
+// Rounds of re-picking gear after the power and tuning split are chosen.
+const GEAR_REPICK_ROUNDS = 2;
 
 // Best learned power for the loadout (switching at Maxwell is free).
 export function selectPower(loadout, ctx, weights) {

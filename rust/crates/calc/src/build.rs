@@ -193,7 +193,8 @@ pub fn build_loadout(model: &mut Model, ctx: &mut Ctx, weights: Weights, member:
     let l = ev.select_pet(&l);
 
     let dragon_set = ctx.has_dragon_set();
-    let mut w = Work { l, bank_defined: false, main_idx: [None; 10], dragon_idx: [None; 10] };
+    // The best owned piece for each slot, two passes (Mage: and the best dragon piece).
+    let pick_gear = |ev: &Evaluator, mut w: Work| -> Work {
     for _pass in 0..2 {
         for (slot, options) in &by_slot {
             let mut best: Option<Work> = None;
@@ -251,20 +252,11 @@ pub fn build_loadout(model: &mut Model, ctx: &mut Ctx, weights: Weights, member:
             }
         }
     }
+    w
+    };
+    let w = pick_gear(&ev, Work { l, bank_defined: false, main_idx: [None; 10], dragon_idx: [None; 10] });
 
     let mut l = ev.select_pet(&w.l);
-    // Blades left over (not the RCM one, not worn): they can become a dual-wield copy or another set's weapon.
-    l.rcm_blade = rcm_blade.map(|i| interned[i]);
-    l.spare_blades = (0..items.len())
-        .filter(|&i| {
-            (WITHER_IMPACT_WEAPONS.contains(&items[i].id.as_str()) || DUAL_WIELD_WEAPONS.contains(&items[i].id.as_str()))
-                && Some(i) != rcm_blade
-                && Some(i) != w.main_idx[0]
-                && Some(i) != w.dragon_idx[0]
-        })
-        .map(|i| interned[i])
-        .collect::<Vec<_>>()
-        .into();
     // Powers you have learned are free to switch: use the best one. With no power on the profile, the class default is
     // assumed learned.
     let current = ctx.power.clone().unwrap_or_else(|| default_power(cls).to_string());
@@ -287,8 +279,41 @@ pub fn build_loadout(model: &mut Model, ctx: &mut Ctx, weights: Weights, member:
     let split = ev.best_tuning_split(&l);
     ctx.set_tuning_split(split);
     let ev = Evaluator::new(model, ctx, weights);
-    ev.select_pet(&l)
+    let mut l = ev.select_pet(&l);
+    // JS: the gear was picked with the profile's power and saved tuning. With the best power and split the best copy
+    // can differ, so pick again until the gear stays the same.
+    let (mut main_idx, mut dragon_idx) = (w.main_idx, w.dragon_idx);
+    for _round in 0..GEAR_REPICK_ROUNDS {
+        let ev = Evaluator::new(model, ctx, weights);
+        let again = pick_gear(&ev, Work { l: l.clone(), bank_defined: true, main_idx, dragon_idx });
+        if again.main_idx == main_idx && again.dragon_idx == dragon_idx {
+            break;
+        }
+        main_idx = again.main_idx;
+        dragon_idx = again.dragon_idx;
+        let picked = ev.select_power(&ev.select_pet(&again.l));
+        let split = ev.best_tuning_split(&picked);
+        ctx.set_tuning_split(split);
+        let ev = Evaluator::new(model, ctx, weights);
+        l = ev.select_pet(&picked);
+    }
+    // Blades left over (not the RCM one, not worn): they can become a dual-wield copy or another set's weapon.
+    l.rcm_blade = rcm_blade.map(|i| interned[i]);
+    l.spare_blades = (0..items.len())
+        .filter(|&i| {
+            (WITHER_IMPACT_WEAPONS.contains(&items[i].id.as_str()) || DUAL_WIELD_WEAPONS.contains(&items[i].id.as_str()))
+                && Some(i) != rcm_blade
+                && Some(i) != main_idx[0]
+                && Some(i) != dragon_idx[0]
+        })
+        .map(|i| interned[i])
+        .collect::<Vec<_>>()
+        .into();
+    l
 }
+
+/// JS `GEAR_REPICK_ROUNDS`: rounds of re-picking gear after the power and tuning split are chosen.
+const GEAR_REPICK_ROUNDS: usize = 2;
 
 fn by_slot_index(s: Slot) -> usize {
     match s {
