@@ -31,6 +31,7 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - The only SkyBlock wiki to trust is https://hypixelskyblock.minecraft.wiki/ (owner, 2026-10-30).
 - Solo Archer Doubleshot: 151% at Archer 50 (1.01 + 1% per level): one extra full-damage arrow plus a 51% chance of another.
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
+- Overload counts only on normal arrow hits, never on ferocity procs (owner, 2026-11-25): a Berserker ferocity hit uses crit chance capped at 100%.
 - Legion: +0.1% combat stats per level per player (0.5% at V, 0.27.3). 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
 - 0.27.3 (owner, 2026-11-17; the wiki is out of date on these): General's Medallion max +6% (6 secret digits), Golden Dragon Shining Scales +15 strength per Gold collection digit.
 - Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (25% base doubled solo + level/2 %, max 25: 75% at Mage 50), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".

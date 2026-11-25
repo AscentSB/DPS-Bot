@@ -762,19 +762,20 @@ pub fn evaluate_with_base(
             .map(|p| model.pet_stats(p, l.bank).special.deaths_touch.unwrap_or(0.0))
             .unwrap_or(0.0);
         let boss_dps = |s: &FinalStats| -> f64 {
-            let hit_with = |m: f64| -> f64 {
+            let hit_with_ol = |m: f64, ol: bool| -> f64 {
                 match cls {
-                    Class::Arch => archer_damage(s, defense, ctx.d.archer_multiplier * m, overload),
-                    Class::Bers => berserker_damage(s, defense, 0.0, m, overload),
+                    Class::Arch => archer_damage(s, defense, ctx.d.archer_multiplier * m, ol),
+                    Class::Bers => berserker_damage(s, defense, 0.0, m, ol),
                     Class::Mage => mage_damage(s, defense, m),
                 }
             };
+            let hit_with = |m: f64| hit_with_ol(m, overload);
             let mut dmg = hit_with(fabled);
-            // Ferocity (Berserker vs withers only), capped at FEROCITY_CAP.
+            // Ferocity (Berserker vs withers only), capped at FEROCITY_CAP. Ferocity procs never overload.
             if cls == Class::Bers && t == 0 {
                 let ferocity = (buckets[t].get(Stat::Ferocity) * (1.0 + buckets[t].get(Stat::AdditiveFerocity))).min(FEROCITY_CAP);
                 if ferocity > 0.0 {
-                    dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100.0) * hit_with(fabled * ctx.d.berserk_melee_multiplier);
+                    dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100.0) * hit_with_ol(fabled * ctx.d.berserk_melee_multiplier, false);
                 }
             }
             // Thunderlord: every 3rd hit adds lightning for a % of the hit.

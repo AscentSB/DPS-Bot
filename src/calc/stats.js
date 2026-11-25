@@ -953,16 +953,17 @@ function evaluateWith(loadout, ctx, activeExtras) {
     const bossDps = (s) => {
       // Crit chance over 100% (overload) only counts with the Overload enchant on the bow.
       const overload = isBow(loadout.weapon) && (loadout.weapon.enchants?.overload ?? 0) > 0;
-      const hitWith = (m) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m, overload)
-        : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m, overload)
+      const hitWith = (m, ol = overload) => (ctx.cls === 'arch' ? archerDamage(s, defense, archerMultiplier(ctx) * m, ol)
+        : ctx.cls === 'bers' ? berserkerDamage(s, defense, 0, m, ol)
           : mageDamage(s, defense, m));
       let dmg = hitWith(fabled);
       // Ferocity (Berserker vs withers only): each 100 ferocity is one extra hit per arrow, a melee hit, so the
       // Berserk melee bonus multiplies it again on top of the additive. Counted at
       // FEROCITY_EFFECTIVENESS (it lands late on a boss that dies fast). Capped at FEROCITY_CAP.
+      // Ferocity procs never overload (only normal arrow hits do): crit chance stops at 100% for them.
       if (ctx.cls === 'bers' && target === 'wither') {
         const ferocity = Math.min(FEROCITY_CAP, buckets[target].ferocity * (1 + buckets[target].additiveFerocity));
-        if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx));
+        if (ferocity > 0) dmg += FEROCITY_EFFECTIVENESS * (ferocity / 100) * hitWith(fabled * berserkMeleeMultiplier(ctx), false);
       }
       // Thunderlord: every 3rd hit adds lightning for a % of the hit.
       const thunder = thunderlordPercent(loadout.weapon);
