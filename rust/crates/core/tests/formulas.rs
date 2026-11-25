@@ -81,15 +81,16 @@ fn catacombs_level_boost_and_dungeon_multiplier() {
     close6(dungeon_multiplier(50.0, 5.0, 0.0, 0.0), 6.35);
     close6(dungeon_multiplier(50.0, 5.0, 2.0, 3.0), 6.35 + 0.1 + 0.03);
     close6(dungeon_multiplier(50.0, 3.0, 0.0, 0.0), 1.0 + 4.85 + 0.3);
-    close6(dungeon_crit_multiplier(5.0, 5.0, 9.0), 1.5 + 0.25 + 0.06);
+    close6(dungeon_crit_multiplier(5.0, 5.0, 9.0), 1.5 + 0.25 + 0.05);
 }
 
 #[test]
 fn general_medallion_secret_digits() {
     assert_eq!(secret_digits(0.0), 0.0);
     assert_eq!(secret_digits(1234.0), 4.0);
-    assert_eq!(secret_digits(123456.0), 6.0);
-    assert_eq!(secret_digits(1234567.0), 6.0);
+    assert_eq!(secret_digits(12345.0), 5.0);
+    assert_eq!(secret_digits(123456.0), 5.0);
+    assert_eq!(secret_digits(1234567.0), 5.0);
 }
 
 #[test]

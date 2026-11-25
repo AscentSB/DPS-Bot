@@ -33,13 +33,13 @@ Discord bot (`/dps archer|berserker|mage`) for Hypixel SkyBlock M7. It reads a p
 - Crit chance over 100% (overload formula) counts only with the Overload enchant on a bow. Otherwise crit chance stops at 100%.
 - Overload counts only on normal arrow hits, never on ferocity procs (owner, 2026-11-25): a Berserker ferocity hit uses crit chance capped at 100%.
 - Legion: +0.1% combat stats per level per player (0.5% at V, 0.27.3). 4 players vs Withers (all classes) and vs dragons for Mage, 1 everywhere else and in RCM.
-- 0.27.3 (owner, 2026-11-17; the wiki is out of date on these): General's Medallion max +6% (6 secret digits), Golden Dragon Shining Scales +15 strength per Gold collection digit.
+- 0.27.3 (owner, 2026-11-17; the wiki is out of date on these): General's Medallion max +5% (5 secret digits; back from 6 to 5, owner, 2026-11-25), Golden Dragon Shining Scales +15 strength per Gold collection digit.
 - Shadow Assassin cloak: 1.1x once per 3s, cooldown cut by Mage class CDR (25% base doubled solo + level/2 %, max 25: 75% at Mage 50), averaged over hits. LCM scrolls show "(Shadow Assassin Cloak ability)".
 - Dungeon VII potion is assumed. The best owned Jellyfish boosts it (data file: +50% at Legendary 100). Confirmed by the owner: +50%, it does not double, and it scales every potion effect.
 - The One (necklace ultimate): +0.1 / +0.2 strength per maxed collection. Collections count co-op wide, including members who left.
 - Solo class ("stats are doubled"): only each passive's base doubles, never the class-level part (Mage intelligence 2 x 250 + 5 per level, CDR 2 x 25 + level/2, ability damage 2 x 5 + 1 per 5 levels, Berserk 2 x 40 + 0.75 per level). Measured on 769 ADR solo-class lines (alldata combat-solo-class): after - before is the same for every player whatever the level, and before minus that is exactly the per-level value at the tab-list class level. Archer arrow damage still uses 2 x 0.8 per level: the lines show a +50 base and a level part near 165 at high level that 0.8/level doesn't explain, and no Archer class level was recorded to fit it.
 - Book of Progression gives no damage: Extra Infliction was removed from the game (owner, 2026-11-17). No switch step.
-- Berserker additive damage: Warrior (Combat level) + Berserk class bonus (2 x 40 + 0.75 per level) + Lust for Blood (12 per level, 600 at Berserk 50; per-level parts don't double solo).
+- Berserker additive damage: Warrior (Combat level) + Berserk class bonus (2 x 40 + 0.75 per level) + Lust for Blood (24 per level, 1200 at Berserk 50 solo; owner, 2026-11-25: not halved by the solo-class rule).
 - Pets: no fixed pet per boss. The owned pet that does the most damage against each boss is active (RCM still keeps an owned Golden Dragon).
 - Golden Dragon strength uses gold collection digits (the player's own gold only) and the bank: co-op bank on co-ops, the one bank on solo profiles. Members with a deletion notice count as gone.
 

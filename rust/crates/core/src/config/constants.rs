@@ -28,8 +28,9 @@ pub const SOLO_CLASS_MULTIPLIER: f64 = 2.0;
 pub const ARCHER_ARROW_DAMAGE_PER_LEVEL: f64 = 0.8;
 pub const BERSERK_DAMAGE_BASE: f64 = 40.0;
 pub const BERSERK_DAMAGE_PER_LEVEL: f64 = 0.75;
-/// Berserker Lust for Blood: additive damage, 600 at Berserk 50 (12 per level; per-level parts are not doubled solo).
-pub const LUST_FOR_BLOOD_PER_LEVEL: f64 = 12.0;
+/// Berserker Lust for Blood: additive damage, 1200 at Berserk 50 solo (24 per level; owner, 2026-11-25). Not halved by
+/// the solo-class rule: the ADR solo lines measured the Berserk base, not Lust for Blood.
+pub const LUST_FOR_BLOOD_PER_LEVEL: f64 = 24.0;
 pub const WARRIOR_PER_LEVEL: f64 = 4.0;
 pub const WARRIOR_PER_LEVEL_AFTER_50: f64 = 1.0;
 
@@ -240,7 +241,7 @@ pub const MAX_STARS: f64 = 5.0;
 pub const MASTER_STAR_STEP: f64 = 0.05;
 pub const MAX_MASTER_STARS: f64 = 5.0;
 pub const SECRET_STEP: f64 = 0.01;
-pub const SECRET_DIGIT_CAP: f64 = 6.0;
+pub const SECRET_DIGIT_CAP: f64 = 5.0;
 pub const GENERAL_MEDALLION_ID: &str = "GENERAL_MEDALLION";
 
 /// Catacombs dungeon item stat bonus in percent, index = Catacombs level (0-50).

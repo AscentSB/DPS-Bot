@@ -85,7 +85,7 @@ export function cataBoost(level) {
   return CATA_STAT_BONUS[capped] / 100;
 }
 
-// Number of digits in the secret count, capped at 6 (General's Medallion).
+// Number of digits in the secret count, capped at 5 (General's Medallion).
 export function secretDigits(secrets) {
   if (!(secrets > 0)) return 0;
   return Math.min(String(Math.floor(secrets)).length, SECRET_DIGIT_CAP);

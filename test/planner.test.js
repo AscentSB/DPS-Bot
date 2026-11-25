@@ -1277,8 +1277,8 @@ test('class bonuses from class level, solo: Archer x(1 + 1.6% per level), Berser
   close(archerMultiplier({ cls: 'arch', archerLevel: 50 }), 1.8);
   close(archerMultiplier({ cls: 'bers', archerLevel: 50 }), 1);
   close(classAdditiveDamage({ cls: 'arch', combatLevel: 60 }), 210);
-  // Berserk class bonus (2 x 40 + 37.5 = 117.5) plus Lust for Blood (600 at Berserk 50; only bases double solo).
-  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 117.5 + 600);
+  // Berserk class bonus (2 x 40 + 37.5 = 117.5) plus Lust for Blood (1200 at Berserk 50 solo).
+  close(classAdditiveDamage({ cls: 'bers', combatLevel: 60, berserkLevel: 50 }), 210 + 117.5 + 1200);
   close(classAdditiveDamage({ cls: 'mage', combatLevel: 60 }), 210);
 });
 
